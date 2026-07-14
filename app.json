@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "DayFeed",
+    "slug": "DayFeed",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "DayFeed uses the microphone to record voice notes.",
+        "NSCameraUsageDescription": "DayFeed uses the camera to take photo notes.",
+        "NSPhotoLibraryUsageDescription": "DayFeed lets you attach photos from your library to notes."
+      }
+    },
+    "android": {
+      "package": "com.dayfeed.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#0E1420",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-dev-client",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "DayFeed uses the microphone to record voice notes."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0E1420"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "DayFeed uses the camera to take photo notes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "DayFeed lets you attach photos from your library to notes."
+        }
+      ]
+    ]
+  }
+}
