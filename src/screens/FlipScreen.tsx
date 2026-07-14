@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import PagerView from 'react-native-pager-view';
@@ -8,7 +8,7 @@ import DatePickerModal from '../components/DatePickerModal';
 import { useDayKeysWithNotes } from '../hooks/useQueries';
 import type { RootTabParamList } from '../navigation/types';
 import { addDaysToKey, dayDiff, formatDayHeader, todayKey } from '../utils/date';
-import { colors, spacing } from '../theme';
+import { colors, fonts, spacing, type } from '../theme';
 
 // Build a contiguous list of day_keys from start..end (inclusive).
 function rangeKeys(start: string, end: string): string[] {
@@ -90,13 +90,41 @@ export default function FlipScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpTo, jumpTs]);
 
+  // Signature moment: on each day change the serif date fades in and the whole
+  // screen warms ~2% toward the bronze accent, then settles — a quiet, tactile
+  // acknowledgement that you've flipped a page through time (not speed-scrolled).
+  const dateOpacity = useRef(new Animated.Value(1)).current;
+  const warmth = useRef(new Animated.Value(0)).current;
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    dateOpacity.setValue(0.35);
+    warmth.setValue(0);
+    Animated.parallel([
+      Animated.timing(dateOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.sequence([
+        Animated.timing(warmth, { toValue: 1, duration: 110, useNativeDriver: true }),
+        Animated.timing(warmth, { toValue: 0, duration: 320, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, [currentKey, dateOpacity, warmth]);
+
   const initialIndex = Math.max(0, days.indexOf(currentKey));
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.title}>{formatDayHeader(currentKey)}</Text>
+          <Animated.Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={[styles.title, { opacity: dateOpacity }]}
+          >
+            {formatDayHeader(currentKey)}
+          </Animated.Text>
           <Text style={styles.subtitle}>{currentKey}</Text>
         </View>
         <TouchableOpacity
@@ -132,6 +160,15 @@ export default function FlipScreen() {
         onSelect={goToKey}
         onClose={() => setPickerOpen(false)}
       />
+
+      {/* Imperceptible warm wash on day change — pointer-transparent. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.warmWash,
+          { opacity: warmth.interpolate({ inputRange: [0, 1], outputRange: [0, 0.03] }) },
+        ]}
+      />
     </SafeAreaView>
   );
 }
@@ -142,22 +179,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.divider,
   },
   headerText: { flex: 1 },
-  title: { color: colors.text, fontSize: 20, fontWeight: '800' },
-  subtitle: { color: colors.textDim, fontSize: 12, marginTop: 2, fontVariant: ['tabular-nums'] },
+  title: {
+    fontFamily: fonts.display,
+    color: colors.text,
+    fontSize: type.dayHeader,
+    letterSpacing: 0.3,
+  },
+  subtitle: {
+    fontFamily: fonts.mono,
+    color: colors.textDim,
+    fontSize: type.caption,
+    marginTop: 3,
+  },
   calBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.accentTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
     alignItems: 'center',
     justifyContent: 'center',
   },
   calGlyph: { fontSize: 20 },
   pager: { flex: 1 },
   pageHolder: { flex: 1 },
+  warmWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.accent,
+  },
 });

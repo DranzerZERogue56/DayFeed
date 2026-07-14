@@ -17,7 +17,7 @@ import PhotoGrid from '../components/PhotoGrid';
 import PhotoViewer from '../components/PhotoViewer';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 type Filter = 'all' | 'text' | 'voice' | 'photo';
 const FILTERS: { key: Filter; label: string }[] = [
@@ -145,16 +145,22 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
-  title: { color: colors.text, fontSize: 22, fontWeight: '800' },
+  title: {
+    fontFamily: fonts.display,
+    color: colors.text,
+    fontSize: type.screenTitle,
+    letterSpacing: 0.3,
+  },
   controls: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.divider,
   },
   search: {
+    fontFamily: fonts.body,
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
@@ -172,27 +178,44 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
   },
-  chipActive: { backgroundColor: colors.bubbleOwn },
-  chipText: { color: colors.textDim, fontSize: 13, fontWeight: '600' },
-  chipTextActive: { color: '#fff' },
-  listContent: { padding: spacing.md, gap: spacing.sm },
+  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipText: { fontFamily: fonts.body, color: colors.textDim, fontSize: 13, fontWeight: '600' },
+  chipTextActive: { color: '#FFFFFF' },
+  listContent: { padding: spacing.md, gap: spacing.md },
   emptyContent: { flexGrow: 1 },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    padding: spacing.md,
+    padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: colors.divider,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   cardHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  cardDay: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
-  cardTime: { color: colors.textFaint, fontSize: 12, fontVariant: ['tabular-nums'] },
-  cardText: { color: colors.text, fontSize: 16, lineHeight: 22 },
+  cardDay: {
+    fontFamily: fonts.display,
+    color: colors.textDim,
+    fontSize: type.timestamp,
+  },
+  cardTime: { fontFamily: fonts.mono, color: colors.textFaint, fontSize: 12 },
+  cardText: {
+    fontFamily: fonts.body,
+    color: colors.text,
+    fontSize: type.noteBody,
+    lineHeight: 25,
+  },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: colors.textDim, fontSize: 15 },
+  emptyText: { fontFamily: fonts.body, color: colors.textDim, fontSize: 15 },
 });

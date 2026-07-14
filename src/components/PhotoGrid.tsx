@@ -52,6 +52,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     overflow: 'hidden',
     backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
   },
   image: {
     width: '100%',

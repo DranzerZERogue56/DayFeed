@@ -8,18 +8,18 @@ import { AudioPlayerProvider } from './src/hooks/AudioPlayerContext';
 import RootTabs from './src/navigation/RootTabs';
 import { initDb } from './src/db';
 import { seedIfEmpty } from './src/db/seed';
-import { colors } from './src/theme';
+import { colors, fonts } from './src/theme';
 
 const navTheme: Theme = {
   ...DefaultTheme,
-  dark: true,
+  dark: false,
   colors: {
     ...DefaultTheme.colors,
     background: colors.bg,
     card: colors.surface,
     text: colors.text,
-    border: colors.border,
-    primary: colors.voiceAccent,
+    border: colors.divider,
+    primary: colors.accent,
   },
 };
 
@@ -38,7 +38,7 @@ export default function App() {
   if (!booted) {
     return (
       <View style={styles.boot}>
-        <ActivityIndicator color={colors.voiceAccent} size="large" />
+        <ActivityIndicator color={colors.accent} size="large" />
       </View>
     );
   }
@@ -48,7 +48,7 @@ export default function App() {
       <NotesProvider>
         <AudioPlayerProvider>
           <NavigationContainer theme={navTheme}>
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <RootTabs />
           </NavigationContainer>
         </AudioPlayerProvider>

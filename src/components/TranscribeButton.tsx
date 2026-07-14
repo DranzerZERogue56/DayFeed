@@ -3,27 +3,23 @@ import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } fr
 import type { Note } from '../db/types';
 import { useNotes } from '../hooks/NotesContext';
 import { transcribeAudio, TranscriptionBusyError } from '../lib/transcription';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 interface Props {
   note: Note;
-  /** 'own' = inside the blue Feed bubble; 'paper' = notebook page; 'list' = View All. */
+  /** Retained for call sites; all surfaces are now light so styling is shared. */
   tone?: 'own' | 'paper' | 'list';
 }
 
 const COLLAPSE_CHARS = 140;
 
-// Per-voice-note transcription control. Shows a "Transcribe" button until a
-// transcript exists, then renders the transcript (collapsible if long). The
-// button is disabled while a job runs, and only one job runs app-wide at a time.
-export default function TranscribeButton({ note, tone = 'own' }: Props) {
+// Per-voice-note transcription control — a bronze accent moment. Shows a
+// "Transcribe" button until a transcript exists, then renders the transcript
+// (collapsible if long). Disabled while a job runs; one job runs app-wide at a time.
+export default function TranscribeButton({ note }: Props) {
   const { saveTranscript } = useNotes();
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
-
-  const onPaper = tone === 'paper';
-  const textColor = onPaper ? colors.pageText : tone === 'own' ? '#fff' : colors.text;
-  const dimColor = onPaper ? colors.pageDim : colors.textDim;
 
   // Already transcribed -> show the text, never the button.
   if (note.transcript) {
@@ -31,13 +27,11 @@ export default function TranscribeButton({ note, tone = 'own' }: Props) {
     const shown = long && !expanded ? note.transcript.slice(0, COLLAPSE_CHARS) + '…' : note.transcript;
     return (
       <View style={styles.transcriptWrap}>
-        <Text style={[styles.transcriptLabel, { color: dimColor }]}>TRANSCRIPT</Text>
-        <Text style={[styles.transcriptText, { color: textColor }]}>{shown}</Text>
+        <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
+        <Text style={styles.transcriptText}>{shown}</Text>
         {long && (
           <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
-            <Text style={[styles.moreLink, { color: dimColor }]}>
-              {expanded ? 'Show less' : 'Show more'}
-            </Text>
+            <Text style={styles.moreLink}>{expanded ? 'Show less' : 'Show more'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -73,18 +67,18 @@ export default function TranscribeButton({ note, tone = 'own' }: Props) {
 
   return (
     <TouchableOpacity
-      style={[styles.button, onPaper && styles.buttonPaper]}
+      style={styles.button}
       onPress={run}
       disabled={running}
       accessibilityLabel="Transcribe voice note"
     >
       {running ? (
         <>
-          <ActivityIndicator size="small" color={onPaper ? colors.pageText : '#fff'} />
-          <Text style={[styles.buttonText, { color: textColor }]}>Transcribing…</Text>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={styles.buttonText}>Transcribing…</Text>
         </>
       ) : (
-        <Text style={[styles.buttonText, { color: textColor }]}>✎ Transcribe</Text>
+        <Text style={styles.buttonText}>✎ Transcribe</Text>
       )}
     </TouchableOpacity>
   );
@@ -99,33 +93,39 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: spacing.md,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: colors.accentTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
     alignSelf: 'flex-start',
   },
-  buttonPaper: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
-  },
   buttonText: {
+    fontFamily: fonts.body,
+    color: colors.accent,
     fontSize: 13,
     fontWeight: '700',
   },
   transcriptWrap: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.25)',
+    borderTopColor: colors.divider,
   },
   transcriptLabel: {
+    fontFamily: fonts.mono,
+    color: colors.accent,
     fontSize: 10,
-    fontWeight: '800',
     letterSpacing: 1,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   transcriptText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontFamily: fonts.body,
+    color: colors.text,
+    fontSize: type.timestamp,
+    lineHeight: 21,
   },
   moreLink: {
+    fontFamily: fonts.body,
+    color: colors.accent,
     fontSize: 12,
     fontWeight: '700',
     marginTop: 4,

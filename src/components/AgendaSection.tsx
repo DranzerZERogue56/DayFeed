@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { AgendaEntry } from '../db';
 import { notePreview } from '../utils/notePreview';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 // Top-of-page "Agenda" section on a Flip day page: detected dates that *refer to*
 // this day, even though the source note may have been written on another day.
@@ -29,17 +29,17 @@ export default function AgendaSection({ entries }: { entries: AgendaEntry[] }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: 'rgba(42,110,240,0.08)',
+    backgroundColor: colors.accentTint,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(42,110,240,0.25)',
+    borderColor: colors.accentEdge,
     padding: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   heading: {
-    color: colors.bubbleOwn,
-    fontSize: 12,
-    fontWeight: '800',
+    fontFamily: fonts.display,
+    color: colors.accent,
+    fontSize: type.timestamp,
     letterSpacing: 0.5,
     marginBottom: spacing.sm,
   },
@@ -52,19 +52,21 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.bubbleOwn,
-    marginTop: 6,
+    backgroundColor: colors.accent,
+    marginTop: 7,
     marginRight: spacing.sm,
   },
   body: { flex: 1 },
   snippet: {
+    fontFamily: fonts.body,
     color: colors.pageText,
-    fontSize: 14,
+    fontSize: type.timestamp,
     fontWeight: '600',
   },
   source: {
+    fontFamily: fonts.mono,
     color: colors.pageDim,
     fontSize: 12,
-    marginTop: 1,
+    marginTop: 2,
   },
 });

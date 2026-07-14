@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { dateFromDayKey, dayKeyFromDate, todayKey } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 interface Props {
   visible: boolean;
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: colors.divider,
   },
   head: {
     flexDirection: 'row',
@@ -146,15 +146,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.md,
   },
-  headTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
-  nav: { color: colors.text, fontSize: 26, fontWeight: '700', paddingHorizontal: spacing.sm },
+  headTitle: {
+    fontFamily: fonts.display,
+    color: colors.text,
+    fontSize: type.sectionTitle,
+    letterSpacing: 0.3,
+  },
+  nav: { color: colors.accent, fontSize: 28, fontWeight: '700', paddingHorizontal: spacing.sm },
   weekRow: { flexDirection: 'row', marginBottom: spacing.xs },
   weekday: {
+    fontFamily: fonts.mono,
     width: CELL,
     textAlign: 'center',
     color: colors.textFaint,
     fontSize: 12,
-    fontWeight: '700',
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: {
@@ -164,12 +169,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cellSelected: {
-    backgroundColor: colors.bubbleOwn,
+    backgroundColor: colors.accent,
     borderRadius: radius.md,
   },
-  cellText: { color: colors.text, fontSize: 15 },
-  cellTextToday: { color: colors.voiceAccent, fontWeight: '800' },
-  cellTextSelected: { color: '#fff', fontWeight: '800' },
+  cellText: { fontFamily: fonts.mono, color: colors.text, fontSize: 15 },
+  cellTextToday: { color: colors.accent, fontWeight: '800' },
+  cellTextSelected: { color: '#FFFFFF', fontWeight: '800' },
   dot: {
     width: 5,
     height: 5,
@@ -177,13 +182,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
     backgroundColor: 'transparent',
   },
-  dotOn: { backgroundColor: colors.voiceAccent },
+  dotOn: { backgroundColor: colors.accent },
   todayBtn: {
     marginTop: spacing.md,
     alignItems: 'center',
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.accentTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
     borderRadius: radius.md,
   },
-  todayBtnText: { color: colors.text, fontWeight: '700', fontSize: 15 },
+  todayBtnText: { fontFamily: fonts.body, color: colors.accent, fontWeight: '700', fontSize: 15 },
 });

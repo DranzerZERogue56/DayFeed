@@ -1,20 +1,60 @@
-// Single source of visual truth. DayFeed uses a calm dark "notebook at night" look.
+import { Platform } from 'react-native';
+
+// DayFeed design system — "old bookbinding": warm paper background, crisp white
+// note cards, and a bronze accent (the color of aged book spines). Light, calm,
+// built for long reading rather than speed-scrolling.
 export const colors = {
-  bg: '#0E1420',
-  surface: '#161E2E',
-  surfaceAlt: '#1E2839',
-  border: '#28344A',
-  bubbleOwn: '#2A6EF0',
-  bubbleOwnText: '#FFFFFF',
-  voiceAccent: '#3DDC97',
-  text: '#E8ECF4',
-  textDim: '#93A0B8',
-  textFaint: '#5D6B85',
-  danger: '#F0526E',
-  page: '#F6F1E4', // notebook "paper" for Flip view
-  pageText: '#2C2A24',
-  pageLine: '#E2D8C2',
-  pageDim: '#8A8271',
+  bg: '#FAF8F3', // warm off-white "paper" — never harsh white, easy on the eyes
+  surface: '#FFFFFF', // crisp white for the bubbles/note cards themselves
+  surfaceAlt: '#F1EEE8', // subtle warm fill for inputs, chips, tracks
+  divider: '#E8E5E0', // lighter warm tone for separators
+
+  text: '#1A1A1A', // almost-black, warm undertone
+  textDim: '#6B6B6B', // muted gray for metadata / secondary
+  textFaint: '#9A958C', // faint warm gray for captions / disabled
+
+  accent: '#A67C52', // warm bronze/copper — interaction, pins, active, highlights
+  accentDark: '#8B6B42', // pressed/active bronze (never a drastic change)
+  accentTint: 'rgba(166,124,82,0.10)', // washed bronze for fills/backgrounds
+  accentEdge: 'rgba(166,124,82,0.28)', // washed bronze for borders
+
+  danger: '#B4473F', // muted brick red, warm-palette friendly
+
+  // Aliases kept so existing components resolve to the new palette.
+  border: '#E8E5E0', // = divider
+  voiceAccent: '#A67C52', // = accent
+  bubbleOwn: '#A67C52', // = accent (used for active chips, selected dates, agenda marks)
+  bubbleOwnText: '#1A1A1A', // = text
+
+  // Flip "paper" sheet (now crisp white against the warm page bg).
+  page: '#FFFFFF',
+  pageText: '#1A1A1A',
+  pageLine: '#E8E5E0',
+  pageDim: '#9A958C',
+};
+
+// Type roles. Serif for ceremony (dates, headers) — this is a notebook. Neutral
+// sans recedes for body text. Monospace only for metadata (timestamps, durations,
+// coordinates) — the feel of an index-card margin.
+//
+// Named system fallbacks per the design (Georgia / system sans / Courier). Swap
+// these for bundled Charter / Inter / JetBrains Mono via expo-font with no other
+// changes — every component reads these tokens.
+export const fonts = {
+  display: Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia' })!,
+  body: Platform.select({ ios: 'System', android: 'sans-serif', default: 'System' })!,
+  mono: Platform.select({ ios: 'Courier New', android: 'monospace', default: 'monospace' })!,
+};
+
+// Type scale (design): 32 day headers · 18 note body · 14 timestamps · 12 captions.
+export const type = {
+  dayHeader: 32,
+  screenTitle: 26,
+  sectionTitle: 20,
+  noteBody: 18,
+  label: 16,
+  timestamp: 14,
+  caption: 12,
 };
 
 export const radius = {

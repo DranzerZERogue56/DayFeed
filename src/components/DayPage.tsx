@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDayNotes, useDetectedDatesForDay } from '../hooks/useQueries';
 import { parseMediaUris } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
 import AgendaSection from './AgendaSection';
@@ -76,52 +76,60 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: colors.bg,
-    padding: spacing.md,
+    paddingHorizontal: 20, // portrait-page margins on either side
+    paddingVertical: spacing.md,
   },
   sheet: {
     flex: 1,
     backgroundColor: colors.page,
     borderRadius: radius.md,
-    paddingVertical: spacing.lg,
-    paddingLeft: spacing.xl + spacing.md,
-    paddingRight: spacing.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
+    paddingVertical: spacing.xl,
+    paddingLeft: spacing.xl + spacing.sm,
+    paddingRight: spacing.xl,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   marginLine: {
     position: 'absolute',
-    left: spacing.xl,
+    left: spacing.lg,
     top: 0,
     bottom: 0,
-    width: 2,
-    backgroundColor: 'rgba(240,82,110,0.35)',
+    width: 1.5,
+    backgroundColor: colors.accentEdge,
   },
   dateStamp: {
-    color: colors.pageDim,
-    fontSize: 13,
-    fontWeight: '700',
-    marginBottom: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    fontFamily: fonts.display,
+    color: colors.accent,
+    fontSize: type.timestamp,
+    marginBottom: spacing.lg,
+    letterSpacing: 0.5,
   },
   entries: {
     paddingBottom: spacing.xl,
   },
   entry: {
-    marginBottom: spacing.md,
-    borderBottomWidth: 1,
+    marginBottom: spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.pageLine,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
   },
   time: {
-    color: colors.pageDim,
+    fontFamily: fonts.mono,
+    color: colors.textDim,
     fontSize: 11,
-    marginBottom: 2,
-    fontVariant: ['tabular-nums'],
+    marginBottom: 3,
   },
   entryText: {
+    fontFamily: fonts.body,
     color: colors.pageText,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: type.noteBody,
+    lineHeight: 26,
   },
   voiceWrap: {
     marginTop: 4,
@@ -132,8 +140,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   blankText: {
+    fontFamily: fonts.display,
     color: colors.pageDim,
-    fontSize: 14,
+    fontSize: type.label,
     fontStyle: 'italic',
   },
 });

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
 import { formatDuration } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing } from '../theme';
 
 interface Props {
   onSendText: (text: string) => void;
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    borderTopColor: colors.divider,
   },
   camera: {
     width: 44,
@@ -186,6 +186,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     color: colors.text,
+    fontFamily: fonts.body,
     fontSize: 16,
     marginRight: spacing.sm,
   },
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: colors.bubbleOwn,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -235,12 +236,13 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   recTime: {
+    fontFamily: fonts.mono,
     color: colors.text,
     fontSize: 16,
-    fontVariant: ['tabular-nums'],
     marginRight: spacing.md,
   },
   recHint: {
+    fontFamily: fonts.body,
     color: colors.textDim,
     fontSize: 13,
     flex: 1,

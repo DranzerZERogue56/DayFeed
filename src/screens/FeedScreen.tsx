@@ -9,6 +9,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import CaptureBar from '../components/CaptureBar';
 import DaySeparator from '../components/DaySeparator';
 import NoteBubble from '../components/NoteBubble';
@@ -16,11 +18,12 @@ import CaptureCameraScreen from './CaptureCameraScreen';
 import { useNotes } from '../hooks/NotesContext';
 import { useAllNotes } from '../hooks/useQueries';
 import type { RecorderResult } from '../hooks/useRecorder';
+import type { RootTabParamList } from '../navigation/types';
 import { persistRecording } from '../utils/audioFiles';
 import { persistImages } from '../utils/mediaFiles';
 import { randomUUID } from 'expo-crypto';
 import type { Note } from '../db/types';
-import { colors, spacing } from '../theme';
+import { colors, fonts, spacing, type } from '../theme';
 import { Alert } from 'react-native';
 
 type Row =
@@ -33,6 +36,12 @@ export default function FeedScreen() {
   const { notes } = useAllNotes({});
   const { addNote, removeNote } = useNotes();
   const [cameraOpen, setCameraOpen] = useState(false);
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+
+  // Tapping a day separator carries you into that day in the Flip notebook.
+  const openDayInFlip = (dayKey: string) => {
+    navigation.navigate('Flip', { jumpTo: dayKey, ts: Date.now() });
+  };
 
   const rows = useMemo<Row[]>(() => {
     // notes arrive newest-first; walk chronologically to insert day headers.
@@ -106,7 +115,7 @@ export default function FeedScreen() {
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) =>
               item.kind === 'sep' ? (
-                <DaySeparator dayKey={item.dayKey} />
+                <DaySeparator dayKey={item.dayKey} onPress={openDayInFlip} />
               ) : (
                 <NoteBubble note={item.note} onDelete={(n) => removeNote(n.id)} />
               )
@@ -140,14 +149,24 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.divider,
     backgroundColor: colors.bg,
   },
-  title: { color: colors.text, fontSize: 22, fontWeight: '800' },
-  subtitle: { color: colors.textDim, fontSize: 12, marginTop: 2 },
-  listContent: { paddingVertical: spacing.md },
+  title: {
+    fontFamily: fonts.display,
+    color: colors.text,
+    fontSize: type.screenTitle,
+    letterSpacing: 0.3,
+  },
+  subtitle: {
+    fontFamily: fonts.body,
+    color: colors.textDim,
+    fontSize: type.caption,
+    marginTop: 2,
+  },
+  listContent: { paddingVertical: spacing.sm },
   empty: {
     flex: 1,
     alignItems: 'center',
@@ -155,10 +174,15 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   emptyGlyph: { fontSize: 44, marginBottom: spacing.md },
-  emptyTitle: { color: colors.text, fontSize: 18, fontWeight: '700' },
+  emptyTitle: {
+    fontFamily: fonts.display,
+    color: colors.text,
+    fontSize: type.noteBody,
+  },
   emptyBody: {
+    fontFamily: fonts.body,
     color: colors.textDim,
-    fontSize: 14,
+    fontSize: type.timestamp,
     textAlign: 'center',
     marginTop: spacing.sm,
     lineHeight: 20,

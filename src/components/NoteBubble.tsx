@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
 import PhotoGrid from './PhotoGrid';
@@ -45,8 +45,8 @@ export default function NoteBubble({ note, onDelete }: Props) {
       >
         {isVoice ? (
           <>
-            <VoicePlayerRow note={note} variant="own" />
-            <TranscribeButton note={note} tone="own" />
+            <VoicePlayerRow note={note} variant="list" />
+            <TranscribeButton note={note} tone="list" />
           </>
         ) : isPhoto ? (
           <PhotoGrid uris={media} onOpen={(index) => setViewer({ open: true, index })} />
@@ -76,26 +76,35 @@ const styles = StyleSheet.create({
     marginVertical: spacing.xs,
   },
   bubble: {
-    maxWidth: '82%',
-    backgroundColor: colors.bubbleOwn,
+    maxWidth: '84%',
+    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderBottomRightRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    // Soft lift off the paper background.
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   bubblePhoto: {
     padding: spacing.xs + 2,
   },
   text: {
-    color: colors.bubbleOwnText,
-    fontSize: 16,
-    lineHeight: 22,
+    fontFamily: fonts.body,
+    color: colors.text,
+    fontSize: type.noteBody,
+    lineHeight: 26,
   },
   time: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 10,
+    fontFamily: fonts.mono,
+    color: colors.textDim,
+    fontSize: 11,
     alignSelf: 'flex-end',
-    marginTop: 4,
-    fontVariant: ['tabular-nums'],
+    marginTop: 6,
   },
 });

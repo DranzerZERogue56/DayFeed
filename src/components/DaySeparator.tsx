@@ -1,33 +1,52 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { formatDayHeader } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, spacing, type } from '../theme';
 
-// Centered date pill shown between notes from different days in the Feed.
-export default function DaySeparator({ dayKey }: { dayKey: string }) {
+interface Props {
+  dayKey: string;
+  /** Tap to open this day in the Flip notebook. */
+  onPress?: (dayKey: string) => void;
+}
+
+// The layout signature: a full-width section that *celebrates* the passage of a
+// day — large centered serif date framed by hairline rules — rather than a thin
+// divider. Tapping carries you into that day in the Flip notebook.
+export default function DaySeparator({ dayKey, onPress }: Props) {
   return (
-    <View style={styles.wrap}>
-      <View style={styles.pill}>
-        <Text style={styles.text}>{formatDayHeader(dayKey)}</Text>
-      </View>
-    </View>
+    <TouchableOpacity
+      activeOpacity={onPress ? 0.6 : 1}
+      onPress={onPress ? () => onPress(dayKey) : undefined}
+      style={styles.wrap}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityLabel={onPress ? `Open ${formatDayHeader(dayKey)} in the notebook` : undefined}
+    >
+      <View style={styles.rule} />
+      <Text style={styles.date}>{formatDayHeader(dayKey)}</Text>
+      <View style={styles.rule} />
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
+    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
-  pill: {
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 4,
+  rule: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
   },
-  text: {
-    color: colors.textDim,
-    fontSize: 12,
-    fontWeight: '600',
+  date: {
+    fontFamily: fonts.display,
+    fontSize: type.sectionTitle,
+    color: colors.text,
+    textAlign: 'center',
+    marginHorizontal: spacing.lg,
+    letterSpacing: 0.3,
   },
 });

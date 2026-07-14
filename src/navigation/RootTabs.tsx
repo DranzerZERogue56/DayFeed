@@ -6,7 +6,7 @@ import FlipScreen from '../screens/FlipScreen';
 import AllNotesScreen from '../screens/AllNotesScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import type { RootTabParamList } from './types';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -18,11 +18,16 @@ export default function RootTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.voiceAccent,
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textFaint,
+        tabBarLabelStyle: {
+          fontFamily: fonts.display,
+          fontSize: 11,
+          letterSpacing: 0.3,
+        },
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
+          borderTopColor: colors.divider,
         },
       }}
     >

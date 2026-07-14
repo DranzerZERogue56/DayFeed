@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAudioPlayer } from '../hooks/AudioPlayerContext';
 import type { Note } from '../db/types';
 import { formatDuration } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing } from '../theme';
 
 interface Props {
   note: Note;
@@ -24,9 +24,10 @@ export default function VoicePlayerRow({ note, variant = 'own' }: Props) {
   const label = isCurrent && pos > 0 ? formatDuration(pos) : formatDuration(total);
 
   const paper = variant === 'paper';
-  const iconColor = paper ? colors.pageText : colors.voiceAccent;
+  // Play control is always the bronze accent (per design); track sits on paper/card.
+  const iconColor = colors.accent;
   const trackBg = paper ? colors.pageLine : colors.surfaceAlt;
-  const textColor = paper ? colors.pageText : colors.text;
+  const textColor = colors.textDim;
 
   const onPress = () => {
     if (!note.audio_uri) return;
@@ -92,10 +93,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   duration: {
+    fontFamily: fonts.mono,
     marginLeft: spacing.sm,
     fontSize: 12,
-    fontVariant: ['tabular-nums'],
-    minWidth: 36,
+    minWidth: 40,
     textAlign: 'right',
   },
 });

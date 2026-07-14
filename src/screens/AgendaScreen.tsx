@@ -8,7 +8,7 @@ import type { AgendaEntry } from '../db';
 import type { RootTabParamList } from '../navigation/types';
 import { notePreview } from '../utils/notePreview';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 interface Section {
   dayKey: string;
@@ -92,21 +92,25 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.divider,
   },
-  title: { color: colors.text, fontSize: 22, fontWeight: '800' },
-  subtitle: { color: colors.textDim, fontSize: 12, marginTop: 2 },
+  title: {
+    fontFamily: fonts.display,
+    color: colors.text,
+    fontSize: type.screenTitle,
+    letterSpacing: 0.3,
+  },
+  subtitle: { fontFamily: fonts.body, color: colors.textDim, fontSize: type.caption, marginTop: 2 },
   listContent: { padding: spacing.md },
   sectionHeader: {
-    color: colors.voiceAccent,
-    fontSize: 13,
-    fontWeight: '800',
-    marginTop: spacing.md,
+    fontFamily: fonts.display,
+    color: colors.accent,
+    fontSize: type.label,
+    marginTop: spacing.lg,
     marginBottom: spacing.sm,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   row: {
     flexDirection: 'row',
@@ -114,28 +118,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: colors.divider,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.bubbleOwn,
+    backgroundColor: colors.accent,
     marginRight: spacing.md,
   },
   rowBody: { flex: 1 },
-  snippet: { color: colors.text, fontSize: 15, fontWeight: '700' },
-  source: { color: colors.textDim, fontSize: 13, marginTop: 2 },
-  written: { color: colors.textFaint, fontSize: 11, marginTop: 2 },
-  chevron: { color: colors.textFaint, fontSize: 24, marginLeft: spacing.sm },
+  snippet: { fontFamily: fonts.body, color: colors.text, fontSize: type.label, fontWeight: '700' },
+  source: { fontFamily: fonts.body, color: colors.textDim, fontSize: 13, marginTop: 2 },
+  written: { fontFamily: fonts.mono, color: colors.textFaint, fontSize: 11, marginTop: 3 },
+  chevron: { color: colors.accent, fontSize: 24, marginLeft: spacing.sm },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   emptyGlyph: { fontSize: 44, marginBottom: spacing.md },
-  emptyTitle: { color: colors.text, fontSize: 18, fontWeight: '700' },
+  emptyTitle: { fontFamily: fonts.display, color: colors.text, fontSize: type.noteBody },
   emptyBody: {
+    fontFamily: fonts.body,
     color: colors.textDim,
-    fontSize: 14,
+    fontSize: type.timestamp,
     textAlign: 'center',
     marginTop: spacing.sm,
     lineHeight: 20,
