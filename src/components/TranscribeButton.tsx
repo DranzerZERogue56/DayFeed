@@ -11,20 +11,30 @@ interface Props {
   tone?: 'own' | 'paper' | 'list';
 }
 
+interface ControlProps {
+  audioUri: string | null;
+  transcript: string | null;
+  /** Persist the finished transcript. The caller decides which table it lands in. */
+  onTranscribed: (text: string) => Promise<void>;
+}
+
 const COLLAPSE_CHARS = 140;
 
 // Per-voice-note transcription control — a bronze accent moment. Shows a
 // "Transcribe" button until a transcript exists, then renders the transcript
-// (collapsible if long). Disabled while a job runs; one job runs app-wide at a time.
-export default function TranscribeButton({ note }: Props) {
-  const { saveTranscript } = useNotes();
+// (collapsible if long). Disabled while a job runs; one job runs app-wide at a
+// time, across both the notes and flop_notes tables.
+//
+// Storage-agnostic: `onTranscribed` decides where the text is saved, so stream
+// notes and Flop notes share this control.
+export function TranscribeControl({ audioUri, transcript, onTranscribed }: ControlProps) {
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   // Already transcribed -> show the text, never the button.
-  if (note.transcript) {
-    const long = note.transcript.length > COLLAPSE_CHARS;
-    const shown = long && !expanded ? note.transcript.slice(0, COLLAPSE_CHARS) + '…' : note.transcript;
+  if (transcript) {
+    const long = transcript.length > COLLAPSE_CHARS;
+    const shown = long && !expanded ? transcript.slice(0, COLLAPSE_CHARS) + '…' : transcript;
     return (
       <View style={styles.transcriptWrap}>
         <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
@@ -38,16 +48,15 @@ export default function TranscribeButton({ note }: Props) {
     );
   }
 
-  if (!note.audio_uri) return null;
+  if (!audioUri) return null;
 
   const run = async () => {
     if (running) return;
     setRunning(true);
     try {
-      const text = await transcribeAudio(note.audio_uri!);
+      const text = await transcribeAudio(audioUri);
       if (text) {
-        // Persists the transcript and runs date detection over it (Phase 4).
-        await saveTranscript(note, text);
+        await onTranscribed(text);
       } else {
         Alert.alert('No speech detected', 'The transcription came back empty.');
       }
@@ -81,6 +90,20 @@ export default function TranscribeButton({ note }: Props) {
         <Text style={styles.buttonText}>✎ Transcribe</Text>
       )}
     </TouchableOpacity>
+  );
+}
+
+// Stream-note binding: saves to `notes` and runs date detection over the fresh
+// transcript (Phase 4). Flop notes use TranscribeControl directly — Flop is
+// timeless by design and must never feed the agenda.
+export default function TranscribeButton({ note }: Props) {
+  const { saveTranscript } = useNotes();
+  return (
+    <TranscribeControl
+      audioUri={note.audio_uri}
+      transcript={note.transcript}
+      onTranscribed={(text) => saveTranscript(note, text)}
+    />
   );
 }
 

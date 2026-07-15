@@ -5,6 +5,7 @@ import FeedScreen from '../screens/FeedScreen';
 import FlipScreen from '../screens/FlipScreen';
 import AllNotesScreen from '../screens/AllNotesScreen';
 import AgendaScreen from '../screens/AgendaScreen';
+import FlopStack from './FlopStack';
 import type { RootTabParamList } from './types';
 import { colors, fonts } from '../theme';
 
@@ -40,6 +41,12 @@ export default function RootTabs() {
         name="Flip"
         component={FlipScreen}
         options={{ tabBarIcon: icon('📖'), tabBarLabel: 'Flip' }}
+      />
+      {/* Flop is its own world: a stack, not a screen, so it can drill in. */}
+      <Tab.Screen
+        name="Flop"
+        component={FlopStack}
+        options={{ tabBarIcon: icon('📚'), tabBarLabel: 'Flop' }}
       />
       <Tab.Screen
         name="Agenda"

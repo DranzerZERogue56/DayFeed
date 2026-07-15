@@ -63,6 +63,15 @@ export function formatClock(ms: number): string {
   return `${h}:${m} ${ampm}`;
 }
 
+/**
+ * Absolute stamp for Flop's updated_at, e.g. "Jul 14 2026 · 3:07 PM". Flop notes
+ * carry no day_key, so they get a plain timestamp rather than a day header.
+ */
+export function formatFlopStamp(ms: number): string {
+  const d = new Date(ms);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()} ${d.getFullYear()} · ${formatClock(ms)}`;
+}
+
 /** ms duration -> "M:SS". */
 export function formatDuration(ms: number | null | undefined): string {
   const total = Math.max(0, Math.round((ms ?? 0) / 1000));

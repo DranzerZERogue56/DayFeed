@@ -5,8 +5,11 @@ import type { Note } from '../db/types';
 import { formatDuration } from '../utils/date';
 import { colors, fonts, radius, spacing } from '../theme';
 
+/** Structural, not `Note` — Flop voice notes live in their own table but play the same. */
+type PlayableNote = Pick<Note, 'id' | 'audio_uri' | 'duration_ms'>;
+
 interface Props {
-  note: Note;
+  note: PlayableNote;
   /** 'own' = tinted for the sender bubble; 'paper' = notebook page; 'list' = View All. */
   variant?: 'own' | 'paper' | 'list';
 }

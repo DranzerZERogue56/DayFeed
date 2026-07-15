@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, type Theme } from '@react-navigation/native';
 import { NotesProvider } from './src/hooks/NotesContext';
+import { FlopProvider } from './src/hooks/FlopContext';
 import { AudioPlayerProvider } from './src/hooks/AudioPlayerContext';
 import RootTabs from './src/navigation/RootTabs';
 import { initDb } from './src/db';
@@ -46,12 +47,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NotesProvider>
-        <AudioPlayerProvider>
-          <NavigationContainer theme={navTheme}>
-            <StatusBar style="dark" />
-            <RootTabs />
-          </NavigationContainer>
-        </AudioPlayerProvider>
+        <FlopProvider>
+          <AudioPlayerProvider>
+            <NavigationContainer theme={navTheme}>
+              <StatusBar style="dark" />
+              <RootTabs />
+            </NavigationContainer>
+          </AudioPlayerProvider>
+        </FlopProvider>
       </NotesProvider>
     </SafeAreaProvider>
   );

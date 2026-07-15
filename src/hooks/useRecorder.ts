@@ -1,12 +1,13 @@
-import { Audio } from 'expo-av';
+import { requestRecordingPermissionsAsync } from 'expo-audio';
 import AudioRecord from '@fugood/react-native-audio-pcm-stream';
 import { Buffer } from 'buffer';
 import { useCallback, useRef, useState } from 'react';
 import { File } from 'expo-file-system';
 
 // Voice recording for DayFeed. Records 16 kHz mono 16-bit PCM WAV via a native
-// PCM stream — the format whisper.rn requires — because expo-av cannot produce
-// WAV on Android. The module writes the WAV itself; stop() returns its path.
+// PCM stream — the format whisper.rn requires — because the Expo audio modules
+// cannot produce WAV on Android. The module writes the WAV itself; stop()
+// returns its path. Only the mic permission comes from expo-audio.
 export interface RecorderResult {
   uri: string;
   durationMs: number;
@@ -28,7 +29,7 @@ export function useRecorder() {
   const bytesRef = useRef(0);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    const { granted } = await Audio.requestPermissionsAsync();
+    const { granted } = await requestRecordingPermissionsAsync();
     return granted;
   }, []);
 

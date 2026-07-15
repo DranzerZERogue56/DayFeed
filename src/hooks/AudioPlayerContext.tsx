@@ -1,4 +1,4 @@
-import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import React, {
   createContext,
   useCallback,
@@ -11,6 +11,10 @@ import React, {
 
 // Single shared audio player: only one voice note plays at a time, across every
 // screen. Components subscribe by note id.
+//
+// Built on expo-audio. (expo-av, its predecessor, was removed from the SDK; its
+// last prebuilt binary links against a pre-0.86 JSI ABI and cannot load under
+// React Native 0.86 at all.)
 interface PlaybackState {
   noteId: string | null;
   isPlaying: boolean;
@@ -33,18 +37,21 @@ const EMPTY: PlaybackState = {
   durationMs: 0,
 };
 
+// expo-audio reports seconds; the rest of the app speaks milliseconds.
+const toMs = (seconds: number) => Math.max(0, Math.round(seconds * 1000));
+
 export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const playerRef = useRef<AudioPlayer | null>(null);
   const currentId = useRef<string | null>(null);
   const [state, setState] = useState<PlaybackState>(EMPTY);
 
-  const unload = useCallback(async () => {
-    const s = soundRef.current;
-    soundRef.current = null;
+  const unload = useCallback(() => {
+    const p = playerRef.current;
+    playerRef.current = null;
     currentId.current = null;
-    if (s) {
+    if (p) {
       try {
-        await s.unloadAsync();
+        p.remove();
       } catch {
         // ignore
       }
@@ -52,64 +59,60 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    return () => {
-      void unload();
-    };
+    return () => unload();
   }, [unload]);
 
   const toggle = useCallback(
     async (noteId: string, uri: string) => {
       // Tapping the currently loaded note pauses/resumes it.
-      if (currentId.current === noteId && soundRef.current) {
-        const status = await soundRef.current.getStatusAsync();
-        if (status.isLoaded && status.isPlaying) {
-          await soundRef.current.pauseAsync();
-        } else {
-          await soundRef.current.playAsync();
-        }
+      const existing = playerRef.current;
+      if (currentId.current === noteId && existing) {
+        if (existing.playing) existing.pause();
+        else existing.play();
         return;
       }
 
-      // Switching notes: tear down the previous sound.
-      await unload();
+      // Switching notes: tear down the previous player.
+      unload();
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-        shouldDuckAndroid: true,
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+        interruptionMode: 'doNotMix',
+        interruptionModeAndroid: 'doNotMix',
+        shouldPlayInBackground: false,
       });
 
-      const { sound } = await Audio.Sound.createAsync(
-        { uri },
-        { shouldPlay: true },
-        (status) => {
-          if (!status.isLoaded) return;
-          setState({
-            noteId,
-            isPlaying: status.isPlaying,
-            positionMs: status.positionMillis ?? 0,
-            durationMs: status.durationMillis ?? 0,
-          });
-          if (status.didJustFinish) {
-            // Reset to start and stop.
-            void sound.setPositionAsync(0);
-            void sound.pauseAsync();
-            setState((prev) =>
-              prev.noteId === noteId ? { ...prev, isPlaying: false, positionMs: 0 } : prev,
-            );
-          }
-        },
-      );
-      soundRef.current = sound;
+      const player = createAudioPlayer({ uri });
+      playerRef.current = player;
       currentId.current = noteId;
+
+      player.addListener('playbackStatusUpdate', (status) => {
+        // A player torn down mid-flight must not write state over its successor.
+        if (currentId.current !== noteId) return;
+        setState({
+          noteId,
+          isPlaying: status.playing,
+          positionMs: toMs(status.currentTime),
+          durationMs: toMs(status.duration),
+        });
+        if (status.didJustFinish) {
+          // Reset to the start and stop, so the row is ready to replay.
+          void player.seekTo(0);
+          player.pause();
+          setState((prev) =>
+            prev.noteId === noteId ? { ...prev, isPlaying: false, positionMs: 0 } : prev,
+          );
+        }
+      });
+
+      player.play();
     },
     [unload],
   );
 
   const stop = useCallback(async () => {
-    await unload();
+    unload();
     setState(EMPTY);
   }, [unload]);
 

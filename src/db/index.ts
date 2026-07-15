@@ -37,7 +37,28 @@ CREATE INDEX IF NOT EXISTS idx_detected_note ON detected_dates (note_id);
 CREATE INDEX IF NOT EXISTS idx_detected_date_key ON detected_dates (date_key);
 `;
 
-const LATEST_VERSION = 2;
+// v2 -> v3: Flop — long-form notes with nested, typed children. Its own table
+// because Flop notes carry no day semantics and need tree structure; parent_id
+// self-references so deleting a note cascades to its whole subtree.
+const MIGRATION_V3 = `
+CREATE TABLE IF NOT EXISTS flop_notes (
+  id TEXT PRIMARY KEY NOT NULL,
+  parent_id TEXT REFERENCES flop_notes(id) ON DELETE CASCADE,
+  relation TEXT NOT NULL,
+  type TEXT NOT NULL,
+  content TEXT,
+  audio_uri TEXT,
+  duration_ms INTEGER,
+  transcript TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_flop_parent ON flop_notes (parent_id);
+CREATE INDEX IF NOT EXISTS idx_flop_updated_at ON flop_notes (updated_at);
+`;
+
+const LATEST_VERSION = 3;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -52,6 +73,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 2) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V2);
+    });
+  }
+
+  if (current < 3) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V3);
     });
   }
 
@@ -82,3 +109,5 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase> {
 export * from './notes';
 export * from './detectedDates';
 export * from './types';
+export * from './flopNotes';
+export * from './flopTypes';

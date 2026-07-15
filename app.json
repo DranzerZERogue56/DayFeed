@@ -36,7 +36,7 @@
       "expo-sqlite",
       "expo-dev-client",
       [
-        "expo-av",
+        "expo-audio",
         {
           "microphonePermission": "DayFeed uses the microphone to record voice notes."
         }

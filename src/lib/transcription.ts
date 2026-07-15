@@ -5,8 +5,8 @@ import { initWhisper, type WhisperContext } from 'whisper.rn';
 // transcription job runs at a time.
 //
 // Audio format: whisper.rn decodes **PCM WAV only**. Voice notes are recorded as
-// 16 kHz mono WAV by useRecorder (via a native PCM stream, since expo-av can't
-// produce WAV on Android), so they can be fed to the model directly.
+// 16 kHz mono WAV by useRecorder (via a native PCM stream, since the Expo audio
+// modules can't produce WAV on Android), so they feed the model directly.
 
 // The bundled model. Drop `ggml-base.bin` into assets/models/ (see README). Metro
 // is configured to treat .bin as an asset (metro.config.js -> assetExts).

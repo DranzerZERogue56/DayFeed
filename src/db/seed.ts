@@ -1,13 +1,52 @@
 import { countNotes, createNote } from './notes';
+import { countFlopNotes, createFlopNote } from './flopNotes';
 
 // Dev-only seed data. Spreads a handful of text notes across several days so the
 // Feed / Flip / View-All screens have something to render. No-ops if data exists.
 const DAY = 86400000;
 
 export async function seedIfEmpty(): Promise<boolean> {
-  if ((await countNotes()) > 0) return false;
-  await seed();
-  return true;
+  const seededNotes = (await countNotes()) === 0;
+  if (seededNotes) await seed();
+  // Flop has its own table and its own emptiness — seed it independently.
+  if ((await countFlopNotes()) === 0) await seedFlop();
+  return seededNotes;
+}
+
+/** A small argument tree, so the Flop tab has structure to render in dev. */
+async function seedFlop(): Promise<void> {
+  const root = await createFlopNote({
+    relation: 'root',
+    type: 'text',
+    content:
+      'Should the notebook stay offline-only?\n' +
+      'Sync is the obvious next feature, but every note living on one device is ' +
+      'the reason this thing feels private enough to write in honestly.',
+  });
+  const support = await createFlopNote({
+    parent_id: root.id,
+    relation: 'support',
+    type: 'text',
+    content: 'No server means no breach\nThere is nothing to leak if nothing leaves the phone.',
+  });
+  await createFlopNote({
+    parent_id: support.id,
+    relation: 'oppose',
+    type: 'text',
+    content: 'A lost phone loses everything\nWithout sync, a cracked screen is a deleted journal.',
+  });
+  await createFlopNote({
+    parent_id: root.id,
+    relation: 'idea',
+    type: 'text',
+    content: 'Export to a file instead\nBackup without a server: the user carries their own copy.',
+  });
+  await createFlopNote({
+    parent_id: root.id,
+    relation: 'oppose',
+    type: 'text',
+    content: 'One device is a real limit\nNotes taken on a laptop never make it in.',
+  });
 }
 
 export async function seed(): Promise<void> {

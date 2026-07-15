@@ -33,6 +33,33 @@ export const colors = {
   pageDim: '#9A958C',
 };
 
+// Flop relation colors — the one place the palette expands beyond ink and bronze.
+// Three muted, paper-compatible tones. Color is never the only indicator: every
+// use pairs the tone with an icon and a label.
+export const relationStyle = {
+  support: {
+    label: 'Support',
+    plural: 'SUPPORT',
+    color: '#5A7052', // moss green
+    tint: '#E7ECE3',
+    icon: '↑', // upward arrow
+  },
+  idea: {
+    label: 'Idea',
+    plural: 'IDEAS',
+    color: '#8A6238', // bronze — ideas are the app's native impulse
+    tint: '#F0E7DC',
+    icon: '⑂', // branching fork
+  },
+  oppose: {
+    label: 'Oppose',
+    plural: 'OPPOSE',
+    color: '#94524A', // brick red
+    tint: '#F0E2E0',
+    icon: '←', // counter arrow
+  },
+} as const;
+
 // Type roles. Serif for ceremony (dates, headers) — this is a notebook. Neutral
 // sans recedes for body text. Monospace only for metadata (timestamps, durations,
 // coordinates) — the feel of an index-card margin.

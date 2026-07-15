@@ -1,9 +1,10 @@
 # DayFeed
 
 An **offline-first** notes app that combines a chat-style quick-capture **Feed**
-with a day-by-day **Flip** notebook, an **Agenda** timeline, and a searchable
-**View All** list. All data lives on-device in SQLite — no accounts, no network,
-no cloud. Transcription runs **on-device** (whisper.cpp); nothing leaves the phone.
+with a day-by-day **Flip** notebook, a **Flop** workspace for long-form thinking,
+an **Agenda** timeline, and a searchable **View All** list. All data lives
+on-device in SQLite — no accounts, no network, no cloud. Transcription runs
+**on-device** (whisper.cpp); nothing leaves the phone.
 
 > 📱 **Put it on your phone:** grab the APK from the
 > [latest release](https://github.com/DranzerZERogue56/DayFeed/releases/latest) —
@@ -15,6 +16,8 @@ no cloud. Transcription runs **on-device** (whisper.cpp); nothing leaves the pho
 - **Flip** — one paper "page" per calendar day. Each page shows an **Agenda**
   section (dates that *refer to* this day) above the notes written on it. Swipe
   through days (including empty ones); tap 📅 to jump to any date. Opens on today.
+- **Flop** — a workspace for the long thoughts, the ones that outlive a day. See
+  [Flop](#flop-long-form-workspace) below.
 - **Agenda** — a chronological timeline of every date DayFeed found in your notes,
   grouped by the day it refers to. Tap an entry to jump to the source note's day
   page in Flip.
@@ -36,9 +39,11 @@ no cloud. Transcription runs **on-device** (whisper.cpp); nothing leaves the pho
 ## Stack
 
 - Expo SDK 57 (dev client workflow — **not** Expo Go; it uses custom native modules)
-- `expo-sqlite` — local storage (single `notes` table + `detected_dates`)
-- `expo-av` — voice-note playback; `@fugood/react-native-audio-pcm-stream` —
-  16 kHz mono WAV recording (see *Transcription* below)
+- `expo-sqlite` — local storage (`notes` + `detected_dates`, and `flop_notes`)
+- `expo-audio` — voice-note playback and the mic permission;
+  `@fugood/react-native-audio-pcm-stream` — 16 kHz mono WAV recording (see
+  *Transcription* below)
+- `@react-navigation/native-stack` — Flop's drill-in stack
 - `whisper.rn` — on-device transcription (whisper.cpp), **base** model bundled
 - `expo-camera` + `expo-image-picker` — photo capture and gallery import
 - `chrono-node` — offline natural-language date parsing
@@ -55,15 +60,18 @@ src/
   db/          initDb + migrations, notes (createNote, getNotesByDay,
                getAllNotes, getDayKeysWithNotes, deleteNote, setTranscript),
                detectedDates (getAgendaEntries, getDetectedDatesForDay,
-               addDetectedDates), seed, types
+               addDetectedDates), flopNotes (createFlopNote, getRootFlopNotes,
+               getFlopChildren, getFlopAncestors, deleteFlopNote), seed, types,
+               flopTypes
   screens/     FeedScreen, FlipScreen, AllNotesScreen, AgendaScreen,
-               CaptureCameraScreen
+               CaptureCameraScreen, FlopListScreen, FlopNoteScreen
   components/  CaptureBar, NoteBubble, VoicePlayerRow, DayPage, DaySeparator,
                DatePickerModal, PhotoGrid, PhotoViewer, TranscribeButton,
-               AgendaSection
-  hooks/       NotesContext, AudioPlayerContext, useRecorder, useQueries
+               AgendaSection, FlopComposer, FlopBreadcrumb, RelationChips
+  hooks/       NotesContext, AudioPlayerContext, useRecorder, useQueries,
+               FlopContext, useFlopQueries, useReducedMotion
   lib/         transcription (whisper wrapper), dateDetection (chrono-node)
-  navigation/  RootTabs, types
+  navigation/  RootTabs, FlopStack, types
   utils/       date, audioFiles, mediaFiles, notePreview
 assets/models/ ggml-base.bin  ← replace the placeholder with the real model
 ```
@@ -82,7 +90,60 @@ assets/models/ ggml-base.bin  ← replace the placeholder with the real model
 `date_key` (`YYYY-MM-DD`), `snippet` (the matched phrase). Migrations run off
 `PRAGMA user_version`; a v1 database upgrades in place with no data loss.
 
+`flop_notes` (new in the Flop release) is a **second, separate table** — Flop notes
+carry no day semantics and need tree structure, so they are not overloaded onto
+`notes`:
+
+| column       | type    | notes                                                       |
+| ------------ | ------- | ----------------------------------------------------------- |
+| `parent_id`  | TEXT    | null = root note; else FK → `flop_notes` (cascade delete)   |
+| `relation`   | TEXT    | `'root' \| 'support' \| 'idea' \| 'oppose'` (root iff no parent) |
+| `type`       | TEXT    | `'text' \| 'voice'`                                         |
+| `content`    | TEXT    | body; the **first line is the title** (no separate column)  |
+| `transcript` | TEXT    | on-device transcript for voice Flop notes                   |
+| `updated_at` | INTEGER | Flop notes are editable, unlike stream notes; orders the list |
+| `sort_order` | INTEGER | manual position among siblings                              |
+
+Note there is **no `day_key`** — that absence is the whole point of Flop.
+
 `day_key` / `date_key` are derived in local time and never recomputed on read.
+
+## Flop (long-form workspace)
+
+Flop is for large, **day-independent** notes — an argument you develop over weeks
+rather than something that happened on Tuesday. It is deliberately its own world.
+
+**Nested, typed children.** Every Flop note can carry children, each one typed by
+its relation to its parent:
+
+| relation      | means                                    | color       |
+| ------------- | ---------------------------------------- | ----------- |
+| ↑ **Support** | evidence or reasoning *for* the parent   | moss green  |
+| ⑂ **Idea**    | a branch off the parent — the extra idea | bronze      |
+| ← **Oppose**  | a counter to the parent                  | brick red   |
+
+Picking the relation is a deliberate act: the composer makes you choose one
+*before* you write. Children can be text or voice.
+
+**Drill-in navigation.** The note *is* the page. Tapping a note opens it with its
+first line as the headline, its body beneath, and its children grouped by
+relation. Tapping a child drills one level deeper (sliding in from the right —
+deeper is rightward), to unlimited depth; only ever one level renders per screen.
+The breadcrumb above the headline jumps back to any ancestor, and back walks up
+one level. Long-press a child to change its relation, reorder it among its
+siblings, or delete it — deleting takes the note's entire subtree with it, and the
+confirmation says how many notes that is.
+
+**Flop is excluded from everything else — by design:**
+
+- Flop notes never appear in the **Feed**, **Flip** pages, or **View All**.
+- Search does **not** index `flop_notes`.
+- Date detection does **not** run on Flop. Flop is timeless; a Flop note that
+  mentions "the 16th" must never create an agenda entry.
+
+Voice Flop notes do support **Transcribe**, identical to stream notes (the
+single-job-at-a-time rule is global across both tables). The transcript is stored
+on the Flop note and stays out of search and the agenda like the rest of Flop.
 
 ## Transcription (usage + how it works)
 
@@ -94,10 +155,16 @@ assets/models/ ggml-base.bin  ← replace the placeholder with the real model
 
 Only one transcription runs at a time; the button is disabled while a job runs.
 
-**Audio format:** whisper.rn decodes **PCM WAV only**. Since `expo-av` cannot
-record WAV on Android, voice notes are recorded as **16 kHz mono WAV** via
-`@fugood/react-native-audio-pcm-stream` so they feed the model directly on both
-platforms. Playback still uses `expo-av`.
+**Audio format:** whisper.rn decodes **PCM WAV only**. Since the Expo audio
+modules cannot record WAV on Android, voice notes are recorded as **16 kHz mono
+WAV** via `@fugood/react-native-audio-pcm-stream` so they feed the model directly
+on both platforms. Playback uses `expo-audio`.
+
+> **Note on `expo-av`:** this app used `expo-av` through v1.1. It was removed from
+> the Expo SDK, and its last release (`16.0.8`) ships a **prebuilt** binary linked
+> against a pre-0.86 JSI ABI — under React Native 0.86 it fails to load with
+> `UnsatisfiedLinkError` at startup, before any JS runs, crashing the app on every
+> platform. It has been replaced with `expo-audio`. Do not add it back.
 
 **Model asset:** the committed `assets/models/ggml-base.bin` is a tiny
 **placeholder**. Download the real model once before a real build (see
@@ -156,8 +223,9 @@ is in place — this is expected. (The `production` profile builds an AAB.)
 
 ## v1.2 roadmap (deferred)
 
-- **Auto-tagging** of notes — the only remaining deferred feature. The `tags`
-  column already exists (`'[]'` for now); no tagging UI yet.
+- **Auto-tagging** of notes — the `tags` column already exists (`'[]'` for now);
+  no tagging UI yet. Tagging does **not** apply to Flop.
+- **Backup export** — must include `flop_notes` alongside `notes`.
 
 Still out of scope: cloud sync, auth, and any network calls (the app is fully
 offline; the only network use is the one-time model download at build time).
