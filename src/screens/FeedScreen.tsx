@@ -14,6 +14,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import CaptureBar from '../components/CaptureBar';
 import DaySeparator from '../components/DaySeparator';
 import NoteBubble from '../components/NoteBubble';
+import ScreenHeader from '../components/ScreenHeader';
+import EmptyState from '../components/EmptyState';
 import CaptureCameraScreen from './CaptureCameraScreen';
 import { useNotes } from '../hooks/NotesContext';
 import { useAllNotes } from '../hooks/useQueries';
@@ -23,7 +25,7 @@ import { persistRecording } from '../utils/audioFiles';
 import { persistImages } from '../utils/mediaFiles';
 import { randomUUID } from 'expo-crypto';
 import type { Note } from '../db/types';
-import { colors, fonts, spacing, type } from '../theme';
+import { colors, spacing } from '../theme';
 import { Alert } from 'react-native';
 
 type Row =
@@ -90,22 +92,16 @@ export default function FeedScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>DayFeed</Text>
-        <Text style={styles.subtitle}>Quick capture</Text>
-      </View>
+      <ScreenHeader overline="Quick capture" title="DayFeed" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {rows.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyGlyph}>📝</Text>
-            <Text style={styles.emptyTitle}>Nothing captured yet</Text>
-            <Text style={styles.emptyBody}>
-              Type below and hit send, or hold the mic to record a voice note.
-            </Text>
-          </View>
+          <EmptyState
+            title="Nothing captured yet."
+            hint="Type below and hit send, or hold the mic to record a voice note."
+          />
         ) : (
           <FlatList
             data={rows}
@@ -147,44 +143,5 @@ export default function FeedScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-    backgroundColor: colors.bg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    color: colors.text,
-    fontSize: type.screenTitle,
-    letterSpacing: 0.3,
-  },
-  subtitle: {
-    fontFamily: fonts.body,
-    color: colors.textDim,
-    fontSize: type.caption,
-    marginTop: 2,
-  },
   listContent: { paddingVertical: spacing.sm },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  emptyGlyph: { fontSize: 44, marginBottom: spacing.md },
-  emptyTitle: {
-    fontFamily: fonts.display,
-    color: colors.text,
-    fontSize: type.noteBody,
-  },
-  emptyBody: {
-    fontFamily: fonts.body,
-    color: colors.textDim,
-    fontSize: type.timestamp,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    lineHeight: 20,
-  },
 });

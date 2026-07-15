@@ -5,11 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import RelationChips from '../components/RelationChips';
 import FlopComposer from '../components/FlopComposer';
+import ScreenHeader from '../components/ScreenHeader';
+import EmptyState from '../components/EmptyState';
 import { useRootFlopNotes } from '../hooks/useFlopQueries';
 import { flopBody, flopTitle } from '../db/flopTypes';
 import { formatFlopStamp } from '../utils/date';
 import type { FlopStackParamList } from '../navigation/types';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, shadows, spacing } from '../theme';
 
 // Flop root list: every root-level note, newest-touched first. The first line is
 // the title; the rest previews beneath it. Relation chips show the argument's shape.
@@ -20,16 +22,19 @@ export default function FlopListScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.screenTitle}>Flop</Text>
-        <TouchableOpacity
-          style={styles.add}
-          onPress={() => setComposing(true)}
-          accessibilityLabel="New Flop note"
-        >
-          <Text style={styles.addGlyph}>+</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        overline="Long-form workspace"
+        title="Flop"
+        action={
+          <TouchableOpacity
+            style={styles.add}
+            onPress={() => setComposing(true)}
+            accessibilityLabel="New Flop note"
+          >
+            <Text style={styles.addGlyph}>+</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={roots}
@@ -37,12 +42,10 @@ export default function FlopListScreen() {
         contentContainerStyle={roots.length === 0 ? styles.emptyContent : styles.listContent}
         ListEmptyComponent={
           loading ? null : (
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>No Flop notes yet.</Text>
-              <Text style={styles.emptyHint}>
-                Flop is for the long thoughts — the ones that outlive a day.
-              </Text>
-            </View>
+            <EmptyState
+              title="No Flop notes yet."
+              hint="Flop is for the long thoughts — the ones that outlive a day."
+            />
           )
         }
         renderItem={({ item }) => {
@@ -77,19 +80,6 @@ export default function FlopListScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  screenTitle: {
-    fontFamily: fonts.display,
-    color: colors.text,
-    fontSize: type.screenTitle,
-    letterSpacing: 0.3,
-  },
   add: {
     width: 36,
     height: 36,
@@ -109,11 +99,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    ...shadows.card,
   },
   cardTitle: {
     fontFamily: fonts.display,
@@ -135,13 +121,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   stamp: { fontFamily: fonts.mono, color: colors.textFaint, fontSize: 11 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  emptyText: { fontFamily: fonts.body, color: colors.textDim, fontSize: 15 },
-  emptyHint: {
-    fontFamily: fonts.body,
-    color: colors.textFaint,
-    fontSize: 13,
-    marginTop: 6,
-    textAlign: 'center',
-  },
 });

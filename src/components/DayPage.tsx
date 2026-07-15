@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDayNotes, useDetectedDatesForDay } from '../hooks/useQueries';
 import { parseMediaUris } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, shadows, spacing, type } from '../theme';
 import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
 import AgendaSection from './AgendaSection';
@@ -89,11 +89,7 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.xl + spacing.sm,
     paddingRight: spacing.xl,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    ...shadows.sheet,
   },
   marginLine: {
     position: 'absolute',

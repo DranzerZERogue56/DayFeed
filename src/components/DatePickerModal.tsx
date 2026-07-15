@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { dateFromDayKey, dayKeyFromDate, todayKey } from '../utils/date';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, shadows, spacing, type } from '../theme';
 
 interface Props {
   visible: boolean;
@@ -124,9 +124,10 @@ export default function DatePickerModal({
 const CELL = `${100 / 7}%`;
 
 const styles = StyleSheet.create({
+  // Warm ink scrim — same as the Flop action sheet, never pure black.
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(26,26,26,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.lg,
@@ -139,6 +140,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
+    ...shadows.sheet,
   },
   head: {
     flexDirection: 'row',

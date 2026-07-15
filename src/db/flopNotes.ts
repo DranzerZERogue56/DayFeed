@@ -1,5 +1,5 @@
 import { randomUUID } from 'expo-crypto';
-import { getDb } from './index';
+import { getDb } from './connection';
 import {
   emptyCounts,
   flopTitle,

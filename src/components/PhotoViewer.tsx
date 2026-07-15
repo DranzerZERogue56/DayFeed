@@ -27,6 +27,10 @@ export default function PhotoViewer({ uris, initialIndex, visible, onClose }: Pr
     if (visible) setIndex(initialIndex);
   }, [visible, initialIndex]);
 
+  // Unmount entirely while closed. PagerView only honors initialPage on mount,
+  // so a viewer kept mounted (NoteBubble) would reopen on the previous image.
+  if (!visible) return null;
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.root}>

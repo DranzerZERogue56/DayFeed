@@ -75,7 +75,8 @@ export default function CaptureCameraScreen({ onComplete, onClose }: Props) {
 
   if (!permission.granted) {
     return (
-      <SafeAreaView style={styles.root}>
+      // Paper background, not the camera's black — the ink text is invisible on black.
+      <SafeAreaView style={styles.permRoot}>
         <View style={styles.permissionBox}>
           <Text style={styles.permTitle}>Camera access needed</Text>
           <Text style={styles.permBody}>
@@ -165,6 +166,7 @@ export default function CaptureCameraScreen({ onComplete, onClose }: Props) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000' },
+  permRoot: { flex: 1, backgroundColor: colors.bg },
   camera: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   overlay: { flex: 1, justifyContent: 'space-between' },
   topRow: {
@@ -191,7 +193,7 @@ const styles = StyleSheet.create({
   },
   burstToggleOn: { backgroundColor: colors.voiceAccent },
   burstText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  burstTextOn: { color: '#04121C' },
+  burstTextOn: { color: '#FFFFFF' },
   bottom: { paddingBottom: spacing.md },
   filmstrip: { maxHeight: 68, marginBottom: spacing.sm },
   filmstripContent: { paddingHorizontal: spacing.lg, gap: 6 },

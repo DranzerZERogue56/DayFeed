@@ -11,7 +11,7 @@ export default function AgendaSection({ entries }: { entries: AgendaEntry[] }) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.heading}>📅 Agenda</Text>
+      <Text style={styles.heading}>AGENDA</Text>
       {entries.map((e) => (
         <View key={e.id} style={styles.row}>
           <View style={styles.bullet} />
@@ -36,11 +36,12 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
+  // Small-caps mono header — the same voice as Flop's SUPPORT/IDEAS/OPPOSE groups.
   heading: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.mono,
     color: colors.accent,
-    fontSize: type.timestamp,
-    letterSpacing: 0.5,
+    fontSize: 11,
+    letterSpacing: 1.5,
     marginBottom: spacing.sm,
   },
   row: {

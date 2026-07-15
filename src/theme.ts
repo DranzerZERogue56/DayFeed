@@ -82,7 +82,33 @@ export const type = {
   label: 16,
   timestamp: 14,
   caption: 12,
+  /** Mono small-caps eyebrow line above screen titles. */
+  overline: 11,
 };
+
+// One shadow language for every lifted surface, so cards read as the same paper
+// stock across all five tabs.
+export const shadows = {
+  /** Note cards, agenda rows, list items — a soft lift off the paper. */
+  card: {
+    shadowColor: '#2A2010',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  /** Full sheets (Flip page, modals) — sits a step higher. */
+  sheet: {
+    shadowColor: '#2A2010',
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+} as const;
+
+/** Letterpress ornament used by separators and empty states. */
+export const ornament = '❧';
 
 export const radius = {
   sm: 8,

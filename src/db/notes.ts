@@ -1,5 +1,5 @@
 import { randomUUID } from 'expo-crypto';
-import { getDb } from './index';
+import { getDb } from './connection';
 import { dayKeyFromMs } from '../utils/date';
 import type { NewNoteInput, Note } from './types';
 

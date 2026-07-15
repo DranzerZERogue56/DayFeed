@@ -8,7 +8,9 @@ import type { AgendaEntry } from '../db';
 import type { RootTabParamList } from '../navigation/types';
 import { notePreview } from '../utils/notePreview';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import ScreenHeader from '../components/ScreenHeader';
+import EmptyState from '../components/EmptyState';
+import { colors, fonts, radius, shadows, spacing, type } from '../theme';
 
 interface Section {
   dayKey: string;
@@ -40,20 +42,13 @@ export default function AgendaScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Agenda</Text>
-        <Text style={styles.subtitle}>Dates found in your notes</Text>
-      </View>
+      <ScreenHeader overline="Dates found in your notes" title="Agenda" />
 
       {sections.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyGlyph}>🗓️</Text>
-          <Text style={styles.emptyTitle}>No upcoming dates yet</Text>
-          <Text style={styles.emptyBody}>
-            Mention a date in a note — like “call Sam next Friday” — and it shows up
-            here.
-          </Text>
-        </View>
+        <EmptyState
+          title="No upcoming dates yet."
+          hint="Mention a date in a note — like “call Sam next Friday” — and it shows up here."
+        />
       ) : (
         <SectionList
           sections={sections}
@@ -69,7 +64,6 @@ export default function AgendaScreen() {
               activeOpacity={0.8}
               onPress={() => openInFlip(item)}
             >
-              <View style={styles.dot} />
               <View style={styles.rowBody}>
                 <Text style={styles.snippet}>{item.snippet}</Text>
                 <Text style={styles.source} numberOfLines={1}>
@@ -90,19 +84,6 @@ export default function AgendaScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  title: {
-    fontFamily: fonts.display,
-    color: colors.text,
-    fontSize: type.screenTitle,
-    letterSpacing: 0.3,
-  },
-  subtitle: { fontFamily: fonts.body, color: colors.textDim, fontSize: type.caption, marginTop: 2 },
   listContent: { padding: spacing.md },
   sectionHeader: {
     fontFamily: fonts.display,
@@ -112,6 +93,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     letterSpacing: 0.3,
   },
+  // A bronze left edge marks "this row points somewhere" — the same cue as
+  // Flop's relation-colored child cards.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -119,35 +102,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.accent,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.accent,
-    marginRight: spacing.md,
+    ...shadows.card,
   },
   rowBody: { flex: 1 },
   snippet: { fontFamily: fonts.body, color: colors.text, fontSize: type.label, fontWeight: '700' },
   source: { fontFamily: fonts.body, color: colors.textDim, fontSize: 13, marginTop: 2 },
   written: { fontFamily: fonts.mono, color: colors.textFaint, fontSize: 11, marginTop: 3 },
   chevron: { color: colors.accent, fontSize: 24, marginLeft: spacing.sm },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  emptyGlyph: { fontSize: 44, marginBottom: spacing.md },
-  emptyTitle: { fontFamily: fonts.display, color: colors.text, fontSize: type.noteBody },
-  emptyBody: {
-    fontFamily: fonts.body,
-    color: colors.textDim,
-    fontSize: type.timestamp,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    lineHeight: 20,
-  },
 });

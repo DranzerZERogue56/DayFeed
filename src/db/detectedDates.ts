@@ -1,5 +1,5 @@
 import { randomUUID } from 'expo-crypto';
-import { getDb } from './index';
+import { getDb } from './connection';
 import type { Note } from './types';
 
 // A date parsed out of a note's text/transcript (chrono-node), pointing at the

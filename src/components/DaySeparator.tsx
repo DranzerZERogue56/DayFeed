@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { formatDayHeader } from '../utils/date';
-import { colors, fonts, spacing, type } from '../theme';
+import { colors, fonts, ornament, spacing, type } from '../theme';
 
 interface Props {
   dayKey: string;
@@ -10,8 +10,8 @@ interface Props {
 }
 
 // The layout signature: a full-width section that *celebrates* the passage of a
-// day — large centered serif date framed by hairline rules — rather than a thin
-// divider. Tapping carries you into that day in the Flip notebook.
+// day rather than a thin divider — centered serif date over a bronze letterpress
+// ornament, framed by hairline rules. Tapping opens the day in the Flip notebook.
 export default function DaySeparator({ dayKey, onPress }: Props) {
   return (
     <TouchableOpacity
@@ -21,9 +21,12 @@ export default function DaySeparator({ dayKey, onPress }: Props) {
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={onPress ? `Open ${formatDayHeader(dayKey)} in the notebook` : undefined}
     >
-      <View style={styles.rule} />
-      <Text style={styles.date}>{formatDayHeader(dayKey)}</Text>
-      <View style={styles.rule} />
+      <View style={styles.row}>
+        <View style={styles.rule} />
+        <Text style={styles.date}>{formatDayHeader(dayKey)}</Text>
+        <View style={styles.rule} />
+      </View>
+      <Text style={styles.ornament}>{ornament}</Text>
     </TouchableOpacity>
   );
 }
@@ -31,10 +34,15 @@ export default function DaySeparator({ dayKey, onPress }: Props) {
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
-    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  row: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   rule: {
     flex: 1,
@@ -47,6 +55,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     marginHorizontal: spacing.lg,
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
+  },
+  ornament: {
+    fontFamily: fonts.display,
+    color: colors.accent,
+    fontSize: 13,
+    marginTop: 4,
+    opacity: 0.8,
   },
 });

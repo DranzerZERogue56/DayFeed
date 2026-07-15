@@ -118,6 +118,7 @@ export default function FlipScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerText}>
+          <Text style={styles.overline}>{currentKey}</Text>
           <Animated.Text
             numberOfLines={1}
             adjustsFontSizeToFit
@@ -125,7 +126,6 @@ export default function FlipScreen() {
           >
             {formatDayHeader(currentKey)}
           </Animated.Text>
-          <Text style={styles.subtitle}>{currentKey}</Text>
         </View>
         <TouchableOpacity
           style={styles.calBtn}
@@ -184,17 +184,19 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.divider,
   },
   headerText: { flex: 1 },
+  // Same editorial voice as ScreenHeader: bronze mono overline, serif title.
+  overline: {
+    fontFamily: fonts.mono,
+    color: colors.accent,
+    fontSize: type.overline,
+    letterSpacing: 2,
+    marginBottom: 2,
+  },
   title: {
     fontFamily: fonts.display,
     color: colors.text,
     fontSize: type.dayHeader,
     letterSpacing: 0.3,
-  },
-  subtitle: {
-    fontFamily: fonts.mono,
-    color: colors.textDim,
-    fontSize: type.caption,
-    marginTop: 3,
   },
   calBtn: {
     width: 44,

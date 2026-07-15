@@ -15,9 +15,11 @@ import VoicePlayerRow from '../components/VoicePlayerRow';
 import TranscribeButton from '../components/TranscribeButton';
 import PhotoGrid from '../components/PhotoGrid';
 import PhotoViewer from '../components/PhotoViewer';
+import ScreenHeader from '../components/ScreenHeader';
+import EmptyState from '../components/EmptyState';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, shadows, spacing, type } from '../theme';
 
 type Filter = 'all' | 'text' | 'voice' | 'photo';
 const FILTERS: { key: Filter; label: string }[] = [
@@ -53,9 +55,7 @@ export default function AllNotesScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>View All</Text>
-      </View>
+      <ScreenHeader overline="Every note, newest first" title="View All" />
 
       <View style={styles.controls}>
         <TextInput
@@ -93,11 +93,9 @@ export default function AllNotesScreen() {
         }
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>
-              {search.trim() ? 'No notes match your search.' : 'No notes yet.'}
-            </Text>
-          </View>
+          <EmptyState
+            title={search.trim() ? 'No notes match your search.' : 'No notes yet.'}
+          />
         }
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -143,18 +141,9 @@ export default function AllNotesScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  title: {
-    fontFamily: fonts.display,
-    color: colors.text,
-    fontSize: type.screenTitle,
-    letterSpacing: 0.3,
-  },
   controls: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.divider,
@@ -173,6 +162,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     gap: spacing.sm,
   },
+  // Small-caps mono chips — index-card tab labels rather than app buttons.
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
@@ -182,7 +172,14 @@ const styles = StyleSheet.create({
     borderColor: colors.divider,
   },
   chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontFamily: fonts.body, color: colors.textDim, fontSize: 13, fontWeight: '600' },
+  chipText: {
+    fontFamily: fonts.mono,
+    color: colors.textDim,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   chipTextActive: { color: '#FFFFFF' },
   listContent: { padding: spacing.md, gap: spacing.md },
   emptyContent: { flexGrow: 1 },
@@ -192,11 +189,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    ...shadows.card,
   },
   cardHead: {
     flexDirection: 'row',
@@ -216,6 +209,4 @@ const styles = StyleSheet.create({
     fontSize: type.noteBody,
     lineHeight: 25,
   },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { fontFamily: fonts.body, color: colors.textDim, fontSize: 15 },
 });
