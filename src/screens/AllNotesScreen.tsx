@@ -9,8 +9,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNotes } from '../hooks/NotesContext';
+import { useFlop } from '../hooks/FlopContext';
 import { useAllNotes } from '../hooks/useQueries';
+import { flopTitle } from '../db/flopTypes';
+import type { RootTabParamList } from '../navigation/types';
 import VoicePlayerRow from '../components/VoicePlayerRow';
 import TranscribeButton from '../components/TranscribeButton';
 import PhotoGrid from '../components/PhotoGrid';
@@ -36,6 +41,8 @@ export default function AllNotesScreen() {
   const [search, setSearch] = useState('');
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
   const { removeNote } = useNotes();
+  const { promoteNote } = useFlop();
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   const opts = useMemo(
     () => ({
@@ -50,6 +57,28 @@ export default function AllNotesScreen() {
     Alert.alert('Delete note?', 'This note will be permanently removed.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => removeNote(note.id) },
+    ]);
+  };
+
+  const sendToFlop = async (note: Note) => {
+    const flop = await promoteNote(note);
+    if (!flop) return;
+    Alert.alert('Sent to Flop', `“${flopTitle(flop)}” is now a Flop root note.`, [
+      { text: 'OK', style: 'cancel' },
+      { text: 'Open Flop', onPress: () => navigation.navigate('Flop') },
+    ]);
+  };
+
+  // Photo notes keep the one-step delete; Flop has no photo type to promote to.
+  const showActions = (note: Note) => {
+    if (note.type === 'photo') {
+      confirmDelete(note);
+      return;
+    }
+    Alert.alert('Note actions', undefined, [
+      { text: 'Send to Flop', onPress: () => void sendToFlop(note) },
+      { text: 'Delete…', style: 'destructive', onPress: () => confirmDelete(note) },
+      { text: 'Cancel', style: 'cancel' },
     ]);
   };
 
@@ -100,7 +129,7 @@ export default function AllNotesScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             activeOpacity={0.8}
-            onLongPress={() => confirmDelete(item)}
+            onLongPress={() => showActions(item)}
             delayLongPress={350}
             style={styles.card}
           >

@@ -24,6 +24,21 @@ export async function persistRecording(sourceUri: string, id: string): Promise<s
   return dest.uri;
 }
 
+/**
+ * Copy an existing voice-note file under a new id, leaving the original in
+ * place. Used when promoting a Feed note to Flop: each note owns its file, so
+ * deleting either note can't strand the other's audio.
+ */
+export async function copyAudioFile(sourceUri: string, id: string): Promise<string> {
+  const dir = voiceDir();
+  const ext = extensionOf(sourceUri) || 'm4a';
+  const dest = new File(dir, `${id}.${ext}`);
+  const src = new File(sourceUri);
+  if (dest.exists) dest.delete();
+  src.copy(dest);
+  return dest.uri;
+}
+
 /** Delete a voice-note file. Never throws. */
 export async function deleteAudioFile(uri: string): Promise<void> {
   try {

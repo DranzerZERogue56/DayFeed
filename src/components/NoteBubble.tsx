@@ -11,10 +11,12 @@ import PhotoViewer from './PhotoViewer';
 interface Props {
   note: Note;
   onDelete: (note: Note) => void;
+  /** Absent for photo notes' callers or when promotion isn't offered. */
+  onSendToFlop?: (note: Note) => void;
 }
 
-// Chat-style bubble for the Feed. Long-press to delete (with confirm).
-export default function NoteBubble({ note, onDelete }: Props) {
+// Chat-style bubble for the Feed. Long-press for actions (send to Flop, delete).
+export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const isVoice = note.type === 'voice';
   const isPhoto = note.type === 'photo';
   const media = isPhoto ? parseMediaUris(note) : [];
@@ -35,11 +37,25 @@ export default function NoteBubble({ note, onDelete }: Props) {
     ]);
   };
 
+  // Photo notes can't be promoted — Flop has no photo type — so they keep the
+  // one-step delete instead of a menu with a single destructive item.
+  const showActions = () => {
+    if (isPhoto || !onSendToFlop) {
+      confirmDelete();
+      return;
+    }
+    Alert.alert('Note actions', undefined, [
+      { text: 'Send to Flop', onPress: () => onSendToFlop(note) },
+      { text: 'Delete…', style: 'destructive', onPress: confirmDelete },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
   return (
     <View style={styles.wrap}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onLongPress={confirmDelete}
+        onLongPress={showActions}
         delayLongPress={350}
         style={[styles.bubble, isPhoto && styles.bubblePhoto]}
       >

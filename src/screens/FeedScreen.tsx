@@ -18,6 +18,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import CaptureCameraScreen from './CaptureCameraScreen';
 import { useNotes } from '../hooks/NotesContext';
+import { useFlop } from '../hooks/FlopContext';
+import { flopTitle } from '../db/flopTypes';
 import { useAllNotes } from '../hooks/useQueries';
 import type { RecorderResult } from '../hooks/useRecorder';
 import type { RootTabParamList } from '../navigation/types';
@@ -37,6 +39,7 @@ type Row =
 export default function FeedScreen() {
   const { notes } = useAllNotes({});
   const { addNote, removeNote } = useNotes();
+  const { promoteNote } = useFlop();
   const [cameraOpen, setCameraOpen] = useState(false);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -69,6 +72,15 @@ export default function FeedScreen() {
     const id = randomUUID();
     const uri = await persistRecording(result.uri, id);
     await addNote({ type: 'voice', audio_uri: uri, duration_ms: result.durationMs });
+  };
+
+  const onSendToFlop = async (note: Note) => {
+    const flop = await promoteNote(note);
+    if (!flop) return;
+    Alert.alert('Sent to Flop', `“${flopTitle(flop)}” is now a Flop root note.`, [
+      { text: 'OK', style: 'cancel' },
+      { text: 'Open Flop', onPress: () => navigation.navigate('Flop') },
+    ]);
   };
 
   const onPermissionDenied = () => {
@@ -113,7 +125,11 @@ export default function FeedScreen() {
               item.kind === 'sep' ? (
                 <DaySeparator dayKey={item.dayKey} onPress={openDayInFlip} />
               ) : (
-                <NoteBubble note={item.note} onDelete={(n) => removeNote(n.id)} />
+                <NoteBubble
+                  note={item.note}
+                  onDelete={(n) => removeNote(n.id)}
+                  onSendToFlop={onSendToFlop}
+                />
               )
             }
           />

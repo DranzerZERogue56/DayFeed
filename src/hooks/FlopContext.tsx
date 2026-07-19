@@ -9,7 +9,9 @@ import {
   updateFlopNote as dbUpdateFlopNote,
 } from '../db';
 import type { FlopChildRelation, FlopNote, NewFlopNoteInput } from '../db/flopTypes';
-import { deleteAudioFile } from '../utils/audioFiles';
+import type { Note } from '../db/types';
+import { copyAudioFile, deleteAudioFile } from '../utils/audioFiles';
+import { randomUUID } from 'expo-crypto';
 
 // Mutation surface for Flop. Deliberately separate from NotesContext: Flop notes
 // never touch day_key, never run date detection (Flop is timeless by design), and
@@ -24,6 +26,11 @@ interface FlopContextValue {
   moveNote: (id: string, direction: 'up' | 'down') => Promise<void>;
   /** Deletes the note and its entire subtree, cleaning up every audio file within. */
   removeFlopNote: (id: string) => Promise<void>;
+  /**
+   * Copy a Feed/View All note into Flop as a new root. The original stays in the
+   * stream untouched. Photo notes can't be promoted (Flop has no photo type).
+   */
+  promoteNote: (note: Note) => Promise<FlopNote | null>;
   refresh: () => void;
 }
 
@@ -86,6 +93,34 @@ export function FlopProvider({ children }: { children: React.ReactNode }) {
     [bump],
   );
 
+  const promoteNote = useCallback(
+    async (note: Note) => {
+      if (note.type === 'photo') return null;
+
+      let flop: FlopNote;
+      if (note.type === 'voice') {
+        if (!note.audio_uri) return null;
+        const audio_uri = await copyAudioFile(note.audio_uri, randomUUID());
+        flop = await dbCreateFlopNote({
+          relation: 'root',
+          type: 'voice',
+          audio_uri,
+          duration_ms: note.duration_ms,
+        });
+        if (note.transcript) await setFlopTranscript(flop.id, note.transcript);
+      } else {
+        flop = await dbCreateFlopNote({
+          relation: 'root',
+          type: 'text',
+          content: note.content,
+        });
+      }
+      bump();
+      return flop;
+    },
+    [bump],
+  );
+
   const value = useMemo(
     () => ({
       version,
@@ -95,9 +130,10 @@ export function FlopProvider({ children }: { children: React.ReactNode }) {
       changeRelation,
       moveNote,
       removeFlopNote,
+      promoteNote,
       refresh: bump,
     }),
-    [version, addFlopNote, editFlopNote, saveFlopTranscript, changeRelation, moveNote, removeFlopNote, bump],
+    [version, addFlopNote, editFlopNote, saveFlopTranscript, changeRelation, moveNote, removeFlopNote, promoteNote, bump],
   );
 
   return <FlopContext.Provider value={value}>{children}</FlopContext.Provider>;
