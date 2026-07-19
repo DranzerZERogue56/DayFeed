@@ -108,10 +108,10 @@ export default function FeedScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScreenHeader overline="Quick capture" title="DayFeed" />
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      {/* 'padding' on BOTH platforms: Android edge-to-edge (SDK 52+) no longer
+          resizes the window for the keyboard, so without this the capture bar
+          sits hidden behind the keyboard while typing. */}
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         {rows.length === 0 ? (
           <EmptyState
             title="Nothing captured yet."

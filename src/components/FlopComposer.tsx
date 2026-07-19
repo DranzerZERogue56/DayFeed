@@ -116,10 +116,9 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
           </TouchableOpacity>
         </View>
 
-        <KeyboardAvoidingView
-          style={styles.body}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+        {/* 'padding' on BOTH platforms — Android edge-to-edge doesn't resize
+            the window, so the mic row/input would hide behind the keyboard. */}
+        <KeyboardAvoidingView style={styles.body} behavior="padding">
           {!isRoot && (
             <View style={styles.picker}>
               {CHILD_RELATIONS.map((r) => {

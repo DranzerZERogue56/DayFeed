@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
   Text,
@@ -122,6 +123,9 @@ export default function FlopNoteScreen() {
         )}
       </View>
 
+      {/* Keyboard padding so the in-place editor stays visible while typing
+          (Android edge-to-edge never resizes the window for the keyboard). */}
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <FlopBreadcrumb ancestors={ancestors} onJump={jumpTo} />
 
@@ -197,6 +201,7 @@ export default function FlopNoteScreen() {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <FlopComposer
         visible={composing}
@@ -232,6 +237,7 @@ export default function FlopNoteScreen() {
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
