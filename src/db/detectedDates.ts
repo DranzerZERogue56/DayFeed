@@ -9,6 +9,8 @@ export interface DetectedDate {
   note_id: string;
   date_key: string;
   snippet: string;
+  /** Scheduled notification id, or null when no reminder is set (v1.3). */
+  reminder_id: string | null;
 }
 
 /** One matched date phrase to insert for a note. */
@@ -47,6 +49,7 @@ export async function addDetectedDates(
 const AGENDA_SELECT = `
 SELECT
   d.id AS d_id, d.note_id AS d_note_id, d.date_key AS d_date_key, d.snippet AS d_snippet,
+  d.reminder_id AS d_reminder_id,
   n.id, n.type, n.content, n.transcript, n.audio_uri, n.duration_ms,
   n.created_at, n.day_key, n.tags, n.media_uris
 FROM detected_dates d
@@ -58,6 +61,7 @@ interface JoinedRow extends Note {
   d_note_id: string;
   d_date_key: string;
   d_snippet: string;
+  d_reminder_id: string | null;
 }
 
 function toAgendaEntry(r: JoinedRow): AgendaEntry {
@@ -66,6 +70,7 @@ function toAgendaEntry(r: JoinedRow): AgendaEntry {
     note_id: r.d_note_id,
     date_key: r.d_date_key,
     snippet: r.d_snippet,
+    reminder_id: r.d_reminder_id,
     note: {
       id: r.id,
       type: r.type,
@@ -98,6 +103,28 @@ export async function getDetectedDatesForDay(dayKey: string): Promise<AgendaEntr
     dayKey,
   );
   return rows.map(toAgendaEntry);
+}
+
+/** Set or clear the scheduled-notification id for one detected date. */
+export async function setDetectedDateReminder(
+  id: string,
+  reminderId: string | null,
+): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE detected_dates SET reminder_id = ? WHERE id = ?`, reminderId, id);
+}
+
+/**
+ * Reminder ids attached to a note's detected dates. Fetched before the note is
+ * deleted (the FK cascade takes the rows) so the OS notifications get cancelled.
+ */
+export async function getReminderIdsForNote(noteId: string): Promise<string[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ reminder_id: string }>(
+    `SELECT reminder_id FROM detected_dates WHERE note_id = ? AND reminder_id IS NOT NULL`,
+    noteId,
+  );
+  return rows.map((r) => r.reminder_id);
 }
 
 /** Distinct date_keys that have at least one agenda entry (for Flip badges). */

@@ -62,7 +62,13 @@ CREATE INDEX IF NOT EXISTS idx_flop_parent ON flop_notes (parent_id);
 CREATE INDEX IF NOT EXISTS idx_flop_updated_at ON flop_notes (updated_at);
 `;
 
-const LATEST_VERSION = 3;
+// v3 -> v4 (DayFeed v1.3): per-entry agenda reminders. reminder_id stores the
+// OS-scheduled notification id; null means no reminder set.
+const MIGRATION_V4 = `
+ALTER TABLE detected_dates ADD COLUMN reminder_id TEXT;
+`;
+
+const LATEST_VERSION = 4;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -83,6 +89,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 3) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V3);
+    });
+  }
+
+  if (current < 4) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V4);
     });
   }
 

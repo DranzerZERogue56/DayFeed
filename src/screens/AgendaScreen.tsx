@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
-import { SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNotes } from '../hooks/NotesContext';
 import { useAgendaEntries } from '../hooks/useQueries';
-import type { AgendaEntry } from '../db';
+import { setDetectedDateReminder, type AgendaEntry } from '../db';
+import { cancelReminder, ensureReminderPermission, scheduleReminder } from '../lib/reminders';
 import type { RootTabParamList } from '../navigation/types';
 import { notePreview } from '../utils/notePreview';
-import { formatClock, formatDayHeader } from '../utils/date';
+import { formatClock, formatDayHeader, todayKey } from '../utils/date';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import { colors, fonts, radius, shadows, spacing, type } from '../theme';
@@ -21,6 +23,7 @@ interface Section {
 // refers to. Tapping a row jumps to that note's day page in the Flip tab.
 export default function AgendaScreen() {
   const { entries } = useAgendaEntries();
+  const { refresh } = useNotes();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   const sections = useMemo<Section[]>(() => {
@@ -38,6 +41,28 @@ export default function AgendaScreen() {
   const openInFlip = (entry: AgendaEntry) => {
     // Navigate to the day the source note lives on (its own day_key).
     navigation.navigate('Flip', { jumpTo: entry.note.day_key, ts: Date.now() });
+  };
+
+  const toggleReminder = async (entry: AgendaEntry) => {
+    if (entry.reminder_id) {
+      await cancelReminder(entry.reminder_id);
+      await setDetectedDateReminder(entry.id, null);
+    } else {
+      if (!(await ensureReminderPermission())) {
+        Alert.alert(
+          'Notifications are off',
+          'Enable notifications for DayFeed in Android Settings to use reminders.',
+        );
+        return;
+      }
+      const rid = await scheduleReminder(entry.date_key, entry.snippet);
+      if (!rid) {
+        Alert.alert('Too late to remind', 'Reminders fire at 9:00 AM, and that morning has passed.');
+        return;
+      }
+      await setDetectedDateReminder(entry.id, rid);
+    }
+    refresh();
   };
 
   return (
@@ -71,8 +96,18 @@ export default function AgendaScreen() {
                 </Text>
                 <Text style={styles.written}>
                   written {formatDayHeader(item.note.day_key)} · {formatClock(item.note.created_at)}
+                  {item.reminder_id ? '  ·  reminder 9:00 AM' : ''}
                 </Text>
               </View>
+              {item.date_key >= todayKey() && (
+                <TouchableOpacity
+                  onPress={() => void toggleReminder(item)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={styles.bellWrap}
+                >
+                  <Text style={[styles.bell, !item.reminder_id && styles.bellOff]}>🔔</Text>
+                </TouchableOpacity>
+              )}
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
           )}
@@ -113,4 +148,8 @@ const styles = StyleSheet.create({
   source: { fontFamily: fonts.body, color: colors.textDim, fontSize: 13, marginTop: 2 },
   written: { fontFamily: fonts.mono, color: colors.textFaint, fontSize: 11, marginTop: 3 },
   chevron: { color: colors.accent, fontSize: 24, marginLeft: spacing.sm },
+  bellWrap: { marginLeft: spacing.sm, padding: 2 },
+  bell: { fontSize: 18 },
+  // Off state: greyed out, like an unlit lamp on the same shelf.
+  bellOff: { opacity: 0.25 },
 });

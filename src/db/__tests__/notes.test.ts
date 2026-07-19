@@ -14,6 +14,8 @@ import {
   getAgendaEntries,
   getDayKeysWithAgenda,
   getDetectedDatesForDay,
+  getReminderIdsForNote,
+  setDetectedDateReminder,
 } from '../detectedDates';
 
 const at = (y: number, mo: number, d: number, h = 9) => new Date(y, mo - 1, d, h).getTime();
@@ -102,6 +104,23 @@ describe('detected dates / agenda', () => {
     await deleteNote(n.id);
     expect(await getAgendaEntries()).toHaveLength(0);
     expect(await getDayKeysWithAgenda()).toEqual([]);
+  });
+
+  it('sets and clears a reminder id, surfacing it on agenda entries', async () => {
+    const n = await createNote({ type: 'text', content: 'dentist on the 25th' });
+    await addDetectedDates(n.id, [{ date_key: '2026-07-25', snippet: 'dentist on the 25th' }]);
+    let [entry] = await getAgendaEntries();
+    expect(entry.reminder_id).toBeNull();
+
+    await setDetectedDateReminder(entry.id, 'notif-1');
+    [entry] = await getAgendaEntries();
+    expect(entry.reminder_id).toBe('notif-1');
+    expect(await getReminderIdsForNote(n.id)).toEqual(['notif-1']);
+
+    await setDetectedDateReminder(entry.id, null);
+    [entry] = await getAgendaEntries();
+    expect(entry.reminder_id).toBeNull();
+    expect(await getReminderIdsForNote(n.id)).toEqual([]);
   });
 
   it('addDetectedDates is a no-op on an empty list', async () => {

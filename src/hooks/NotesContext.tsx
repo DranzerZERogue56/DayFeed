@@ -11,9 +11,11 @@ import {
   createNote as dbCreateNote,
   deleteNote as dbDeleteNote,
   getNote,
+  getReminderIdsForNote,
   initDb,
   setTranscript,
 } from '../db';
+import { cancelReminder } from '../lib/reminders';
 import { parseMediaUris, type NewNoteInput, type Note } from '../db/types';
 import { deleteAudioFile } from '../utils/audioFiles';
 import { deleteImageFiles } from '../utils/mediaFiles';
@@ -70,13 +72,15 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
   const removeNote = useCallback(
     async (id: string) => {
-      // Clean up associated files; detected_dates cascade via the FK.
+      // Clean up associated files; detected_dates cascade via the FK. Scheduled
+      // reminders live with the OS, so cancel them before the rows go away.
       const existing = await getNote(id);
       if (existing?.audio_uri) await deleteAudioFile(existing.audio_uri);
       if (existing) {
         const media = parseMediaUris(existing);
         if (media.length) await deleteImageFiles(media);
       }
+      for (const rid of await getReminderIdsForNote(id)) await cancelReminder(rid);
       await dbDeleteNote(id);
       bump();
     },
