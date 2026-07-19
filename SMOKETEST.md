@@ -88,6 +88,15 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Delete a note whose entry has a reminder set → the entry vanishes and no notification fires the next morning.
 - [ ] Deny the permission instead (or revoke in Settings) → tapping a bell shows the "Notifications are off" alert, no crash.
 
+## 10. v1.4 — dark mode, icons, app icon
+
+- [ ] Launcher shows the new **book + quill** icon (long-press → App info also shows it).
+- [ ] Tab bar and buttons use the **line-art icons** (no emojis anywhere).
+- [ ] Tap the **moon** in any header → whole app flips to dark brown, including tab bar, cards, inputs, and the Flip page.
+- [ ] Dark mode: open every tab + a Flop note + the date picker + the camera — nothing stays glaringly light or unreadable.
+- [ ] Force-close and reopen → still dark (choice persists). Sun icon flips it back.
+- [ ] Flop relation chips (Support/Idea/Oppose) stay readable in both modes.
+
 ---
 
 ## Findings
