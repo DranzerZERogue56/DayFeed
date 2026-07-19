@@ -1,11 +1,11 @@
-# DayFeed v1.2 — on-device smoke test
+# DayFeed v1.2/v1.3 — on-device smoke test
 
 Run top to bottom on the phone (~20 min). Anything that fails or feels off,
 note it under **Findings** at the bottom with the step number.
 
 ## 0. Install / upgrade
 
-- [ ] Install `app-release.apk` from the [v1.2.0 release](https://github.com/DranzerZERogue56/DayFeed/releases/tag/v1.2.0) **over** v1.1 (no uninstall).
+- [ ] Install `app-release.apk` from the [latest release](https://github.com/DranzerZERogue56/DayFeed/releases/latest) **over** the installed version (no uninstall).
 - [ ] App opens with **all your existing v1.1 notes intact** (feed history, photos, transcripts). This proves the v3 migration didn't touch old rows.
 - [ ] Five tabs visible: Feed · Flip · Flop · Agenda · View All.
 
@@ -68,6 +68,25 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Airplane mode on → app fully usable (it should never care about network).
 - [ ] Rotate / background the app mid-playback and mid-recording → no crash.
 - [ ] Deny mic permission once (Settings → revoke) → recording fails gracefully, not a crash. Re-grant after.
+
+## 8. v1.3 — Send to Flop
+
+- [ ] Feed: long-press a **text** note → menu shows *Send to Flop* / *Delete…* / *Cancel*.
+- [ ] Send it → "Sent to Flop" alert → *Open Flop* lands on the Flop tab with the new root at the top.
+- [ ] The original note is **still in the Feed**, and editing the Flop copy doesn't touch it.
+- [ ] Promote a **voice** note (one with a transcript) → the Flop root plays the audio and carries the transcript; its title is the transcript's first line.
+- [ ] Delete the promoted Flop root → the **original Feed note's audio still plays** (files are copies, not shared).
+- [ ] Long-press a **photo** note → straight to delete confirm (no Send to Flop — Flop has no photo type).
+- [ ] View All: long-press a text/voice note → same menu works there.
+
+## 9. v1.3 — Agenda reminders
+
+- [ ] Agenda: upcoming entries show a **bell** (greyed = off); past days show no bell.
+- [ ] Tap a bell for the first time → Android asks for notification permission → allow → bell turns solid, row shows "reminder 9:00 AM".
+- [ ] Toggle the bell off → the "reminder 9:00 AM" tag disappears.
+- [ ] Real-fire test: write a note referring to **tomorrow**, set its bell, and check the notification arrives at 9:00 AM (title = the day, body = the snippet).
+- [ ] Delete a note whose entry has a reminder set → the entry vanishes and no notification fires the next morning.
+- [ ] Deny the permission instead (or revoke in Settings) → tapping a bell shows the "Notifications are off" alert, no crash.
 
 ---
 
