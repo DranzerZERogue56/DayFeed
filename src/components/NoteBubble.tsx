@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock } from '../utils/date';
-import { colors, fonts, radius, shadows, spacing, type } from '../theme';
+import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
 import PhotoGrid from './PhotoGrid';
@@ -17,6 +18,8 @@ interface Props {
 
 // Chat-style bubble for the Feed. Long-press for actions (send to Flop, delete).
 export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const isVoice = note.type === 'voice';
   const isPhoto = note.type === 'photo';
   const media = isPhoto ? parseMediaUris(note) : [];
@@ -87,7 +90,8 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   wrap: {
     width: '100%',
     alignItems: 'flex-end',

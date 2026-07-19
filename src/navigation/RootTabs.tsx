@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FeedScreen from '../screens/FeedScreen';
 import FlipScreen from '../screens/FlipScreen';
@@ -7,14 +6,25 @@ import AllNotesScreen from '../screens/AllNotesScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import FlopStack from './FlopStack';
 import type { RootTabParamList } from './types';
-import { colors, fonts } from '../theme';
+import { useTheme } from '../hooks/ThemeContext';
+import {
+  BookStackIcon,
+  CalendarIcon,
+  CardStackIcon,
+  OpenBookIcon,
+  SpeechBubbleIcon,
+  type IconProps,
+} from '../components/Icons';
+import { fonts } from '../theme';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const icon = (glyph: string) => ({ color }: { color: string }) =>
-  <Text style={{ fontSize: 20, color }}>{glyph}</Text>;
+const icon =
+  (Glyph: (p: IconProps) => React.JSX.Element) =>
+  ({ color }: { color: string }) => <Glyph color={color} size={22} />;
 
 export default function RootTabs() {
+  const { colors } = useTheme();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -35,28 +45,28 @@ export default function RootTabs() {
       <Tab.Screen
         name="Feed"
         component={FeedScreen}
-        options={{ tabBarIcon: icon('💬'), tabBarLabel: 'Feed' }}
+        options={{ tabBarIcon: icon(SpeechBubbleIcon), tabBarLabel: 'Feed' }}
       />
       <Tab.Screen
         name="Flip"
         component={FlipScreen}
-        options={{ tabBarIcon: icon('📖'), tabBarLabel: 'Flip' }}
+        options={{ tabBarIcon: icon(OpenBookIcon), tabBarLabel: 'Flip' }}
       />
       {/* Flop is its own world: a stack, not a screen, so it can drill in. */}
       <Tab.Screen
         name="Flop"
         component={FlopStack}
-        options={{ tabBarIcon: icon('📚'), tabBarLabel: 'Flop' }}
+        options={{ tabBarIcon: icon(BookStackIcon), tabBarLabel: 'Flop' }}
       />
       <Tab.Screen
         name="Agenda"
         component={AgendaScreen}
-        options={{ tabBarIcon: icon('🗓'), tabBarLabel: 'Agenda' }}
+        options={{ tabBarIcon: icon(CalendarIcon), tabBarLabel: 'Agenda' }}
       />
       <Tab.Screen
         name="All"
         component={AllNotesScreen}
-        options={{ tabBarIcon: icon('🗂'), tabBarLabel: 'View All' }}
+        options={{ tabBarIcon: icon(CardStackIcon), tabBarLabel: 'View All' }}
       />
     </Tab.Navigator>
   );

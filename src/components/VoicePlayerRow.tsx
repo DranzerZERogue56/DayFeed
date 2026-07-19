@@ -3,7 +3,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAudioPlayer } from '../hooks/AudioPlayerContext';
 import type { Note } from '../db/types';
 import { formatDuration } from '../utils/date';
-import { colors, fonts, radius, spacing } from '../theme';
+import { fonts, radius, spacing, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 /** Structural, not `Note` — Flop voice notes live in their own table but play the same. */
 type PlayableNote = Pick<Note, 'id' | 'audio_uri' | 'duration_ms'>;
@@ -17,6 +18,8 @@ interface Props {
 // Play/pause toggle + duration label. No waveform (per spec). Shows live progress
 // while this note is the one playing.
 export default function VoicePlayerRow({ note, variant = 'own' }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const player = useAudioPlayer();
   const isCurrent = player.noteId === note.id;
   const isPlaying = isCurrent && player.isPlaying;
@@ -63,7 +66,8 @@ export default function VoicePlayerRow({ note, variant = 'own' }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

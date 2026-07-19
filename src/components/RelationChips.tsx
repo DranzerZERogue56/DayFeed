@@ -1,11 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { CHILD_RELATIONS, totalCount, type RelationCounts } from '../db/flopTypes';
-import { fonts, radius, relationStyle } from '../theme';
+import { fonts, radius, type ColorPalette } from '../theme'; // relationStyle now via useTheme()
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 // Direct-child counts, one small chip per non-empty relation (e.g. ↑3 ⑂2 ←1), so
 // a glance at a card shows the shape of the argument. Icon + count, tinted fill.
 export default function RelationChips({ counts }: { counts: RelationCounts }) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   if (totalCount(counts) === 0) return null;
 
   return (
@@ -29,7 +32,8 @@ export default function RelationChips({ counts }: { counts: RelationCounts }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   row: { flexDirection: 'row', gap: 5 },
   chip: {
     paddingHorizontal: 7,

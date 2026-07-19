@@ -11,11 +11,14 @@ import { useRootFlopNotes } from '../hooks/useFlopQueries';
 import { flopBody, flopTitle } from '../db/flopTypes';
 import { formatFlopStamp } from '../utils/date';
 import type { FlopStackParamList } from '../navigation/types';
-import { colors, fonts, radius, shadows, spacing } from '../theme';
+import { fonts, radius, shadows, spacing, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 // Flop root list: every root-level note, newest-touched first. The first line is
 // the title; the rest previews beneath it. Relation chips show the argument's shape.
 export default function FlopListScreen() {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const { roots, loading } = useRootFlopNotes();
   const [composing, setComposing] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<FlopStackParamList>>();
@@ -78,7 +81,8 @@ export default function FlopListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   add: {
     width: 36,

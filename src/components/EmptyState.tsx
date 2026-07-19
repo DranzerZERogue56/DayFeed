@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fonts, ornament, spacing, type } from '../theme';
+import { useStyles } from '../hooks/ThemeContext';
+import { fonts, ornament, spacing, type, type ColorPalette } from '../theme';
 
 interface Props {
   /** Short italic serif line, e.g. "Nothing captured yet." */
@@ -12,6 +13,7 @@ interface Props {
 // Shared empty state: a bronze letterpress ornament over an italic serif line —
 // the look of a blank page in a bound book, replacing the old emoji glyphs.
 export default function EmptyState({ title, hint }: Props) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.wrap}>
       <Text style={styles.ornament}>{ornament}</Text>
@@ -21,7 +23,8 @@ export default function EmptyState({ title, hint }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   wrap: {
     flex: 1,
     alignItems: 'center',
@@ -50,4 +53,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     maxWidth: 280,
   },
-});
+  });

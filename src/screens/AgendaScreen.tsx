@@ -12,7 +12,9 @@ import { notePreview } from '../utils/notePreview';
 import { formatClock, formatDayHeader, todayKey } from '../utils/date';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
-import { colors, fonts, radius, shadows, spacing, type } from '../theme';
+import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
+import { BellFilledIcon, BellIcon } from '../components/Icons';
 
 interface Section {
   dayKey: string;
@@ -22,6 +24,8 @@ interface Section {
 // Agenda: a chronological timeline of every detected date, grouped by the day it
 // refers to. Tapping a row jumps to that note's day page in the Flip tab.
 export default function AgendaScreen() {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const { entries } = useAgendaEntries();
   const { refresh } = useNotes();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
@@ -105,7 +109,11 @@ export default function AgendaScreen() {
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   style={styles.bellWrap}
                 >
-                  <Text style={[styles.bell, !item.reminder_id && styles.bellOff]}>🔔</Text>
+                  {item.reminder_id ? (
+                    <BellFilledIcon color={colors.accent} size={20} />
+                  ) : (
+                    <BellIcon color={colors.textFaint} size={20} />
+                  )}
                 </TouchableOpacity>
               )}
               <Text style={styles.chevron}>›</Text>
@@ -117,7 +125,8 @@ export default function AgendaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   listContent: { padding: spacing.md },
   sectionHeader: {

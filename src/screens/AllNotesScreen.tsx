@@ -24,7 +24,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, fonts, radius, shadows, spacing, type } from '../theme';
+import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 type Filter = 'all' | 'text' | 'voice' | 'photo';
 const FILTERS: { key: Filter; label: string }[] = [
@@ -37,6 +38,8 @@ const FILTERS: { key: Filter; label: string }[] = [
 // View All: every note newest-first, with type chips + case-insensitive search
 // over content and transcript. Filters and search combine.
 export default function AllNotesScreen() {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
@@ -168,7 +171,8 @@ export default function AllNotesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   controls: {
     paddingHorizontal: spacing.lg,

@@ -2,11 +2,14 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { AgendaEntry } from '../db';
 import { notePreview } from '../utils/notePreview';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 // Top-of-page "Agenda" section on a Flip day page: detected dates that *refer to*
 // this day, even though the source note may have been written on another day.
 export default function AgendaSection({ entries }: { entries: AgendaEntry[] }) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   if (entries.length === 0) return null;
 
   return (
@@ -27,7 +30,8 @@ export default function AgendaSection({ entries }: { entries: AgendaEntry[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   wrap: {
     backgroundColor: colors.accentTint,
     borderRadius: radius.md,

@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { formatDayHeader } from '../utils/date';
-import { colors, fonts, ornament, spacing, type } from '../theme';
+import { useStyles } from '../hooks/ThemeContext';
+import { fonts, ornament, spacing, type, type ColorPalette } from '../theme';
 
 interface Props {
   dayKey: string;
@@ -13,6 +14,7 @@ interface Props {
 // day rather than a thin divider — centered serif date over a bronze letterpress
 // ornament, framed by hairline rules. Tapping opens the day in the Flip notebook.
 export default function DaySeparator({ dayKey, onPress }: Props) {
+  const styles = useStyles(makeStyles);
   return (
     <TouchableOpacity
       activeOpacity={onPress ? 0.6 : 1}
@@ -31,7 +33,8 @@ export default function DaySeparator({ dayKey, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   wrap: {
     width: '100%',
     alignItems: 'center',
@@ -64,4 +67,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
     opacity: 0.8,
   },
-});
+  });

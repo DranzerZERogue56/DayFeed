@@ -17,7 +17,9 @@ import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
 import { persistRecording } from '../utils/audioFiles';
 import { CHILD_RELATIONS, type FlopChildRelation } from '../db/flopTypes';
 import { formatDuration } from '../utils/date';
-import { colors, fonts, radius, relationStyle, spacing, type } from '../theme';
+import { fonts, radius, spacing, type, type ColorPalette } from '../theme'; // relationStyle now via useTheme()
+import { useStyles, useTheme } from '../hooks/ThemeContext';
+import { MicIcon } from './Icons';
 
 interface Props {
   visible: boolean;
@@ -30,6 +32,8 @@ interface Props {
 // before writing, so the picker sits at the top and saving is blocked until one
 // is chosen. Children can be text or voice (hold the mic, same as the Feed).
 export default function FlopComposer({ visible, onClose, parentId }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const { addFlopNote } = useFlop();
   const [relation, setRelation] = useState<FlopChildRelation | null>(null);
   const [text, setText] = useState('');
@@ -175,7 +179,11 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
               onPressOut={onMicPressOut}
               accessibilityLabel="Hold to record a voice note"
             >
-              <Text style={styles.micGlyph}>{recorder.isRecording ? '●' : '🎤'}</Text>
+              {recorder.isRecording ? (
+                <Text style={styles.micGlyph}>●</Text>
+              ) : (
+                <MicIcon color={colors.textDim} size={20} />
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -184,7 +192,8 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row',

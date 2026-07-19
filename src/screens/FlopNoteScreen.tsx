@@ -27,12 +27,15 @@ import {
   type FlopNote,
 } from '../db/flopTypes';
 import type { FlopStackParamList } from '../navigation/types';
-import { colors, fonts, radius, relationStyle, spacing, type } from '../theme';
+import { fonts, radius, spacing, type, type ColorPalette } from '../theme'; // relationStyle now via useTheme()
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 // The Flop drill-in page: the note *is* the page. Breadcrumb, the note itself in
 // the most book-like typography in the app, then its children grouped by relation.
 // Depth is unlimited but only ever one level renders per screen.
 export default function FlopNoteScreen() {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const { params } = useRoute<RouteProp<FlopStackParamList, 'FlopNote'>>();
   const navigation = useNavigation<NativeStackNavigationProp<FlopStackParamList>>();
   const { note, ancestors, children, loading } = useFlopPage(params.id);
@@ -226,7 +229,8 @@ export default function FlopNoteScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   topBar: {
     flexDirection: 'row',

@@ -68,7 +68,15 @@ const MIGRATION_V4 = `
 ALTER TABLE detected_dates ADD COLUMN reminder_id TEXT;
 `;
 
-const LATEST_VERSION = 4;
+// v4 -> v5 (DayFeed v1.4): tiny key-value store for app preferences (theme mode).
+const MIGRATION_V5 = `
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL
+);
+`;
+
+const LATEST_VERSION = 5;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -95,6 +103,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 4) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V4);
+    });
+  }
+
+  if (current < 5) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V5);
     });
   }
 

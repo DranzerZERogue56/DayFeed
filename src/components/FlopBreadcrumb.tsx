@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { FlopCrumb } from '../db/flopTypes';
-import { colors, fonts, spacing } from '../theme';
+import { fonts, spacing, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   /** Ancestors root-first, excluding the current page (it's the headline). */
@@ -14,6 +15,8 @@ const MAX_CRUMBS = 2;
 // Ancestor trail above the headline. Deep paths truncate the middle — `Root › … ›
 // Parent` — so the two crumbs that orient you are always the ones you can see.
 export default function FlopBreadcrumb({ ancestors, onJump }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   if (ancestors.length === 0) return null;
 
   const truncated = ancestors.length > MAX_CRUMBS;
@@ -37,7 +40,8 @@ export default function FlopBreadcrumb({ ancestors, onJump }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',

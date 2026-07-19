@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
 import { formatDuration } from '../utils/date';
-import { colors, fonts, radius, spacing } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
+import { fonts, radius, spacing, type ColorPalette } from '../theme';
+import { CameraIcon, MicIcon } from './Icons';
 
 interface Props {
   onSendText: (text: string) => void;
@@ -32,6 +34,8 @@ export default function CaptureBar({
   const [text, setText] = useState('');
   const recorder = useRecorder();
   const [willCancel, setWillCancel] = useState(false);
+  const styles = useStyles(makeStyles);
+  const { colors } = useTheme();
 
   // Refs so the PanResponder (created once) sees live state.
   const cancelRef = useRef(false);
@@ -130,7 +134,7 @@ export default function CaptureBar({
         onPress={onOpenCamera}
         accessibilityLabel="Take a photo note"
       >
-        <Text style={styles.cameraGlyph}>📷</Text>
+        <CameraIcon color={colors.textDim} size={22} />
       </TouchableOpacity>
       <TextInput
         style={styles.input}
@@ -149,14 +153,15 @@ export default function CaptureBar({
         </TouchableOpacity>
       ) : (
         <View style={styles.mic} {...panResponder.panHandlers}>
-          <Text style={styles.micGlyph}>🎤</Text>
+          <MicIcon color={colors.textDim} size={22} />
         </View>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -251,4 +256,4 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontWeight: '700',
   },
-});
+  });

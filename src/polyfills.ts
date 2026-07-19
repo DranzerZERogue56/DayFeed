@@ -3,5 +3,4 @@
 // that touches whisper.rn loads.
 import { Buffer } from 'buffer';
 
-// @ts-expect-error - augmenting the RN global
 if (typeof global.Buffer === 'undefined') global.Buffer = Buffer;

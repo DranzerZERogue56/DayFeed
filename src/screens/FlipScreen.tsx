@@ -8,7 +8,9 @@ import DatePickerModal from '../components/DatePickerModal';
 import { useDayKeysWithNotes } from '../hooks/useQueries';
 import type { RootTabParamList } from '../navigation/types';
 import { addDaysToKey, dayDiff, formatDayHeader, todayKey } from '../utils/date';
-import { colors, fonts, spacing, type } from '../theme';
+import { fonts, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
+import { CalendarIcon } from '../components/Icons';
 
 // Build a contiguous list of day_keys from start..end (inclusive).
 function rangeKeys(start: string, end: string): string[] {
@@ -26,6 +28,8 @@ function rangeKeys(start: string, end: string): string[] {
 // Flip: swipe day-by-day through a paper notebook. Today is the initial page;
 // empty days still render (blank page) so the paging feels continuous.
 export default function FlipScreen() {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const dayKeys = useDayKeysWithNotes();
   const markedSet = useMemo(() => new Set(dayKeys), [dayKeys]);
   const route = useRoute<RouteProp<RootTabParamList, 'Flip'>>();
@@ -132,7 +136,7 @@ export default function FlipScreen() {
           onPress={() => setPickerOpen(true)}
           accessibilityLabel="Jump to date"
         >
-          <Text style={styles.calGlyph}>📅</Text>
+          <CalendarIcon color={colors.accent} size={22} />
         </TouchableOpacity>
       </View>
 
@@ -173,7 +177,8 @@ export default function FlipScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row',

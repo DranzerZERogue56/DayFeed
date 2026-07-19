@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDayNotes, useDetectedDatesForDay } from '../hooks/useQueries';
 import { parseMediaUris } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
-import { colors, fonts, radius, shadows, spacing, type } from '../theme';
+import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
 import AgendaSection from './AgendaSection';
@@ -14,6 +15,8 @@ import PhotoViewer from './PhotoViewer';
 // dates that refer to this day, then the notes written on it. Empty days render a
 // blank page to preserve the paper-notebook flip feel.
 export default function DayPage({ dayKey }: { dayKey: string }) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const { notes } = useDayNotes(dayKey);
   const agenda = useDetectedDatesForDay(dayKey);
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
@@ -72,7 +75,8 @@ export default function DayPage({ dayKey }: { dayKey: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: colors.bg,

@@ -1,9 +1,11 @@
 import { Platform } from 'react-native';
 
 // DayFeed design system — "old bookbinding": warm paper background, crisp white
-// note cards, and a bronze accent (the color of aged book spines). Light, calm,
-// built for long reading rather than speed-scrolling.
-export const colors = {
+// note cards, and a bronze accent (the color of aged book spines). Calm, built
+// for long reading. v1.4 adds a dark companion: the same book after sundown —
+// deep coffee-brown leather, cream ink, brighter bronze. Components never import
+// a palette directly; they read the active one from ThemeContext.
+export const lightColors = {
   bg: '#FAF8F3', // warm off-white "paper" — never harsh white, easy on the eyes
   surface: '#FFFFFF', // crisp white for the bubbles/note cards themselves
   surfaceAlt: '#F1EEE8', // subtle warm fill for inputs, chips, tracks
@@ -33,10 +35,41 @@ export const colors = {
   pageDim: '#9A958C',
 };
 
+export type ColorPalette = typeof lightColors;
+
+// Dark mode: dark browns, not grays — the leather cover rather than a night sky.
+export const darkColors: ColorPalette = {
+  bg: '#1B130C', // deep coffee leather
+  surface: '#271D13', // raised card, a shade warmer/lighter
+  surfaceAlt: '#32261A', // inputs, chips, tracks
+  divider: '#3D2F20', // warm dark separator
+
+  text: '#EDE4D3', // cream ink
+  textDim: '#B5A78F', // parchment gray
+  textFaint: '#847660', // faded ink
+
+  accent: '#C89B66', // brightened bronze — keeps contrast on dark brown
+  accentDark: '#A67C52',
+  accentTint: 'rgba(200,155,102,0.14)',
+  accentEdge: 'rgba(200,155,102,0.35)',
+
+  danger: '#D0776C', // lifted brick red for dark surfaces
+
+  border: '#3D2F20', // = divider
+  voiceAccent: '#C89B66', // = accent
+  bubbleOwn: '#C89B66', // = accent
+  bubbleOwnText: '#EDE4D3', // = text
+
+  page: '#271D13',
+  pageText: '#EDE4D3',
+  pageLine: '#3D2F20',
+  pageDim: '#847660',
+};
+
 // Flop relation colors — the one place the palette expands beyond ink and bronze.
-// Three muted, paper-compatible tones. Color is never the only indicator: every
-// use pairs the tone with an icon and a label.
-export const relationStyle = {
+// Three muted, paper-compatible tones per mode. Color is never the only
+// indicator: every use pairs the tone with an icon and a label.
+export const relationStyleLight = {
   support: {
     label: 'Support',
     plural: 'SUPPORT',
@@ -58,7 +91,33 @@ export const relationStyle = {
     tint: '#F0E2E0',
     icon: '←', // counter arrow
   },
-} as const;
+};
+
+export type RelationStyleMap = typeof relationStyleLight;
+
+export const relationStyleDark: RelationStyleMap = {
+  support: {
+    label: 'Support',
+    plural: 'SUPPORT',
+    color: '#8FA986', // moss lifted for dark leather
+    tint: 'rgba(143,169,134,0.14)',
+    icon: '↑',
+  },
+  idea: {
+    label: 'Idea',
+    plural: 'IDEAS',
+    color: '#C89B66',
+    tint: 'rgba(200,155,102,0.14)',
+    icon: '⑂',
+  },
+  oppose: {
+    label: 'Oppose',
+    plural: 'OPPOSE',
+    color: '#D0877D',
+    tint: 'rgba(208,135,125,0.14)',
+    icon: '←',
+  },
+};
 
 // Type roles. Serif for ceremony (dates, headers) — this is a notebook. Neutral
 // sans recedes for body text. Monospace only for metadata (timestamps, durations,

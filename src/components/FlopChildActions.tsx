@@ -2,7 +2,8 @@ import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { flopTitle, type FlopChildRelation, type FlopNote } from '../db/flopTypes';
 import { CHILD_RELATIONS } from '../db/flopTypes';
-import { colors, fonts, radius, relationStyle, spacing, type } from '../theme';
+import { fonts, radius, spacing, type, type ColorPalette } from '../theme'; // relationStyle now via useTheme()
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   /** The child being acted on; null closes the sheet. */
@@ -29,6 +30,8 @@ export default function FlopChildActions({
   onMove,
   onDelete,
 }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   if (!child) return null;
 
   const others = CHILD_RELATIONS.filter((r) => r !== child.relation);
@@ -79,7 +82,8 @@ export default function FlopChildActions({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(26,26,26,0.35)',

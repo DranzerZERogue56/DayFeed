@@ -27,7 +27,8 @@ import { persistRecording } from '../utils/audioFiles';
 import { persistImages } from '../utils/mediaFiles';
 import { randomUUID } from 'expo-crypto';
 import type { Note } from '../db/types';
-import { colors, spacing } from '../theme';
+import { spacing, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { Alert } from 'react-native';
 
 type Row =
@@ -37,6 +38,8 @@ type Row =
 // Feed: chat-style quick capture. Inverted list keeps the newest note pinned to
 // the bottom, just above the capture bar.
 export default function FeedScreen() {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const { notes } = useAllNotes({});
   const { addNote, removeNote } = useNotes();
   const { promoteNote } = useFlop();
@@ -156,7 +159,8 @@ export default function FeedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   listContent: { paddingVertical: spacing.sm },

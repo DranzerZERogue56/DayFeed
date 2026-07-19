@@ -10,7 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   /** Called with the source URIs for the whole session (one note). */
@@ -21,6 +22,8 @@ interface Props {
 // One capture session -> one photo note. Single-shot finalizes immediately; burst
 // mode appends each shutter press; gallery import adds multi-selected images.
 export default function CaptureCameraScreen({ onComplete, onClose }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [burst, setBurst] = useState(false);
   const [pending, setPending] = useState<string[]>([]);
@@ -164,7 +167,8 @@ export default function CaptureCameraScreen({ onComplete, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000' },
   permRoot: { flex: 1, backgroundColor: colors.bg },
   camera: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },

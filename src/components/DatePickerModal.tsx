@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { dateFromDayKey, dayKeyFromDate, todayKey } from '../utils/date';
-import { colors, fonts, radius, shadows, spacing, type } from '../theme';
+import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -27,6 +28,8 @@ export default function DatePickerModal({
   onSelect,
   onClose,
 }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   const initial = dateFromDayKey(selectedKey);
   const [year, setYear] = useState(initial.getFullYear());
   const [month, setMonth] = useState(initial.getMonth());
@@ -123,7 +126,8 @@ export default function DatePickerModal({
 
 const CELL = `${100 / 7}%`;
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   // Warm ink scrim — same as the Flop action sheet, never pure black.
   backdrop: {
     flex: 1,

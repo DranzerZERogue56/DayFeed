@@ -3,7 +3,8 @@ import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } fr
 import type { Note } from '../db/types';
 import { useNotes } from '../hooks/NotesContext';
 import { transcribeAudio, TranscriptionBusyError } from '../lib/transcription';
-import { colors, fonts, radius, spacing, type } from '../theme';
+import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   note: Note;
@@ -30,6 +31,8 @@ const COLLAPSE_CHARS = 140;
 export function TranscribeControl({ audioUri, transcript, onTranscribed }: ControlProps) {
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const styles = useStyles(makeStyles);
+  const { colors } = useTheme();
 
   // Already transcribed -> show the text, never the button.
   if (transcript) {
@@ -107,7 +110,8 @@ export default function TranscribeButton({ note }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',

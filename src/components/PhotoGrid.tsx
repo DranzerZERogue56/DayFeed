@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors, radius } from '../theme';
+import { radius, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   uris: string[];
@@ -13,6 +14,8 @@ interface Props {
 // Thumbnail grid for a photo note. Shows up to `maxVisible` images; the last tile
 // carries a "+N" overflow badge when there are more.
 export default function PhotoGrid({ uris, onOpen, maxVisible = 4, size = 76 }: Props) {
+  const styles = useStyles(makeStyles);
+  const { colors, relationStyle } = useTheme();
   if (uris.length === 0) return null;
   const visible = uris.slice(0, maxVisible);
   const overflow = uris.length - visible.length;
@@ -42,7 +45,8 @@ export default function PhotoGrid({ uris, onOpen, maxVisible = 4, size = 76 }: P
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
