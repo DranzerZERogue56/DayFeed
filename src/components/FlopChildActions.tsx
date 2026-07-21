@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { flopTitle, type FlopChildRelation, type FlopNote } from '../db/flopTypes';
 import { CHILD_RELATIONS } from '../db/flopTypes';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme'; // relationStyle now via useTheme()
@@ -32,6 +33,7 @@ export default function FlopChildActions({
 }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
+  const insets = useSafeAreaInsets();
   if (!child) return null;
 
   const others = CHILD_RELATIONS.filter((r) => r !== child.relation);
@@ -39,8 +41,14 @@ export default function FlopChildActions({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        {/* Swallow taps on the sheet itself so only the backdrop dismisses. */}
-        <Pressable style={styles.sheet} onPress={() => {}}>
+        {/* Swallow taps on the sheet itself so only the backdrop dismisses.
+            Bottom padding adds the safe-area inset on top of the sheet's own
+            spacing — Android's edge-to-edge gesture bar otherwise overlaps
+            (and on 3-button nav, covers) the Cancel row. */}
+        <Pressable
+          style={[styles.sheet, { paddingBottom: spacing.xl + insets.bottom }]}
+          onPress={() => {}}
+        >
           <Text style={styles.title} numberOfLines={2}>
             {flopTitle(child)}
           </Text>

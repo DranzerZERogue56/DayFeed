@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 
@@ -26,6 +27,7 @@ interface Props {
 export default function NoteActionsSheet({ visible, subtitle, actions, onClose }: Props) {
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const runAndClose = (fn: () => void) => {
     onClose();
@@ -35,8 +37,14 @@ export default function NoteActionsSheet({ visible, subtitle, actions, onClose }
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        {/* Swallow taps on the sheet itself so only the backdrop dismisses. */}
-        <Pressable style={styles.sheet} onPress={() => {}}>
+        {/* Swallow taps on the sheet itself so only the backdrop dismisses.
+            Bottom padding adds the safe-area inset on top of the sheet's own
+            spacing — Android's edge-to-edge gesture bar otherwise overlaps
+            (and on 3-button nav, covers) the Cancel row. */}
+        <Pressable
+          style={[styles.sheet, { paddingBottom: spacing.xl + insets.bottom }]}
+          onPress={() => {}}
+        >
           {!!subtitle && (
             <Text style={styles.subtitle} numberOfLines={2}>
               {subtitle}
