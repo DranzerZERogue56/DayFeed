@@ -61,9 +61,13 @@ export default function CaptureBar({
           startedRef.current = false;
           setWillCancel(false);
           slideX.setValue(0);
-          const ok = await recorder.start();
-          startedRef.current = ok;
-          if (!ok) {
+          const result = await recorder.start();
+          startedRef.current = result.ok;
+          // Only 'permission' means the OS actually denied access. 'busy'
+          // means start() was called while a session was already active —
+          // surfacing that as "microphone needed" would falsely tell the
+          // user to go re-grant a permission they already have.
+          if (!result.ok && result.reason === 'permission') {
             onPermissionDenied();
           }
         },
@@ -105,55 +109,65 @@ export default function CaptureBar({
     [],
   );
 
-  if (recorder.isRecording) {
-    return (
-      <View style={styles.bar}>
-        <Animated.View
-          style={[styles.recording, { transform: [{ translateX: slideX }] }]}
-        >
+  const recording = recorder.isRecording;
+
+  // IMPORTANT: this used to be two separate `return` statements (one for the
+  // recording state, one for idle) built from entirely different JSX trees.
+  // Since the mic touchable was a different element instance in each tree,
+  // React unmounted and remounted it the instant recording began — which
+  // tore down the in-progress PanResponder gesture mid-touch. The result:
+  // releasing or sliding the finger no longer reached the handlers that stop
+  // or cancel the recording, and the next press saw a still-active recorder
+  // and reported it as if the mic permission had been denied. Rendering one
+  // stable tree (the mic box always the same element; only its contents and
+  // style change) keeps the gesture alive across the whole press-hold-release.
+  return (
+    <View style={styles.bar}>
+      {recording ? (
+        <Animated.View style={[styles.recording, { transform: [{ translateX: slideX }] }]}>
           <View style={styles.recDot} />
           <Text style={styles.recTime}>{formatDuration(recorder.elapsedMs)}</Text>
           <Text style={[styles.recHint, willCancel && styles.recHintActive]}>
             {willCancel ? 'Release to cancel' : '‹ Slide to cancel'}
           </Text>
         </Animated.View>
-        <View
-          style={[styles.mic, styles.micActive, willCancel && styles.micCancel]}
-          {...panResponder.panHandlers}
-        >
-          <Text style={styles.micGlyph}>{willCancel ? '✕' : '●'}</Text>
-        </View>
-      </View>
-    );
-  }
+      ) : (
+        <>
+          <TouchableOpacity
+            style={styles.camera}
+            onPress={onOpenCamera}
+            accessibilityLabel="Take a photo note"
+          >
+            <CameraIcon color={colors.textDim} size={22} />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            value={text}
+            onChangeText={setText}
+            placeholder="Write a note…"
+            placeholderTextColor={colors.textFaint}
+            multiline
+            returnKeyType="send"
+            blurOnSubmit={false}
+            onSubmitEditing={send}
+          />
+        </>
+      )}
 
-  return (
-    <View style={styles.bar}>
-      <TouchableOpacity
-        style={styles.camera}
-        onPress={onOpenCamera}
-        accessibilityLabel="Take a photo note"
-      >
-        <CameraIcon color={colors.textDim} size={22} />
-      </TouchableOpacity>
-      <TextInput
-        style={styles.input}
-        value={text}
-        onChangeText={setText}
-        placeholder="Write a note…"
-        placeholderTextColor={colors.textFaint}
-        multiline
-        returnKeyType="send"
-        blurOnSubmit={false}
-        onSubmitEditing={send}
-      />
-      {canSend ? (
+      {!recording && canSend ? (
         <TouchableOpacity style={styles.send} onPress={send} accessibilityLabel="Send note">
           <Text style={styles.sendGlyph}>↑</Text>
         </TouchableOpacity>
       ) : (
-        <View style={styles.mic} {...panResponder.panHandlers}>
-          <MicIcon color={colors.textDim} size={22} />
+        <View
+          style={[styles.mic, recording && styles.micActive, recording && willCancel && styles.micCancel]}
+          {...panResponder.panHandlers}
+        >
+          {recording ? (
+            <Text style={styles.micGlyph}>{willCancel ? '✕' : '●'}</Text>
+          ) : (
+            <MicIcon color={colors.textDim} size={22} />
+          )}
         </View>
       )}
     </View>

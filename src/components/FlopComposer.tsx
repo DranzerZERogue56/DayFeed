@@ -83,8 +83,11 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
       Alert.alert('Pick a relation first', 'Choose Support, Idea, or Oppose before recording.');
       return;
     }
-    const ok = await recorder.start();
-    if (!ok) {
+    const result = await recorder.start();
+    // Only a real 'permission' denial should tell the user to visit
+    // Settings — a 'busy' result means a session was already active and
+    // isn't a permission problem (see useRecorder.start's StartResult docs).
+    if (!result.ok && result.reason === 'permission') {
       Alert.alert(
         'Microphone needed',
         'DayFeed needs microphone access to record voice notes. Enable it in Settings to use voice capture.',

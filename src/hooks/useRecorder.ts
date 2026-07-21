@@ -13,6 +13,19 @@ export interface RecorderResult {
   durationMs: number;
 }
 
+export interface StartResult {
+  ok: boolean;
+  /**
+   * Why start() didn't begin recording. 'permission' means the OS denied mic
+   * access — callers should tell the user to enable it in Settings. 'busy'
+   * means a recording session was already active (a UI/gesture bug, not a
+   * permission problem) — callers should NOT show the permission alert for
+   * this, or a stuck recording will surface as a false "grant permission"
+   * loop even though access was already granted.
+   */
+  reason?: 'permission' | 'busy';
+}
+
 const SAMPLE_RATE = 16000;
 const CHANNELS = 1;
 const BITS = 16;
@@ -33,10 +46,14 @@ export function useRecorder() {
     return granted;
   }, []);
 
-  const start = useCallback(async (): Promise<boolean> => {
-    if (activeRef.current) return false;
+  const start = useCallback(async (): Promise<StartResult> => {
+    // Should be prevented by the UI (the mic gesture/press-target stays
+    // mounted across the idle<->recording swap so it can't be re-triggered
+    // mid-recording), but never silently no-op — a caller that treats "busy"
+    // as "permission denied" produces a false repeat-permission-prompt loop.
+    if (activeRef.current) return { ok: false, reason: 'busy' };
     const granted = await requestPermission();
-    if (!granted) return false;
+    if (!granted) return { ok: false, reason: 'permission' };
 
     bytesRef.current = 0;
     setElapsedMs(0);
@@ -59,7 +76,7 @@ export function useRecorder() {
     AudioRecord.start();
     activeRef.current = true;
     setIsRecording(true);
-    return true;
+    return { ok: true };
   }, [requestPermission]);
 
   const finish = useCallback(async (): Promise<string | null> => {
