@@ -2,10 +2,11 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 // Shared param list for the bottom tabs. Flip accepts an optional jump target so
 // the Agenda tab can deep-link to a specific day page (ts forces re-navigation to
-// the same day). Five tabs is the platform maximum — no further tabs after Flop.
+// the same day). noteId additionally flashes that note to draw the eye to it on
+// arrival. Five tabs is the platform maximum — no further tabs after Flop.
 export type RootTabParamList = {
   Feed: undefined;
-  Flip: { jumpTo?: string; ts?: number } | undefined;
+  Flip: { jumpTo?: string; ts?: number; noteId?: string } | undefined;
   Flop: NavigatorScreenParams<FlopStackParamList> | undefined;
   All: undefined;
   Agenda: undefined;

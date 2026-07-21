@@ -41,6 +41,29 @@ export default function CaptureBar({
   const cancelRef = useRef(false);
   const startedRef = useRef(false);
   const slideX = useRef(new Animated.Value(0)).current;
+  // Set when the finger lifts (or the gesture is interrupted) BEFORE
+  // recorder.start() has resolved — e.g. the OS permission dialog is still
+  // up. Without this, that release is silently dropped (startedRef isn't
+  // true yet), the recording then begins a moment later once start()
+  // finishes, and it's left running with no gesture left to stop it.
+  const pendingEndRef = useRef<null | 'stop' | 'cancel'>(null);
+
+  const resolvePendingEnd = async () => {
+    const intent = pendingEndRef.current;
+    pendingEndRef.current = null;
+    if (!intent) return;
+    if (intent === 'cancel') {
+      await recorder.cancel();
+    } else {
+      const result = await recorder.stop();
+      if (result && result.durationMs >= 500) {
+        onRecorded(result);
+      } else if (result) {
+        await recorder.cancel().catch(() => {});
+      }
+    }
+    setWillCancel(false);
+  };
 
   const trimmed = text.trim();
   const canSend = trimmed.length > 0;
@@ -59,6 +82,7 @@ export default function CaptureBar({
         onPanResponderGrant: async () => {
           cancelRef.current = false;
           startedRef.current = false;
+          pendingEndRef.current = null;
           setWillCancel(false);
           slideX.setValue(0);
           const result = await recorder.start();
@@ -67,9 +91,15 @@ export default function CaptureBar({
           // means start() was called while a session was already active —
           // surfacing that as "microphone needed" would falsely tell the
           // user to go re-grant a permission they already have.
-          if (!result.ok && result.reason === 'permission') {
-            onPermissionDenied();
+          if (!result.ok) {
+            if (result.reason === 'permission') onPermissionDenied();
+            return;
           }
+          // The finger already lifted (or the gesture was interrupted) while
+          // we were awaiting start() — most commonly because the OS
+          // permission dialog was still on screen. Resolve it now instead of
+          // leaving the recording running with no gesture left to stop it.
+          if (pendingEndRef.current) await resolvePendingEnd();
         },
         onPanResponderMove: (_evt, gesture) => {
           if (!startedRef.current) return;
@@ -83,7 +113,10 @@ export default function CaptureBar({
         },
         onPanResponderRelease: async () => {
           Animated.spring(slideX, { toValue: 0, useNativeDriver: true }).start();
-          if (!startedRef.current) return;
+          if (!startedRef.current) {
+            pendingEndRef.current = cancelRef.current ? 'cancel' : 'stop';
+            return;
+          }
           if (cancelRef.current) {
             await recorder.cancel();
           } else {
@@ -100,7 +133,11 @@ export default function CaptureBar({
         },
         onPanResponderTerminate: async () => {
           Animated.spring(slideX, { toValue: 0, useNativeDriver: true }).start();
-          if (startedRef.current) await recorder.cancel();
+          if (!startedRef.current) {
+            pendingEndRef.current = 'cancel';
+            return;
+          }
+          await recorder.cancel();
           setWillCancel(false);
         },
       }),

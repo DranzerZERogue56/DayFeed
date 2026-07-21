@@ -152,7 +152,11 @@ export default function FlipScreen() {
       >
         {days.map((k) => (
           <View key={k} style={styles.pageHolder} collapsable={false}>
-            <DayPage dayKey={k} />
+            <DayPage
+              dayKey={k}
+              highlightNoteId={k === jumpTo ? route.params?.noteId : undefined}
+              highlightToken={k === jumpTo ? jumpTs : undefined}
+            />
           </View>
         ))}
       </PagerView>

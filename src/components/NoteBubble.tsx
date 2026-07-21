@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
@@ -8,6 +8,7 @@ import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer from './PhotoViewer';
+import NoteActionsSheet from './NoteActionsSheet';
 
 interface Props {
   note: Note;
@@ -27,31 +28,18 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
     open: false,
     index: 0,
   });
+  const [sheet, setSheet] = useState<'menu' | 'confirm' | null>(null);
 
-  const confirmDelete = () => {
-    const detail = isVoice
-      ? 'This voice note will be permanently removed.'
-      : isPhoto
-        ? 'This photo note and its images will be permanently removed.'
-        : 'This note will be permanently removed.';
-    Alert.alert('Delete note?', detail, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => onDelete(note) },
-    ]);
-  };
+  const deleteDetail = isVoice
+    ? 'This voice note will be permanently removed.'
+    : isPhoto
+      ? 'This photo note and its images will be permanently removed.'
+      : 'This note will be permanently removed.';
 
   // Photo notes can't be promoted — Flop has no photo type — so they keep the
   // one-step delete instead of a menu with a single destructive item.
   const showActions = () => {
-    if (isPhoto || !onSendToFlop) {
-      confirmDelete();
-      return;
-    }
-    Alert.alert('Note actions', undefined, [
-      { text: 'Send to Flop', onPress: () => onSendToFlop(note) },
-      { text: 'Delete…', style: 'destructive', onPress: confirmDelete },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setSheet(isPhoto || !onSendToFlop ? 'confirm' : 'menu');
   };
 
   return (
@@ -86,6 +74,21 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
           onClose={() => setViewer((v) => ({ ...v, open: false }))}
         />
       )}
+
+      <NoteActionsSheet
+        visible={sheet === 'menu'}
+        actions={[
+          { label: 'Send to Flop', onPress: () => onSendToFlop?.(note) },
+          { label: 'Delete…', danger: true, onPress: () => setSheet('confirm') },
+        ]}
+        onClose={() => setSheet(null)}
+      />
+      <NoteActionsSheet
+        visible={sheet === 'confirm'}
+        subtitle={deleteDetail}
+        actions={[{ label: 'Delete', danger: true, onPress: () => onDelete(note) }]}
+        onClose={() => setSheet(null)}
+      />
     </View>
   );
 }

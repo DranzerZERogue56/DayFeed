@@ -43,8 +43,13 @@ export default function AgendaScreen() {
   }, [entries]);
 
   const openInFlip = (entry: AgendaEntry) => {
-    // Navigate to the day the source note lives on (its own day_key).
-    navigation.navigate('Flip', { jumpTo: entry.note.day_key, ts: Date.now() });
+    // Navigate to the day the source note lives on (its own day_key), and
+    // flash that note so it's easy to pick out among the day's other entries.
+    navigation.navigate('Flip', {
+      jumpTo: entry.note.day_key,
+      ts: Date.now(),
+      noteId: entry.note.id,
+    });
   };
 
   const toggleReminder = async (entry: AgendaEntry) => {

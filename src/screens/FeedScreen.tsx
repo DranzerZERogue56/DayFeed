@@ -30,6 +30,7 @@ import type { Note } from '../db/types';
 import { spacing, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { Alert } from 'react-native';
+import NoteActionsSheet from '../components/NoteActionsSheet';
 
 type Row =
   | { kind: 'sep'; id: string; dayKey: string }
@@ -44,6 +45,7 @@ export default function FeedScreen() {
   const { addNote, removeNote } = useNotes();
   const { promoteNote } = useFlop();
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [sentTitle, setSentTitle] = useState<string | null>(null);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   // Tapping a day separator carries you into that day in the Flip notebook.
@@ -80,10 +82,7 @@ export default function FeedScreen() {
   const onSendToFlop = async (note: Note) => {
     const flop = await promoteNote(note);
     if (!flop) return;
-    Alert.alert('Sent to Flop', `“${flopTitle(flop)}” is now a Flop root note.`, [
-      { text: 'OK', style: 'cancel' },
-      { text: 'Open Flop', onPress: () => navigation.navigate('Flop') },
-    ]);
+    setSentTitle(flopTitle(flop));
   };
 
   const onPermissionDenied = () => {
@@ -155,6 +154,21 @@ export default function FeedScreen() {
           onClose={() => setCameraOpen(false)}
         />
       </Modal>
+
+      <NoteActionsSheet
+        visible={sentTitle !== null}
+        subtitle={`“${sentTitle ?? ''}” is now a Flop root note.`}
+        actions={[
+          {
+            label: 'Open Flop',
+            onPress: () => {
+              setSentTitle(null);
+              navigation.navigate('Flop');
+            },
+          },
+        ]}
+        onClose={() => setSentTitle(null)}
+      />
     </SafeAreaView>
   );
 }

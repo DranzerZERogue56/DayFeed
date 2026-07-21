@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -78,25 +78,44 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
     close();
   };
 
+  // Set when the finger lifts before recorder.start() has resolved — e.g. the
+  // OS permission dialog is still up. Without this, onMicPressOut sees
+  // isRecording still false and does nothing, so the recording (once start()
+  // finishes a moment later) is left running with no press left to end it.
+  const pendingStopRef = useRef(false);
+
   const onMicPressIn = async () => {
     if (!isRoot && relation === null) {
       Alert.alert('Pick a relation first', 'Choose Support, Idea, or Oppose before recording.');
       return;
     }
+    pendingStopRef.current = false;
     const result = await recorder.start();
     // Only a real 'permission' denial should tell the user to visit
     // Settings — a 'busy' result means a session was already active and
     // isn't a permission problem (see useRecorder.start's StartResult docs).
-    if (!result.ok && result.reason === 'permission') {
-      Alert.alert(
-        'Microphone needed',
-        'DayFeed needs microphone access to record voice notes. Enable it in Settings to use voice capture.',
-      );
+    if (!result.ok) {
+      if (result.reason === 'permission') {
+        Alert.alert(
+          'Microphone needed',
+          'DayFeed needs microphone access to record voice notes. Enable it in Settings to use voice capture.',
+        );
+      }
+      return;
+    }
+    if (pendingStopRef.current) {
+      pendingStopRef.current = false;
+      const stopped = await recorder.stop();
+      if (stopped && stopped.durationMs >= 500) await saveVoice(stopped);
+      else if (stopped) await recorder.cancel().catch(() => {});
     }
   };
 
   const onMicPressOut = async () => {
-    if (!recorder.isRecording) return;
+    if (!recorder.isRecording) {
+      pendingStopRef.current = true;
+      return;
+    }
     const result = await recorder.stop();
     // Ignore ultra-short taps (<500ms) — likely an accidental press.
     if (result && result.durationMs >= 500) {

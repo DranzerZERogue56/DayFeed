@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDayNotes, useDetectedDatesForDay } from '../hooks/useQueries';
 import { parseMediaUris } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
@@ -11,10 +11,18 @@ import AgendaSection from './AgendaSection';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer from './PhotoViewer';
 
+interface Props {
+  dayKey: string;
+  /** A note to flash green on arrival — e.g. jumping here from an Agenda tap. */
+  highlightNoteId?: string;
+  /** Changes on every jump so re-tapping the same Agenda entry re-triggers the flash. */
+  highlightToken?: number;
+}
+
 // One notebook "page" for a single calendar day. Shows an Agenda section for
 // dates that refer to this day, then the notes written on it. Empty days render a
 // blank page to preserve the paper-notebook flip feel.
-export default function DayPage({ dayKey }: { dayKey: string }) {
+export default function DayPage({ dayKey, highlightNoteId, highlightToken }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
   const { notes } = useDayNotes(dayKey);
@@ -22,6 +30,38 @@ export default function DayPage({ dayKey }: { dayKey: string }) {
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
 
   const isBlank = notes.length === 0 && agenda.length === 0;
+
+  // Attention flash for a note jumped to from Agenda: a green tint that fades
+  // out, plus a scroll to bring it into view. Support's moss green is reused
+  // here rather than adding a new color to the palette.
+  const scrollRef = useRef<ScrollView>(null);
+  const entryOffsets = useRef<Record<string, number>>({});
+  const highlightAnim = useRef(new Animated.Value(0)).current;
+  const [flashingId, setFlashingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!highlightNoteId) return;
+    setFlashingId(highlightNoteId);
+    highlightAnim.setValue(1);
+    const scrollTimer = setTimeout(() => {
+      const y = entryOffsets.current[highlightNoteId];
+      if (y !== undefined) scrollRef.current?.scrollTo({ y: Math.max(0, y - 40), animated: true });
+    }, 60);
+    const fade = Animated.timing(highlightAnim, {
+      toValue: 0,
+      duration: 900,
+      delay: 700,
+      useNativeDriver: true,
+    });
+    fade.start(({ finished }) => {
+      if (finished) setFlashingId(null);
+    });
+    return () => {
+      clearTimeout(scrollTimer);
+      fade.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightNoteId, highlightToken]);
 
   return (
     <View style={styles.page}>
@@ -34,6 +74,7 @@ export default function DayPage({ dayKey }: { dayKey: string }) {
           </View>
         ) : (
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.entries}
             showsVerticalScrollIndicator={false}
           >
@@ -41,7 +82,28 @@ export default function DayPage({ dayKey }: { dayKey: string }) {
             {notes.map((n) => {
               const media = n.type === 'photo' ? parseMediaUris(n) : [];
               return (
-                <View key={n.id} style={styles.entry}>
+                <View
+                  key={n.id}
+                  style={styles.entry}
+                  onLayout={(e) => {
+                    entryOffsets.current[n.id] = e.nativeEvent.layout.y;
+                  }}
+                >
+                  {flashingId === n.id && (
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        styles.highlight,
+                        {
+                          backgroundColor: relationStyle.support.color,
+                          opacity: highlightAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 0.32],
+                          }),
+                        },
+                      ]}
+                    />
+                  )}
                   <Text style={styles.time}>{formatClock(n.created_at)}</Text>
                   {n.type === 'voice' ? (
                     <View style={styles.voiceWrap}>
@@ -114,10 +176,19 @@ const makeStyles = (colors: ColorPalette) =>
     paddingBottom: spacing.xl,
   },
   entry: {
+    position: 'relative',
     marginBottom: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.pageLine,
     paddingBottom: spacing.md,
+  },
+  highlight: {
+    position: 'absolute',
+    top: -8,
+    left: -12,
+    right: -12,
+    bottom: -4,
+    borderRadius: radius.sm,
   },
   time: {
     fontFamily: fonts.mono,

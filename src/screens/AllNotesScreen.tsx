@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -22,6 +21,7 @@ import PhotoGrid from '../components/PhotoGrid';
 import PhotoViewer from '../components/PhotoViewer';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
+import NoteActionsSheet from '../components/NoteActionsSheet';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
@@ -56,33 +56,21 @@ export default function AllNotesScreen() {
   );
   const { notes } = useAllNotes(opts);
 
-  const confirmDelete = (note: Note) => {
-    Alert.alert('Delete note?', 'This note will be permanently removed.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => removeNote(note.id) },
-    ]);
-  };
+  const [active, setActive] = useState<Note | null>(null);
+  const [sheet, setSheet] = useState<'menu' | 'confirm' | 'sent' | null>(null);
+  const [sentTitle, setSentTitle] = useState('');
 
   const sendToFlop = async (note: Note) => {
     const flop = await promoteNote(note);
     if (!flop) return;
-    Alert.alert('Sent to Flop', `“${flopTitle(flop)}” is now a Flop root note.`, [
-      { text: 'OK', style: 'cancel' },
-      { text: 'Open Flop', onPress: () => navigation.navigate('Flop') },
-    ]);
+    setSentTitle(flopTitle(flop));
+    setSheet('sent');
   };
 
   // Photo notes keep the one-step delete; Flop has no photo type to promote to.
   const showActions = (note: Note) => {
-    if (note.type === 'photo') {
-      confirmDelete(note);
-      return;
-    }
-    Alert.alert('Note actions', undefined, [
-      { text: 'Send to Flop', onPress: () => void sendToFlop(note) },
-      { text: 'Delete…', style: 'destructive', onPress: () => confirmDelete(note) },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setActive(note);
+    setSheet(note.type === 'photo' ? 'confirm' : 'menu');
   };
 
   return (
@@ -167,6 +155,29 @@ export default function AllNotesScreen() {
           onClose={() => setViewer(null)}
         />
       )}
+
+      <NoteActionsSheet
+        visible={sheet === 'menu'}
+        actions={[
+          { label: 'Send to Flop', onPress: () => active && void sendToFlop(active) },
+          { label: 'Delete…', danger: true, onPress: () => setSheet('confirm') },
+        ]}
+        onClose={() => setSheet(null)}
+      />
+      <NoteActionsSheet
+        visible={sheet === 'confirm'}
+        subtitle="This note will be permanently removed."
+        actions={[
+          { label: 'Delete', danger: true, onPress: () => active && removeNote(active.id) },
+        ]}
+        onClose={() => setSheet(null)}
+      />
+      <NoteActionsSheet
+        visible={sheet === 'sent'}
+        subtitle={`“${sentTitle}” is now a Flop root note.`}
+        actions={[{ label: 'Open Flop', onPress: () => navigation.navigate('Flop') }]}
+        onClose={() => setSheet(null)}
+      />
     </SafeAreaView>
   );
 }
