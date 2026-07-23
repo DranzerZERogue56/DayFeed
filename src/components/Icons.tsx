@@ -180,3 +180,35 @@ export function SunIcon({ size = 22, color, strokeWidth = S }: IconProps) {
     </Svg>
   );
 }
+
+/** Markdown checkbox lines — empty square, or filled with a checkmark. */
+export function CheckboxIcon({
+  size = 20,
+  color,
+  strokeWidth = S,
+  checked = false,
+}: IconProps & { checked?: boolean }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect
+        x="3.5"
+        y="3.5"
+        width="17"
+        height="17"
+        rx="4"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        fill={checked ? color : 'none'}
+      />
+      {checked && (
+        <Path
+          d="M7 12.3l3.2 3.2L17.3 8.3"
+          stroke="#fff"
+          strokeWidth={strokeWidth + 0.4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+    </Svg>
+  );
+}

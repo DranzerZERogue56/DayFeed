@@ -120,6 +120,18 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Same behavior in **View All**'s photo notes (extract, collapse/expand, long-text "Show more/less").
 - [ ] Force-close and reopen → extracted text and collapse choice (photos visible unless you'd hidden them) still there — note collapse state itself doesn't need to persist across restarts, just the extracted text.
 
+## 13. v1.4.9 — markdown-lite lists
+
+- [ ] In Feed's composer, type `1. ` then some text, hit Enter → the next line auto-starts with `2. `.
+- [ ] Type `- ` then text, Enter → next line auto-starts with `- `. Type `[] ` then text, Enter → next line auto-starts with `[ ] `.
+- [ ] Hit Enter on a **bare** marker (e.g. an empty `- ` with nothing typed after it) → the list breaks out, leaving a plain blank line instead of continuing.
+- [ ] Send a note with a numbered/bulleted/checkbox list → it renders with real markers/checkboxes (not raw `1. `/`- `/`[ ] ` text) in the Feed bubble.
+- [ ] Tap a rendered checkbox → it toggles checked (strike-through) and stays checked after backgrounding/reopening the app.
+- [ ] Same list rendering + tappable checkboxes in **View All** and on a **Flip** day page.
+- [ ] Same typing behavior (auto-continue, `[]` → `[ ]`) in **Flop's** "New Flop note" composer, a child composer, and Flop's in-place text editor (tap Edit on a Flop text note).
+- [ ] Edit a **voice transcript** (✎ Edit) and type a list into it → same auto-continue behavior works there too.
+- [ ] A Flop note whose **first line** is itself a list marker (e.g. title line `1. Groceries`) still shows a sensible title and the rest of the list renders normally below it.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

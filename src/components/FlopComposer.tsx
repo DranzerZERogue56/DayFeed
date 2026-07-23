@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { randomUUID } from 'expo-crypto';
 import { useFlop } from '../hooks/FlopContext';
 import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
+import { useMarkdownInput } from '../hooks/useMarkdownInput';
 import { persistRecording } from '../utils/audioFiles';
 import { CHILD_RELATIONS, type FlopChildRelation } from '../db/flopTypes';
 import { formatDuration } from '../utils/date';
@@ -36,7 +37,8 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
   const { colors, relationStyle } = useTheme();
   const { addFlopNote } = useFlop();
   const [relation, setRelation] = useState<FlopChildRelation | null>(null);
-  const [text, setText] = useState('');
+  const { value: text, onChangeText: setText, inputRef, setValue: setTextValue } =
+    useMarkdownInput('');
   const recorder = useRecorder();
 
   const isRoot = parentId === null;
@@ -46,7 +48,7 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
 
   const reset = () => {
     setRelation(null);
-    setText('');
+    setTextValue('');
   };
 
   const close = () => {
@@ -172,6 +174,7 @@ export default function FlopComposer({ visible, onClose, parentId }: Props) {
           )}
 
           <TextInput
+            ref={inputRef}
             style={styles.input}
             value={text}
             onChangeText={setText}

@@ -50,6 +50,12 @@ export async function setOcrText(id: string, text: string): Promise<void> {
   await db.runAsync(`UPDATE notes SET ocr_text = ? WHERE id = ?`, text, id);
 }
 
+/** Overwrite a text note's content (currently used for markdown checkbox toggles). */
+export async function updateNoteContent(id: string, content: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE notes SET content = ? WHERE id = ?`, content, id);
+}
+
 /** All notes for a single day, oldest-first (chat/notebook reading order). */
 export async function getNotesByDay(dayKey: string): Promise<Note[]> {
   const db = await getDb();

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import type { Note } from '../db/types';
 import { useNotes } from '../hooks/NotesContext';
+import { applyMarkdownEdit, useMarkdownCursorRef } from '../hooks/useMarkdownInput';
 import { transcribeAudio, TranscriptionBusyError } from '../lib/transcription';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
@@ -41,8 +42,20 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
   const [expanded, setExpanded] = useState(false);
   const [draft, setDraft] = useState<string | null>(null); // non-null = editing
   const [saving, setSaving] = useState(false);
+  const { inputRef: editorRef, moveCursor } = useMarkdownCursorRef();
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
+
+  const onChangeDraft = (next: string) => {
+    if (draft === null) return;
+    const result = applyMarkdownEdit(draft, next);
+    if (result) {
+      setDraft(result.text);
+      moveCursor(result.cursor);
+    } else {
+      setDraft(next);
+    }
+  };
 
   // Already transcribed -> show the text (or its editor), never the button.
   if (transcript) {
@@ -65,9 +78,10 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
         <View style={styles.transcriptWrap}>
           <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
           <TextInput
+            ref={editorRef}
             style={styles.editor}
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={onChangeDraft}
             multiline
             autoFocus
             textAlignVertical="top"

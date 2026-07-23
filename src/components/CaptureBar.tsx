@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
+import { useMarkdownInput } from '../hooks/useMarkdownInput';
 import { formatDuration } from '../utils/date';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { fonts, radius, spacing, type ColorPalette } from '../theme';
@@ -31,7 +32,8 @@ export default function CaptureBar({
   onPermissionDenied,
   onOpenCamera,
 }: Props) {
-  const [text, setText] = useState('');
+  const { value: text, onChangeText: setText, inputRef, setValue: setTextValue } =
+    useMarkdownInput('');
   const recorder = useRecorder();
   const [willCancel, setWillCancel] = useState(false);
   const styles = useStyles(makeStyles);
@@ -71,7 +73,7 @@ export default function CaptureBar({
   const send = () => {
     if (!canSend) return;
     onSendText(trimmed);
-    setText('');
+    setTextValue('');
   };
 
   const panResponder = useMemo(
@@ -178,6 +180,7 @@ export default function CaptureBar({
             <CameraIcon color={colors.textDim} size={22} />
           </TouchableOpacity>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             value={text}
             onChangeText={setText}

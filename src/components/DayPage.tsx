@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDayNotes, useDetectedDatesForDay } from '../hooks/useQueries';
-import { parseMediaUris } from '../db/types';
+import { useNotes } from '../hooks/NotesContext';
+import { parseMediaUris, type Note } from '../db/types';
+import { toggleCheckboxLine } from '../lib/markdownList';
 import { formatClock, formatDayHeader } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
@@ -10,6 +12,58 @@ import TranscribeButton from './TranscribeButton';
 import AgendaSection from './AgendaSection';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer from './PhotoViewer';
+import OcrControl from './OcrControl';
+import MarkdownText from './MarkdownText';
+
+// A photo entry's body: thumbnails + OCR control, with its own collapse
+// state (each entry needs one, so this can't be inlined into the notes.map —
+// hooks require an actual component).
+function PhotoEntryBody({
+  note,
+  onOpen,
+  styles,
+}: {
+  note: Note;
+  onOpen: (index: number) => void;
+  styles: ReturnType<typeof makeStyles>;
+}) {
+  const { saveOcrText } = useNotes();
+  const [collapsed, setCollapsed] = useState(false);
+  const media = parseMediaUris(note);
+
+  if (note.ocr_text) {
+    return (
+      <>
+        <OcrControl
+          mediaUris={media}
+          ocrText={note.ocr_text}
+          onExtracted={(text) => saveOcrText(note, text)}
+        />
+        <TouchableOpacity onPress={() => setCollapsed((c) => !c)}>
+          <Text style={styles.toggleLink}>
+            {collapsed ? `Show photos (${media.length})` : 'Hide photos'}
+          </Text>
+        </TouchableOpacity>
+        {!collapsed && (
+          <View style={styles.photosGap}>
+            <PhotoGrid uris={media} onOpen={onOpen} />
+          </View>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <PhotoGrid uris={media} onOpen={onOpen} />
+      <OcrControl
+        mediaUris={media}
+        ocrText={note.ocr_text}
+        onExtracted={(text) => saveOcrText(note, text)}
+      />
+    </>
+  );
+}
 
 interface Props {
   dayKey: string;
@@ -28,6 +82,7 @@ export default function DayPage({ dayKey, highlightNoteId, highlightToken }: Pro
   const { notes } = useDayNotes(dayKey);
   const agenda = useDetectedDatesForDay(dayKey);
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
+  const { editNoteContent } = useNotes();
 
   const isBlank = notes.length === 0 && agenda.length === 0;
 
@@ -80,7 +135,6 @@ export default function DayPage({ dayKey, highlightNoteId, highlightToken }: Pro
           >
             <AgendaSection entries={agenda} />
             {notes.map((n) => {
-              const media = n.type === 'photo' ? parseMediaUris(n) : [];
               return (
                 <View
                   key={n.id}
@@ -111,12 +165,19 @@ export default function DayPage({ dayKey, highlightNoteId, highlightToken }: Pro
                       <TranscribeButton note={n} tone="paper" />
                     </View>
                   ) : n.type === 'photo' ? (
-                    <PhotoGrid
-                      uris={media}
-                      onOpen={(index) => setViewer({ uris: media, index })}
+                    <PhotoEntryBody
+                      note={n}
+                      onOpen={(index) => setViewer({ uris: parseMediaUris(n), index })}
+                      styles={styles}
                     />
                   ) : (
-                    <Text style={styles.entryText}>{n.content}</Text>
+                    <MarkdownText
+                      content={n.content ?? ''}
+                      textStyle={styles.entryText}
+                      onToggleCheckbox={(lineIndex) =>
+                        editNoteContent(n, toggleCheckboxLine(n.content ?? '', lineIndex))
+                      }
+                    />
                   )}
                 </View>
               );
@@ -204,6 +265,16 @@ const makeStyles = (colors: ColorPalette) =>
   },
   voiceWrap: {
     marginTop: 4,
+  },
+  toggleLink: {
+    fontFamily: fonts.body,
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: spacing.xs,
+  },
+  photosGap: {
+    marginTop: spacing.sm,
   },
   blank: {
     flex: 1,

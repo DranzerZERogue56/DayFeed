@@ -11,6 +11,8 @@ import OcrControl from './OcrControl';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer from './PhotoViewer';
 import NoteActionsSheet from './NoteActionsSheet';
+import MarkdownText from './MarkdownText';
+import { toggleCheckboxLine } from '../lib/markdownList';
 
 interface Props {
   note: Note;
@@ -23,7 +25,7 @@ interface Props {
 export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
-  const { saveOcrText } = useNotes();
+  const { saveOcrText, editNoteContent } = useNotes();
   const isVoice = note.type === 'voice';
   const isPhoto = note.type === 'photo';
   const media = isPhoto ? parseMediaUris(note) : [];
@@ -91,7 +93,13 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
             )}
           </>
         ) : (
-          <Text style={styles.text}>{note.content}</Text>
+          <MarkdownText
+            content={note.content ?? ''}
+            textStyle={styles.text}
+            onToggleCheckbox={(lineIndex) =>
+              editNoteContent(note, toggleCheckboxLine(note.content ?? '', lineIndex))
+            }
+          />
         )}
         <View style={styles.footRow}>
           <View style={styles.footRule} />

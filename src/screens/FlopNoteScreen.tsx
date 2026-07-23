@@ -17,8 +17,11 @@ import { TranscribeControl } from '../components/TranscribeButton';
 import FlopBreadcrumb from '../components/FlopBreadcrumb';
 import FlopComposer from '../components/FlopComposer';
 import FlopChildActions from '../components/FlopChildActions';
+import MarkdownText from '../components/MarkdownText';
 import { useFlop } from '../hooks/FlopContext';
 import { useFlopPage } from '../hooks/useFlopQueries';
+import { applyMarkdownEdit, useMarkdownCursorRef } from '../hooks/useMarkdownInput';
+import { toggleCheckboxLine } from '../lib/markdownList';
 import { countFlopDescendants } from '../db';
 import {
   CHILD_RELATIONS,
@@ -44,6 +47,7 @@ export default function FlopNoteScreen() {
 
   const [composing, setComposing] = useState(false);
   const [draft, setDraft] = useState<string | null>(null); // non-null = editing
+  const { inputRef: editorRef, moveCursor } = useMarkdownCursorRef();
   // The child whose long-press sheet is open, with its position in its own group.
   const [acting, setActing] = useState<{ child: FlopNote; index: number; size: number } | null>(
     null,
@@ -60,6 +64,28 @@ export default function FlopNoteScreen() {
   }
 
   const body = flopBody(note);
+  // Rebuild the body from the raw (untrimmed) content so a checkbox toggle's
+  // line index maps 1:1 back onto note.content — flopBody() trims for
+  // display, which would shift indices if leading/trailing blank lines exist.
+  const contentLines = (note.content ?? '').split('\n');
+  const titleLine = contentLines[0] ?? '';
+  const rawBody = contentLines.slice(1).join('\n');
+
+  const toggleBodyCheckbox = (lineIndex: number) => {
+    const newBody = toggleCheckboxLine(rawBody, lineIndex);
+    void editFlopNote(note.id, `${titleLine}\n${newBody}`);
+  };
+
+  const onChangeDraft = (next: string) => {
+    if (draft === null) return;
+    const result = applyMarkdownEdit(draft, next);
+    if (result) {
+      setDraft(result.text);
+      moveCursor(result.cursor);
+    } else {
+      setDraft(next);
+    }
+  };
 
   /** Jumping to an ancestor rewinds the stack rather than growing it deeper. */
   const jumpTo = (id: string) => {
@@ -131,9 +157,10 @@ export default function FlopNoteScreen() {
 
         {editing ? (
           <TextInput
+            ref={editorRef}
             style={styles.editor}
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={onChangeDraft}
             multiline
             autoFocus
             textAlignVertical="top"
@@ -151,7 +178,13 @@ export default function FlopNoteScreen() {
                 />
               </View>
             ) : (
-              !!body && <Text style={styles.body}>{body}</Text>
+              !!body && (
+                <MarkdownText
+                  content={rawBody}
+                  textStyle={styles.body}
+                  onToggleCheckbox={toggleBodyCheckbox}
+                />
+              )
             )}
           </>
         )}

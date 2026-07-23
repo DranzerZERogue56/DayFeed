@@ -19,9 +19,12 @@ import VoicePlayerRow from '../components/VoicePlayerRow';
 import TranscribeButton from '../components/TranscribeButton';
 import PhotoGrid from '../components/PhotoGrid';
 import PhotoViewer from '../components/PhotoViewer';
+import OcrControl from '../components/OcrControl';
+import MarkdownText from '../components/MarkdownText';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import NoteActionsSheet from '../components/NoteActionsSheet';
+import { toggleCheckboxLine } from '../lib/markdownList';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
@@ -35,6 +38,56 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'photo', label: 'Photo' },
 ];
 
+// A photo note's card body: thumbnails + OCR control, with its own collapse
+// state (each card needs one, so this can't be inlined into renderItem —
+// hooks require an actual component).
+function PhotoNoteBody({
+  note,
+  onOpen,
+  styles,
+}: {
+  note: Note;
+  onOpen: (index: number) => void;
+  styles: ReturnType<typeof makeStyles>;
+}) {
+  const { saveOcrText } = useNotes();
+  const [collapsed, setCollapsed] = useState(false);
+  const media = parseMediaUris(note);
+
+  if (note.ocr_text) {
+    return (
+      <>
+        <OcrControl
+          mediaUris={media}
+          ocrText={note.ocr_text}
+          onExtracted={(text) => saveOcrText(note, text)}
+        />
+        <TouchableOpacity onPress={() => setCollapsed((c) => !c)}>
+          <Text style={styles.toggleLink}>
+            {collapsed ? `Show photos (${media.length})` : 'Hide photos'}
+          </Text>
+        </TouchableOpacity>
+        {!collapsed && (
+          <View style={styles.photosGap}>
+            <PhotoGrid uris={media} onOpen={onOpen} />
+          </View>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <PhotoGrid uris={media} onOpen={onOpen} />
+      <OcrControl
+        mediaUris={media}
+        ocrText={note.ocr_text}
+        onExtracted={(text) => saveOcrText(note, text)}
+      />
+    </>
+  );
+}
+
 // View All: every note newest-first, with type chips + case-insensitive search
 // over content and transcript. Filters and search combine.
 export default function AllNotesScreen() {
@@ -43,7 +96,7 @@ export default function AllNotesScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
-  const { removeNote } = useNotes();
+  const { removeNote, editNoteContent } = useNotes();
   const { promoteNote } = useFlop();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -134,14 +187,19 @@ export default function AllNotesScreen() {
                 <TranscribeButton note={item} tone="list" />
               </>
             ) : item.type === 'photo' ? (
-              <PhotoGrid
-                uris={parseMediaUris(item)}
-                onOpen={(index) =>
-                  setViewer({ uris: parseMediaUris(item), index })
-                }
+              <PhotoNoteBody
+                note={item}
+                onOpen={(index) => setViewer({ uris: parseMediaUris(item), index })}
+                styles={styles}
               />
             ) : (
-              <Text style={styles.cardText}>{item.content}</Text>
+              <MarkdownText
+                content={item.content ?? ''}
+                textStyle={styles.cardText}
+                onToggleCheckbox={(lineIndex) =>
+                  editNoteContent(item, toggleCheckboxLine(item.content ?? '', lineIndex))
+                }
+              />
             )}
           </TouchableOpacity>
         )}
@@ -252,5 +310,15 @@ const makeStyles = (colors: ColorPalette) =>
     color: colors.text,
     fontSize: type.noteBody,
     lineHeight: 25,
+  },
+  toggleLink: {
+    fontFamily: fonts.body,
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: spacing.xs,
+  },
+  photosGap: {
+    marginTop: spacing.sm,
   },
 });
