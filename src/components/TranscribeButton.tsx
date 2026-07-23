@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import type { Note } from '../db/types';
 import { useNotes } from '../hooks/NotesContext';
 import { transcribeAudio, TranscriptionBusyError } from '../lib/transcription';
@@ -31,16 +39,62 @@ const COLLAPSE_CHARS = 140;
 export function TranscribeControl({ audioUri, transcript, onTranscribed }: ControlProps) {
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null); // non-null = editing
+  const [saving, setSaving] = useState(false);
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
 
-  // Already transcribed -> show the text, never the button.
+  // Already transcribed -> show the text (or its editor), never the button.
   if (transcript) {
+    if (draft !== null) {
+      const saveEdit = async () => {
+        const text = draft.trim();
+        if (!text || text === transcript) {
+          setDraft(null);
+          return;
+        }
+        setSaving(true);
+        try {
+          await onTranscribed(text);
+          setDraft(null);
+        } finally {
+          setSaving(false);
+        }
+      };
+      return (
+        <View style={styles.transcriptWrap}>
+          <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
+          <TextInput
+            style={styles.editor}
+            value={draft}
+            onChangeText={setDraft}
+            multiline
+            autoFocus
+            textAlignVertical="top"
+            editable={!saving}
+          />
+          <View style={styles.editActions}>
+            <TouchableOpacity onPress={() => setDraft(null)} disabled={saving}>
+              <Text style={styles.moreLink}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={saveEdit} disabled={saving}>
+              <Text style={[styles.moreLink, styles.saveLink]}>{saving ? 'Saving…' : 'Save'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
     const long = transcript.length > COLLAPSE_CHARS;
     const shown = long && !expanded ? transcript.slice(0, COLLAPSE_CHARS) + '…' : transcript;
     return (
       <View style={styles.transcriptWrap}>
-        <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
+        <View style={styles.transcriptHead}>
+          <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
+          <TouchableOpacity onPress={() => setDraft(transcript)} accessibilityLabel="Edit transcript">
+            <Text style={styles.editLink}>✎ Edit</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.transcriptText}>{shown}</Text>
         {long && (
           <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
@@ -137,12 +191,23 @@ const makeStyles = (colors: ColorPalette) =>
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.divider,
   },
+  transcriptHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 3,
+  },
   transcriptLabel: {
     fontFamily: fonts.mono,
     color: colors.accent,
     fontSize: 10,
     letterSpacing: 1,
-    marginBottom: 3,
+  },
+  editLink: {
+    fontFamily: fonts.body,
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
   },
   transcriptText: {
     fontFamily: fonts.body,
@@ -156,5 +221,26 @@ const makeStyles = (colors: ColorPalette) =>
     fontSize: 12,
     fontWeight: '700',
     marginTop: 4,
+  },
+  editor: {
+    fontFamily: fonts.body,
+    color: colors.text,
+    fontSize: type.timestamp,
+    lineHeight: 21,
+    minHeight: 60,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.accentTint,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.lg,
+    marginTop: spacing.xs,
+  },
+  saveLink: {
+    color: colors.accent,
   },
 });

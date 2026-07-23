@@ -99,6 +99,16 @@ note it under **Findings** at the bottom with the step number.
 
 ---
 
+## 11. v1.4.7 — edit voice transcripts
+
+- [ ] Feed: a voice note with a transcript shows a small **✎ Edit** next to "TRANSCRIPT".
+- [ ] Tap it → transcript becomes an editable box with **Cancel** / **Save** below it.
+- [ ] Edit the text and Save → the bubble immediately shows the corrected transcript.
+- [ ] Cancel instead → reverts to the original transcript, nothing saved.
+- [ ] Same Edit control works in **View All** and inside a **Flop** voice note.
+- [ ] Editing a Feed transcript that now contains a date phrase (e.g. "next Tuesday") → check it still shows up on the Agenda tab.
+- [ ] Saving an edit with the text unchanged, or emptied out entirely, doesn't crash or wipe the transcript.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
