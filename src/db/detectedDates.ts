@@ -82,6 +82,7 @@ function toAgendaEntry(r: JoinedRow): AgendaEntry {
       day_key: r.day_key,
       tags: r.tags,
       media_uris: r.media_uris,
+      ocr_text: r.ocr_text,
     },
   };
 }

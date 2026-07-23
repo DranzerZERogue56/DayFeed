@@ -76,7 +76,12 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 `;
 
-const LATEST_VERSION = 5;
+// v5 -> v6 (DayFeed v1.4.8): on-device OCR text for photo notes.
+const MIGRATION_V6 = `
+ALTER TABLE notes ADD COLUMN ocr_text TEXT;
+`;
+
+const LATEST_VERSION = 6;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -109,6 +114,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 5) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V5);
+    });
+  }
+
+  if (current < 6) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V6);
     });
   }
 

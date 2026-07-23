@@ -13,6 +13,7 @@ function note(overrides: Partial<Note>): Note {
     day_key: '2026-07-19',
     tags: '[]',
     media_uris: null,
+    ocr_text: null,
     ...overrides,
   };
 }

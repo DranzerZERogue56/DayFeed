@@ -13,6 +13,7 @@ import {
   getNote,
   getReminderIdsForNote,
   initDb,
+  setOcrText,
   setTranscript,
 } from '../db';
 import { cancelReminder } from '../lib/reminders';
@@ -29,6 +30,8 @@ interface NotesContextValue {
   removeNote: (id: string) => Promise<void>;
   /** Save an on-device transcript, then run date detection over it. */
   saveTranscript: (note: Note, transcript: string) => Promise<void>;
+  /** Save on-device OCR text extracted from a photo note's images. */
+  saveOcrText: (note: Note, text: string) => Promise<void>;
   /** Force a re-read without mutating (rarely needed). */
   refresh: () => void;
 }
@@ -70,6 +73,14 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     [bump],
   );
 
+  const saveOcrText = useCallback(
+    async (note: Note, text: string) => {
+      await setOcrText(note.id, text);
+      bump();
+    },
+    [bump],
+  );
+
   const removeNote = useCallback(
     async (id: string) => {
       // Clean up associated files; detected_dates cascade via the FK. Scheduled
@@ -88,8 +99,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ version, ready, addNote, removeNote, saveTranscript, refresh: bump }),
-    [version, ready, addNote, removeNote, saveTranscript, bump],
+    () => ({ version, ready, addNote, removeNote, saveTranscript, saveOcrText, refresh: bump }),
+    [version, ready, addNote, removeNote, saveTranscript, saveOcrText, bump],
   );
 
   return <NotesContext.Provider value={value}>{children}</NotesContext.Provider>;

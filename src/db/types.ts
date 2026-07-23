@@ -20,6 +20,8 @@ export interface Note {
   tags: string;
   /** JSON array string of local image URIs (photo notes). Null otherwise. */
   media_uris: string | null;
+  /** On-device OCR text extracted from a photo note's images. Null until run. */
+  ocr_text: string | null;
 }
 
 /** Parse a photo note's media_uris JSON into a string[]. Safe on null/garbage. */

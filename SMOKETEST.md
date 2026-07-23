@@ -109,6 +109,17 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Editing a Feed transcript that now contains a date phrase (e.g. "next Tuesday") → check it still shows up on the Agenda tab.
 - [ ] Saving an edit with the text unchanged, or emptied out entirely, doesn't crash or wipe the transcript.
 
+## 12. v1.4.8 — photo text extraction (OCR)
+
+- [ ] Feed: a photo note (with text visible in at least one image, e.g. a sign or note card) shows an **✎ Extract text** button below the thumbnails.
+- [ ] Tap it → button shows "Extracting…" → the recognized text appears under an "EXTRACTED TEXT" label.
+- [ ] A photo note with **multiple images** (some with text, some without) → extracting combines all readable text into one block, separated by blank lines.
+- [ ] Once text exists, a **"Hide photos"** link appears → tap it → thumbnails collapse, extracted text stays visible; tap **"Show photos (N)"** to bring them back.
+- [ ] Photo with no readable text → "No text found" alert, no crash, no extract button hidden.
+- [ ] View All: search for a word that only appears in an extracted-text block → the photo note shows up in results.
+- [ ] Same behavior in **View All**'s photo notes (extract, collapse/expand, long-text "Show more/less").
+- [ ] Force-close and reopen → extracted text and collapse choice (photos visible unless you'd hidden them) still there — note collapse state itself doesn't need to persist across restarts, just the extracted text.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

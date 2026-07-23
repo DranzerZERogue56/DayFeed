@@ -4,8 +4,10 @@ import { parseMediaUris, type Note } from '../db/types';
 import { formatClock } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
+import { useNotes } from '../hooks/NotesContext';
 import VoicePlayerRow from './VoicePlayerRow';
 import TranscribeButton from './TranscribeButton';
+import OcrControl from './OcrControl';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer from './PhotoViewer';
 import NoteActionsSheet from './NoteActionsSheet';
@@ -21,6 +23,7 @@ interface Props {
 export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
+  const { saveOcrText } = useNotes();
   const isVoice = note.type === 'voice';
   const isPhoto = note.type === 'photo';
   const media = isPhoto ? parseMediaUris(note) : [];
@@ -29,6 +32,7 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
     index: 0,
   });
   const [sheet, setSheet] = useState<'menu' | 'confirm' | null>(null);
+  const [photosCollapsed, setPhotosCollapsed] = useState(false);
 
   const deleteDetail = isVoice
     ? 'This voice note will be permanently removed.'
@@ -56,7 +60,36 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
             <TranscribeButton note={note} tone="list" />
           </>
         ) : isPhoto ? (
-          <PhotoGrid uris={media} onOpen={(index) => setViewer({ open: true, index })} />
+          <>
+            {note.ocr_text ? (
+              <>
+                <OcrControl
+                  mediaUris={media}
+                  ocrText={note.ocr_text}
+                  onExtracted={(text) => saveOcrText(note, text)}
+                />
+                <TouchableOpacity onPress={() => setPhotosCollapsed((c) => !c)}>
+                  <Text style={styles.toggleLink}>
+                    {photosCollapsed ? `Show photos (${media.length})` : 'Hide photos'}
+                  </Text>
+                </TouchableOpacity>
+                {!photosCollapsed && (
+                  <View style={styles.photosGap}>
+                    <PhotoGrid uris={media} onOpen={(index) => setViewer({ open: true, index })} />
+                  </View>
+                )}
+              </>
+            ) : (
+              <>
+                <PhotoGrid uris={media} onOpen={(index) => setViewer({ open: true, index })} />
+                <OcrControl
+                  mediaUris={media}
+                  ocrText={note.ocr_text}
+                  onExtracted={(text) => saveOcrText(note, text)}
+                />
+              </>
+            )}
+          </>
         ) : (
           <Text style={styles.text}>{note.content}</Text>
         )}
@@ -122,6 +155,16 @@ const makeStyles = (colors: ColorPalette) =>
     color: colors.text,
     fontSize: type.noteBody,
     lineHeight: 26,
+  },
+  toggleLink: {
+    fontFamily: fonts.body,
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: spacing.xs,
+  },
+  photosGap: {
+    marginTop: spacing.sm,
   },
   // Index-card footer: a faint rule running up to the right-set timestamp.
   footRow: {

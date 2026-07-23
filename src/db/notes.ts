@@ -18,6 +18,7 @@ export async function createNote(input: NewNoteInput): Promise<Note> {
     day_key: dayKeyFromMs(created_at),
     tags: JSON.stringify(input.tags ?? []),
     media_uris: input.media_uris ? JSON.stringify(input.media_uris) : null,
+    ocr_text: null,
   };
   await db.runAsync(
     `INSERT INTO notes
@@ -41,6 +42,12 @@ export async function createNote(input: NewNoteInput): Promise<Note> {
 export async function setTranscript(id: string, transcript: string): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE notes SET transcript = ? WHERE id = ?`, transcript, id);
+}
+
+/** Persist OCR text for a photo note (set once, after on-device text recognition). */
+export async function setOcrText(id: string, text: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE notes SET ocr_text = ? WHERE id = ?`, text, id);
 }
 
 /** All notes for a single day, oldest-first (chat/notebook reading order). */
@@ -70,9 +77,9 @@ export async function getAllNotes(opts: GetAllOptions = {}): Promise<Note[]> {
   }
   const term = opts.search?.trim();
   if (term) {
-    where.push('(content LIKE ? OR transcript LIKE ?)');
+    where.push('(content LIKE ? OR transcript LIKE ? OR ocr_text LIKE ?)');
     const like = `%${term}%`;
-    params.push(like, like);
+    params.push(like, like, like);
   }
 
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
