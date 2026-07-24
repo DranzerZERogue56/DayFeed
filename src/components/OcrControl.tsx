@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { isOcrBusy, OcrBusyError, recognizeText } from '../lib/ocr';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
@@ -19,15 +20,26 @@ const COLLAPSE_CHARS = 140;
 export default function OcrControl({ mediaUris, ocrText, onExtracted }: Props) {
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
 
   if (ocrText) {
     const long = ocrText.length > COLLAPSE_CHARS;
     const shown = long && !expanded ? ocrText.slice(0, COLLAPSE_CHARS) + '…' : ocrText;
+    const copy = async () => {
+      await Clipboard.setStringAsync(ocrText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    };
     return (
       <View style={styles.textWrap}>
-        <Text style={styles.textLabel}>EXTRACTED TEXT</Text>
+        <View style={styles.textLabelRow}>
+          <Text style={styles.textLabel}>EXTRACTED TEXT</Text>
+          <TouchableOpacity onPress={copy} accessibilityLabel="Copy extracted text">
+            <Text style={styles.copyLink}>{copied ? 'Copied' : 'Copy'}</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.text}>{shown}</Text>
         {long && (
           <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
@@ -107,12 +119,23 @@ const makeStyles = (colors: ColorPalette) =>
     textWrap: {
       marginTop: spacing.sm,
     },
+    textLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 3,
+    },
     textLabel: {
       fontFamily: fonts.mono,
       color: colors.accent,
       fontSize: 10,
       letterSpacing: 1,
-      marginBottom: 3,
+    },
+    copyLink: {
+      fontFamily: fonts.body,
+      color: colors.accent,
+      fontSize: 12,
+      fontWeight: '700',
     },
     text: {
       fontFamily: fonts.body,

@@ -132,6 +132,13 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Edit a **voice transcript** (✎ Edit) and type a list into it → same auto-continue behavior works there too.
 - [ ] A Flop note whose **first line** is itself a list marker (e.g. title line `1. Groceries`) still shows a sensible title and the rest of the list renders normally below it.
 
+## 14. v1.4.10 — copy extracted photo text
+
+- [ ] A photo note with extracted text shows a **"Copy"** link next to the "EXTRACTED TEXT" label.
+- [ ] Tap it → label briefly changes to "Copied", then reverts.
+- [ ] Paste elsewhere (e.g. the composer) → the full extracted text (all combined blocks, not just what's visible when collapsed) is pasted.
+- [ ] Same behavior in Feed, View All, and Flip's day page.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
