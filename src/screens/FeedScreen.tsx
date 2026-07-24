@@ -30,7 +30,7 @@ import { persistRecording } from '../utils/audioFiles';
 import { persistImages } from '../utils/mediaFiles';
 import { randomUUID } from 'expo-crypto';
 import type { Note } from '../db/types';
-import { spacing, type ColorPalette } from '../theme';
+import { fonts, radius, spacing, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { Alert } from 'react-native';
 import NoteActionsSheet from '../components/NoteActionsSheet';
@@ -119,7 +119,8 @@ export default function FeedScreen() {
             onPress={() => setPhotosOpen(true)}
             accessibilityLabel="View photo notes"
           >
-            <ImagesIcon color={colors.textDim} size={20} />
+            <ImagesIcon color={colors.accent} size={18} />
+            <Text style={styles.photosBtnText}>Photos</Text>
           </TouchableOpacity>
         }
       />
@@ -196,5 +197,21 @@ const makeStyles = (colors: ColorPalette) =>
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   listContent: { paddingVertical: spacing.sm },
-  photosBtn: { padding: 2 },
+  photosBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
+  },
+  photosBtnText: {
+    fontFamily: fonts.body,
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });

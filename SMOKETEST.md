@@ -177,6 +177,11 @@ note it under **Findings** at the bottom with the step number.
 - [ ] A note that happens to mention "x" once (e.g. "meet me x the shop", a single multiplication) is unaffected.
 - [ ] Known limitation: a line that's *only* math with 2+ "x" multiplication signs and no other punctuation (e.g. "5 x 3 = 2 x 4") could be misidentified as tab-strip noise and dropped — rare, but worth knowing about if a math-heavy photo note loses a line.
 
+## 19. v1.5.3 — more pronounced Photos button
+
+- [ ] Feed's header shows a bronze-tinted pill labeled "Photos" (icon + text), not just a bare icon — matches the visual weight of Flop's "+" and Vault's "+" buttons.
+- [ ] Tapping it still opens the Photos grid as before.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
