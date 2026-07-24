@@ -146,6 +146,20 @@ note it under **Findings** at the bottom with the step number.
 - [ ] A note whose real content happens to contain a time (e.g. "Meeting at 9:41 with the team") or a percentage (e.g. "100% sure this works") still keeps that text — only status-bar-*only* lines are dropped.
 - [ ] A photo that's *entirely* status bar (rare, e.g. a cropped screenshot sliver) → "No text found", not an empty extracted-text block.
 
+## 16. v1.5.0 — Vault: biometric-locked password/username storage
+
+- [ ] A new **Vault** tab appears (padlock icon) alongside Feed/Flip/Flop/Agenda/View All.
+- [ ] Opening it prompts fingerprint/Face unlock immediately. Cancel it → a "Vault locked" screen with an **Unlock** button appears; tapping it re-prompts.
+- [ ] Switch to another tab and back to Vault → it re-locks and prompts again every time (no "stay unlocked" window).
+- [ ] On a device/emulator with **no fingerprint/face/PIN set up** → a "No screen lock set up" message shows instead of a broken prompt, no crash.
+- [ ] After unlocking, tap **+** → add an entry: a label ("what it's for"), username, password. Save requires all three filled in.
+- [ ] The saved entry shows as a card: label at top, then a **USERNAME** pill and a **PASSWORD** pill below it, both masked with dots by default.
+- [ ] Tap a pill → it unfurls to show the real text; tap again → it re-masks.
+- [ ] A long username/password that overflows the pill's width can be **scrolled horizontally** within the pill to see the rest.
+- [ ] Tap the **⋯** on a card → Edit opens the composer pre-filled; Delete asks to confirm, then removes the entry.
+- [ ] Force-close and reopen the app, unlock Vault again → entries are still there (persisted via expo-secure-store, not lost on restart).
+- [ ] Uninstalling and reinstalling the app clears the Vault (SecureStore is sandboxed to the app install, same as expected for Android Keystore/iOS Keychain).
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

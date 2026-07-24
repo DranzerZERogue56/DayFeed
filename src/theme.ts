@@ -146,7 +146,7 @@ export const type = {
 };
 
 // One shadow language for every lifted surface, so cards read as the same paper
-// stock across all five tabs.
+// stock across every tab.
 export const shadows = {
   /** Note cards, agenda rows, list items — a soft lift off the paper. */
   card: {

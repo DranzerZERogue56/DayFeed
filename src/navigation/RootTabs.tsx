@@ -5,12 +5,14 @@ import FlipScreen from '../screens/FlipScreen';
 import AllNotesScreen from '../screens/AllNotesScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import FlopStack from './FlopStack';
+import VaultScreen from '../screens/VaultScreen';
 import type { RootTabParamList } from './types';
 import { useTheme } from '../hooks/ThemeContext';
 import {
   BookStackIcon,
   CalendarIcon,
   CardStackIcon,
+  LockIcon,
   OpenBookIcon,
   SpeechBubbleIcon,
   type IconProps,
@@ -67,6 +69,11 @@ export default function RootTabs() {
         name="All"
         component={AllNotesScreen}
         options={{ tabBarIcon: icon(CardStackIcon), tabBarLabel: 'View All' }}
+      />
+      <Tab.Screen
+        name="Vault"
+        component={VaultScreen}
+        options={{ tabBarIcon: icon(LockIcon), tabBarLabel: 'Vault' }}
       />
     </Tab.Navigator>
   );

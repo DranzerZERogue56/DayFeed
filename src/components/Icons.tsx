@@ -56,6 +56,23 @@ export function BookStackIcon({ size = 22, color, strokeWidth = S }: IconProps) 
   );
 }
 
+/** Vault — padlock. */
+export function LockIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="5" y="11" width="14" height="9.5" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M8 11V8a4 4 0 0 1 8 0v3"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Circle cx="12" cy="15" r="1.4" fill={color} />
+      <Line x1="12" y1="16.4" x2="12" y2="18.2" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 /** Agenda — calendar. */
 export function CalendarIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   return (
