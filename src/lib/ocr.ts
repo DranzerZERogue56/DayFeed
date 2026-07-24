@@ -1,4 +1,5 @@
 import TextRecognition from '@react-native-ml-kit/text-recognition';
+import { stripOcrNoise } from './ocrNoise';
 
 // On-device OCR via Google ML Kit's text recognizer (Apple Vision on iOS).
 // Fully local — nothing is uploaded — though on Android the recognizer model
@@ -30,7 +31,7 @@ export async function recognizeText(imageUris: string[]): Promise<string> {
     const blocks: string[] = [];
     for (const uri of imageUris) {
       const result = await TextRecognition.recognize(uri);
-      const text = result.text.trim();
+      const text = stripOcrNoise(result.text);
       if (text) blocks.push(text);
     }
     return blocks.join('\n\n');

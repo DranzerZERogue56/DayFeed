@@ -139,6 +139,13 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Paste elsewhere (e.g. the composer) → the full extracted text (all combined blocks, not just what's visible when collapsed) is pasted.
 - [ ] Same behavior in Feed, View All, and Flip's day page.
 
+## 15. v1.4.11 — filter status-bar noise out of OCR text
+
+- [ ] Photograph a phone/tablet screen showing text with the status bar visible (clock, battery %, LTE/Wi-Fi) in frame → extract text → the clock, battery %, and connectivity chrome are gone from the extracted text; the actual on-screen content is intact.
+- [ ] A plain paper/whiteboard photo's extracted text is unchanged from before (nothing legitimate gets stripped).
+- [ ] A note whose real content happens to contain a time (e.g. "Meeting at 9:41 with the team") or a percentage (e.g. "100% sure this works") still keeps that text — only status-bar-*only* lines are dropped.
+- [ ] A photo that's *entirely* status bar (rare, e.g. a cropped screenshot sliver) → "No text found", not an empty extracted-text block.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
