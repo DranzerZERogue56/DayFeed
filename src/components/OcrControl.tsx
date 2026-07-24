@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { isOcrBusy, OcrBusyError, recognizeText } from '../lib/ocr';
+import { toggleCheckboxLine } from '../lib/markdownList';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
+import MarkdownText from './MarkdownText';
 
 interface Props {
   mediaUris: string[];
@@ -40,7 +42,11 @@ export default function OcrControl({ mediaUris, ocrText, onExtracted }: Props) {
             <Text style={styles.copyLink}>{copied ? 'Copied' : 'Copy'}</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.text}>{shown}</Text>
+        <MarkdownText
+          content={shown}
+          textStyle={styles.text}
+          onToggleCheckbox={(lineIndex) => onExtracted(toggleCheckboxLine(ocrText, lineIndex))}
+        />
         {long && (
           <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
             <Text style={styles.moreLink}>{expanded ? 'Show less' : 'Show more'}</Text>

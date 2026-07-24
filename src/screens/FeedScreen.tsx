@@ -6,6 +6,7 @@ import {
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +18,8 @@ import NoteBubble from '../components/NoteBubble';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import CaptureCameraScreen from './CaptureCameraScreen';
+import PhotosScreen from './PhotosScreen';
+import { ImagesIcon } from '../components/Icons';
 import { useNotes } from '../hooks/NotesContext';
 import { useFlop } from '../hooks/FlopContext';
 import { flopTitle } from '../db/flopTypes';
@@ -45,6 +48,7 @@ export default function FeedScreen() {
   const { addNote, removeNote } = useNotes();
   const { promoteNote } = useFlop();
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
   const [sentTitle, setSentTitle] = useState<string | null>(null);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -106,7 +110,19 @@ export default function FeedScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScreenHeader overline="Quick capture" title="DayFeed" />
+      <ScreenHeader
+        overline="Quick capture"
+        title="DayFeed"
+        action={
+          <TouchableOpacity
+            style={styles.photosBtn}
+            onPress={() => setPhotosOpen(true)}
+            accessibilityLabel="View photo notes"
+          >
+            <ImagesIcon color={colors.textDim} size={20} />
+          </TouchableOpacity>
+        }
+      />
       {/* 'padding' on BOTH platforms: Android edge-to-edge (SDK 52+) no longer
           resizes the window for the keyboard, so without this the capture bar
           sits hidden behind the keyboard while typing. */}
@@ -155,6 +171,8 @@ export default function FeedScreen() {
         />
       </Modal>
 
+      <PhotosScreen visible={photosOpen} onClose={() => setPhotosOpen(false)} />
+
       <NoteActionsSheet
         visible={sentTitle !== null}
         subtitle={`“${sentTitle ?? ''}” is now a Flop root note.`}
@@ -178,4 +196,5 @@ const makeStyles = (colors: ColorPalette) =>
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   listContent: { paddingVertical: spacing.sm },
+  photosBtn: { padding: 2 },
 });

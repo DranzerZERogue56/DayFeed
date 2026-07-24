@@ -99,6 +99,29 @@ export function CardStackIcon({ size = 22, color, strokeWidth = S }: IconProps) 
   );
 }
 
+/** Feed header — photos grid (stacked image frames). */
+export function ImagesIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="3" y="6.5" width="14" height="11" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Circle cx="7.2" cy="10.5" r="1.1" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M3.5 15.5l3.4-3.2c.4-.4 1-.4 1.4 0l2.6 2.5 1.6-1.5c.4-.4 1-.4 1.4 0l2.6 2.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M20 8.5v9c0 1.1-.9 2-2 2h-9"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 /** Capture bar / composers — microphone. */
 export function MicIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   return (

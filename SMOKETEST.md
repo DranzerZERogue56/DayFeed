@@ -160,6 +160,17 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Force-close and reopen the app, unlock Vault again → entries are still there (persisted via expo-secure-store, not lost on restart).
 - [ ] Uninstalling and reinstalling the app clears the Vault (SecureStore is sandboxed to the app install, same as expected for Android Keystore/iOS Keychain).
 
+## 17. v1.5.1 — Photos sub-feed + OCR text layout/list formatting
+
+- [ ] A small photos-grid icon appears in Feed's header, next to the light/dark toggle.
+- [ ] Tapping it opens a **Photos** screen: a 3-column grid of every photo note, newest first (separate from the Feed chat list).
+- [ ] A tile with more than one image shows a count badge; a tile whose note has extracted text shows an "Aa" badge.
+- [ ] Tapping a tile opens a detail view with that note's images (tap to open the swipeable full-screen viewer) and its OCR "Extract text"/extracted-text control — same behavior as in Feed (extract, copy, unfurl not applicable here but expand/collapse and checkbox-tap all work).
+- [ ] **Delete** on the detail view asks to confirm, then removes the note and returns to the grid (tile disappears).
+- [ ] Photograph a **numbered/bulleted/checkbox list** (printed or handwritten, e.g. "1) Milk", "• Eggs", "☐ Bread") → extracted text renders with real numbers/bullets/checkboxes (not raw "1)"/"•"/"☐"), and a checkbox tap toggles and persists.
+- [ ] Photograph something with **distinct paragraph/column grouping** (e.g. a receipt with a line-item column, or a form with separate fields) → extracted text keeps that grouping (blank line between groups) instead of one run-on paragraph.
+- [ ] A photo with plain prose (no lists) still extracts and displays exactly as before — no stray markers introduced.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
