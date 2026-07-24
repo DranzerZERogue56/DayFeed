@@ -26,11 +26,26 @@ const NOISE_TOKEN_PATTERNS: RegExp[] = [
 
 const MAX_NOISE_TOKENS = 4;
 
+// Browser tab-switcher chrome: photographing a tab strip (or a tab-switcher
+// screenshot) reads as several tab titles run together, each followed by its
+// "✕" close button misread as a bare "x"/"X". Two or more of those on one
+// line, with none of a sentence's usual punctuation, is the shape of a tab
+// strip — not something ordinary prose produces. (A rare exception: a math
+// line like "5 x 3 = 2 x 4" with no other punctuation would also match — an
+// accepted false positive for this narrow a heuristic.)
+function isTabStripLine(line: string): boolean {
+  const tokens = line.split(/\s+/);
+  const closeButtonTokens = tokens.filter((t) => t === 'x' || t === 'X').length;
+  if (closeButtonTokens < 2) return false;
+  return !/[.,!?;:]/.test(line);
+}
+
 /** True if a single line of recognized text is screen-chrome noise, not content. */
 export function isNoiseLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
   if (NOISE_FULL_LINE_PATTERNS.some((p) => p.test(trimmed))) return true;
+  if (isTabStripLine(trimmed)) return true;
 
   const tokens = trimmed.split(/\s+/);
   if (tokens.length === 0 || tokens.length > MAX_NOISE_TOKENS) return false;

@@ -38,6 +38,20 @@ describe('isNoiseLine', () => {
   it('treats a blank line as not-noise (nothing to strip)', () => {
     expect(isNoiseLine('   ')).toBe(false);
   });
+
+  it('flags a concatenated browser tab strip', () => {
+    // The reported real-world case: a photo of a browser tab switcher.
+    expect(
+      isNoiseLine(
+        'DranzerZERogue56/DayFee x The DeimosComprehensive x O The Go-To for GenAI Teamv X ) DranzerZERogue56/DayFe X',
+      ),
+    ).toBe(true);
+  });
+
+  it('does not flag prose that happens to contain a single "x"', () => {
+    expect(isNoiseLine('Meet me x the coffee shop at noon.')).toBe(false);
+    expect(isNoiseLine('5 x 3 = 15, and 2 x 4 = 8.')).toBe(false);
+  });
 });
 
 describe('stripOcrNoise', () => {

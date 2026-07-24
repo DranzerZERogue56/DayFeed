@@ -171,6 +171,12 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Photograph something with **distinct paragraph/column grouping** (e.g. a receipt with a line-item column, or a form with separate fields) → extracted text keeps that grouping (blank line between groups) instead of one run-on paragraph.
 - [ ] A photo with plain prose (no lists) still extracts and displays exactly as before — no stray markers introduced.
 
+## 18. v1.5.2 — filter browser tab-switcher chrome out of OCR text
+
+- [ ] Photograph a browser's tab-switcher/tab-strip view (multiple open tabs visible) → the extracted text does not contain a garbled line of concatenated tab titles with stray "x"/"X" tokens between them.
+- [ ] A note that happens to mention "x" once (e.g. "meet me x the shop", a single multiplication) is unaffected.
+- [ ] Known limitation: a line that's *only* math with 2+ "x" multiplication signs and no other punctuation (e.g. "5 x 3 = 2 x 4") could be misidentified as tab-strip noise and dropped — rare, but worth knowing about if a math-heavy photo note loses a line.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
