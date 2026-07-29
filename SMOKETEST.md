@@ -132,6 +132,19 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Edit a **voice transcript** (✎ Edit) and type a list into it → same auto-continue behavior works there too.
 - [ ] A Flop note whose **first line** is itself a list marker (e.g. title line `1. Groceries`) still shows a sensible title and the rest of the list renders normally below it.
 
+## 14. v1.4.10 — hide audio, Agenda dedup fix, swipe nav
+
+- [ ] Feed: a transcribed voice note shows a **"Hide audio"** link below the transcript → tap it → the play button and duration track disappear, leaving just the text; tap **"Show audio"** to bring the player back.
+- [ ] Same Hide/Show audio toggle works on a voice note in **View All**, on a **Flip** day page, and inside a **Flop** voice note.
+- [ ] Transcribe a voice note whose text contains a date (e.g. "call mom next Friday") → it appears once on the **Agenda**.
+- [ ] Tap **✎ Edit** on that transcript, tweak a word (keep the date phrase), Save → the note still appears **only once** on the Agenda, not duplicated.
+- [ ] Edit the transcript again to remove the date phrase entirely → the old Agenda entry for that note is gone (not left behind as a stale duplicate).
+- [ ] A small dot strip appears just above the tab bar while on **Feed**, **Flip**, or **Flop**; it's **not** shown on Agenda or View All.
+- [ ] On Feed, swipe the dot strip **left** → jumps to Flip; swipe left again → jumps to Flop; swiping left again does nothing (already at the end).
+- [ ] Swipe the strip **right** from Flop → back to Flip → back to Feed; swiping right from Feed does nothing.
+- [ ] The active dot always matches the current tab (leftmost on Feed, middle on Flip, rightmost on Flop) whether you got there by swiping or by tapping a tab icon.
+- [ ] Swiping vertically or with very little horizontal movement on the strip does nothing (doesn't accidentally change tabs while scrolling the page above it).
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
