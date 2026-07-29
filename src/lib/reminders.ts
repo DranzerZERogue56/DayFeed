@@ -1,11 +1,12 @@
 // Agenda reminders: local notifications only — nothing leaves the phone. Each
-// detected date can carry one scheduled notification, fired the morning of the
-// day it refers to.
+// detected date can carry one scheduled notification, fired at a user-chosen
+// time on the day it refers to.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { dateFromDayKey, formatDayHeader } from '../utils/date';
 
-const REMINDER_HOUR = 9; // fire at 9:00 local time, morning-of
+export const DEFAULT_REMINDER_HOUR = 9;
+export const DEFAULT_REMINDER_MINUTE = 0;
 const CHANNEL_ID = 'agenda-reminders';
 
 // Show reminders even while the app is open.
@@ -35,12 +36,18 @@ export async function ensureReminderPermission(): Promise<boolean> {
 }
 
 /**
- * Schedule a reminder for the morning of dateKey. Returns the notification id,
- * or null when that morning has already passed (nothing to schedule).
+ * Schedule a reminder for dateKey at the given hour/minute. Returns the
+ * notification id, or null when that time has already passed (nothing to
+ * schedule).
  */
-export async function scheduleReminder(dateKey: string, snippet: string): Promise<string | null> {
+export async function scheduleReminder(
+  dateKey: string,
+  snippet: string,
+  hour: number,
+  minute: number,
+): Promise<string | null> {
   const when = dateFromDayKey(dateKey);
-  when.setHours(REMINDER_HOUR, 0, 0, 0);
+  when.setHours(hour, minute, 0, 0);
   if (when.getTime() <= Date.now()) return null;
 
   await ensureChannel();

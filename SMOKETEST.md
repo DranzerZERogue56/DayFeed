@@ -182,6 +182,15 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Feed's header shows a bronze-tinted pill labeled "Photos" (icon + text), not just a bare icon — matches the visual weight of Flop's "+" and Vault's "+" buttons.
 - [ ] Tapping it still opens the Photos grid as before.
 
+## 20. v1.5.4 — pick the reminder time on Agenda
+
+- [ ] Tap the bell on an Agenda entry that has no reminder yet → a time picker appears (native Android dialog, or a bottom sheet with Cancel/Set on iOS) instead of silently scheduling for 9:00 AM.
+- [ ] Pick a time and confirm → the bell fills in, and the row's caption shows "reminder <chosen time>" (not always "9:00 AM").
+- [ ] Cancel the picker (back button / Cancel) → no reminder is set, bell stays unfilled.
+- [ ] Pick a time that's already passed today (for a date_key of today) → "Too late to remind" alert naming the chosen time, no reminder set.
+- [ ] Tap the filled bell on an existing reminder → it cancels immediately (no picker), same as before.
+- [ ] Force-close and reopen the app → a previously set reminder's caption still shows its originally chosen time (persisted, not reset to a default).
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
