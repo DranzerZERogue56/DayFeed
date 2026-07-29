@@ -7,7 +7,7 @@ import { toggleCheckboxLine } from '../lib/markdownList';
 import { formatClock, formatDayHeader } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
-import VoicePlayerRow from './VoicePlayerRow';
+import VoiceNoteBody from './VoiceNoteBody';
 import TranscribeButton from './TranscribeButton';
 import AgendaSection from './AgendaSection';
 import PhotoGrid from './PhotoGrid';
@@ -161,8 +161,9 @@ export default function DayPage({ dayKey, highlightNoteId, highlightToken }: Pro
                   <Text style={styles.time}>{formatClock(n.created_at)}</Text>
                   {n.type === 'voice' ? (
                     <View style={styles.voiceWrap}>
-                      <VoicePlayerRow note={n} variant="paper" />
-                      <TranscribeButton note={n} tone="paper" />
+                      <VoiceNoteBody note={n} variant="paper">
+                        <TranscribeButton note={n} tone="paper" />
+                      </VoiceNoteBody>
                     </View>
                   ) : n.type === 'photo' ? (
                     <PhotoEntryBody

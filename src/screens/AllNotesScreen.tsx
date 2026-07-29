@@ -15,7 +15,7 @@ import { useFlop } from '../hooks/FlopContext';
 import { useAllNotes } from '../hooks/useQueries';
 import { flopTitle } from '../db/flopTypes';
 import type { RootTabParamList } from '../navigation/types';
-import VoicePlayerRow from '../components/VoicePlayerRow';
+import VoiceNoteBody from '../components/VoiceNoteBody';
 import TranscribeButton from '../components/TranscribeButton';
 import PhotoGrid from '../components/PhotoGrid';
 import PhotoViewer from '../components/PhotoViewer';
@@ -182,10 +182,9 @@ export default function AllNotesScreen() {
               <Text style={styles.cardTime}>{formatClock(item.created_at)}</Text>
             </View>
             {item.type === 'voice' ? (
-              <>
-                <VoicePlayerRow note={item} variant="list" />
+              <VoiceNoteBody note={item} variant="list">
                 <TranscribeButton note={item} tone="list" />
-              </>
+              </VoiceNoteBody>
             ) : item.type === 'photo' ? (
               <PhotoNoteBody
                 note={item}

@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import VoicePlayerRow from '../components/VoicePlayerRow';
+import VoiceNoteBody from '../components/VoiceNoteBody';
 import { TranscribeControl } from '../components/TranscribeButton';
 import FlopBreadcrumb from '../components/FlopBreadcrumb';
 import FlopComposer from '../components/FlopComposer';
@@ -170,12 +170,13 @@ export default function FlopNoteScreen() {
             <Text style={styles.headline}>{flopTitle(note)}</Text>
             {note.type === 'voice' ? (
               <View style={styles.voiceWrap}>
-                <VoicePlayerRow note={note} variant="list" />
-                <TranscribeControl
-                  audioUri={note.audio_uri}
-                  transcript={note.transcript}
-                  onTranscribed={(text) => saveFlopTranscript(note.id, text)}
-                />
+                <VoiceNoteBody note={note} variant="list">
+                  <TranscribeControl
+                    audioUri={note.audio_uri}
+                    transcript={note.transcript}
+                    onTranscribed={(text) => saveFlopTranscript(note.id, text)}
+                  />
+                </VoiceNoteBody>
               </View>
             ) : (
               !!body && (

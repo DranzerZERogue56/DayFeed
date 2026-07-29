@@ -5,7 +5,7 @@ import { formatClock } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { useNotes } from '../hooks/NotesContext';
-import VoicePlayerRow from './VoicePlayerRow';
+import VoiceNoteBody from './VoiceNoteBody';
 import TranscribeButton from './TranscribeButton';
 import OcrControl from './OcrControl';
 import PhotoGrid from './PhotoGrid';
@@ -57,10 +57,9 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         style={[styles.bubble, isPhoto && styles.bubblePhoto]}
       >
         {isVoice ? (
-          <>
-            <VoicePlayerRow note={note} variant="list" />
+          <VoiceNoteBody note={note} variant="list">
             <TranscribeButton note={note} tone="list" />
-          </>
+          </VoiceNoteBody>
         ) : isPhoto ? (
           <>
             {note.ocr_text ? (
