@@ -7,7 +7,7 @@ note it under **Findings** at the bottom with the step number.
 
 - [ ] Install `app-release.apk` from the [latest release](https://github.com/DranzerZERogue56/DayFeed/releases/latest) **over** the installed version (no uninstall).
 - [ ] App opens with **all your existing v1.1 notes intact** (feed history, photos, transcripts). This proves the v3 migration didn't touch old rows.
-- [ ] Five tabs visible: Feed · Flip · Flop · Agenda · View All.
+- [ ] Six tabs visible: Feed · Flip · Flop · Agenda · View All · Vault.
 
 ## 1. Feed
 
@@ -132,14 +132,64 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Edit a **voice transcript** (✎ Edit) and type a list into it → same auto-continue behavior works there too.
 - [ ] A Flop note whose **first line** is itself a list marker (e.g. title line `1. Groceries`) still shows a sensible title and the rest of the list renders normally below it.
 
-## 14. v1.4.10 — hide audio, Agenda dedup fix, swipe nav
+## 14. v1.4.10 — copy extracted photo text
+
+- [ ] A photo note with extracted text shows a **"Copy"** link next to the "EXTRACTED TEXT" label.
+- [ ] Tap it → label briefly changes to "Copied", then reverts.
+- [ ] Paste elsewhere (e.g. the composer) → the full extracted text (all combined blocks, not just what's visible when collapsed) is pasted.
+- [ ] Same behavior in Feed, View All, and Flip's day page.
+
+## 15. v1.4.11 — filter status-bar noise out of OCR text
+
+- [ ] Photograph a phone/tablet screen showing text with the status bar visible (clock, battery %, LTE/Wi-Fi) in frame → extract text → the clock, battery %, and connectivity chrome are gone from the extracted text; the actual on-screen content is intact.
+- [ ] A plain paper/whiteboard photo's extracted text is unchanged from before (nothing legitimate gets stripped).
+- [ ] A note whose real content happens to contain a time (e.g. "Meeting at 9:41 with the team") or a percentage (e.g. "100% sure this works") still keeps that text — only status-bar-*only* lines are dropped.
+- [ ] A photo that's *entirely* status bar (rare, e.g. a cropped screenshot sliver) → "No text found", not an empty extracted-text block.
+
+## 16. v1.5.0 — Vault: biometric-locked password/username storage
+
+- [ ] A new **Vault** tab appears (padlock icon) alongside Feed/Flip/Flop/Agenda/View All.
+- [ ] Opening it prompts fingerprint/Face unlock immediately. Cancel it → a "Vault locked" screen with an **Unlock** button appears; tapping it re-prompts.
+- [ ] Switch to another tab and back to Vault → it re-locks and prompts again every time (no "stay unlocked" window).
+- [ ] On a device/emulator with **no fingerprint/face/PIN set up** → a "No screen lock set up" message shows instead of a broken prompt, no crash.
+- [ ] After unlocking, tap **+** → add an entry: a label ("what it's for"), username, password. Save requires all three filled in.
+- [ ] The saved entry shows as a card: label at top, then a **USERNAME** pill and a **PASSWORD** pill below it, both masked with dots by default.
+- [ ] Tap a pill → it unfurls to show the real text; tap again → it re-masks.
+- [ ] A long username/password that overflows the pill's width can be **scrolled horizontally** within the pill to see the rest.
+- [ ] Tap the **⋯** on a card → Edit opens the composer pre-filled; Delete asks to confirm, then removes the entry.
+- [ ] Force-close and reopen the app, unlock Vault again → entries are still there (persisted via expo-secure-store, not lost on restart).
+- [ ] Uninstalling and reinstalling the app clears the Vault (SecureStore is sandboxed to the app install, same as expected for Android Keystore/iOS Keychain).
+
+## 17. v1.5.1 — Photos sub-feed + OCR text layout/list formatting
+
+- [ ] A small photos-grid icon appears in Feed's header, next to the light/dark toggle.
+- [ ] Tapping it opens a **Photos** screen: a 3-column grid of every photo note, newest first (separate from the Feed chat list).
+- [ ] A tile with more than one image shows a count badge; a tile whose note has extracted text shows an "Aa" badge.
+- [ ] Tapping a tile opens a detail view with that note's images (tap to open the swipeable full-screen viewer) and its OCR "Extract text"/extracted-text control — same behavior as in Feed (extract, copy, unfurl not applicable here but expand/collapse and checkbox-tap all work).
+- [ ] **Delete** on the detail view asks to confirm, then removes the note and returns to the grid (tile disappears).
+- [ ] Photograph a **numbered/bulleted/checkbox list** (printed or handwritten, e.g. "1) Milk", "• Eggs", "☐ Bread") → extracted text renders with real numbers/bullets/checkboxes (not raw "1)"/"•"/"☐"), and a checkbox tap toggles and persists.
+- [ ] Photograph something with **distinct paragraph/column grouping** (e.g. a receipt with a line-item column, or a form with separate fields) → extracted text keeps that grouping (blank line between groups) instead of one run-on paragraph.
+- [ ] A photo with plain prose (no lists) still extracts and displays exactly as before — no stray markers introduced.
+
+## 18. v1.5.2 — filter browser tab-switcher chrome out of OCR text
+
+- [ ] Photograph a browser's tab-switcher/tab-strip view (multiple open tabs visible) → the extracted text does not contain a garbled line of concatenated tab titles with stray "x"/"X" tokens between them.
+- [ ] A note that happens to mention "x" once (e.g. "meet me x the shop", a single multiplication) is unaffected.
+- [ ] Known limitation: a line that's *only* math with 2+ "x" multiplication signs and no other punctuation (e.g. "5 x 3 = 2 x 4") could be misidentified as tab-strip noise and dropped — rare, but worth knowing about if a math-heavy photo note loses a line.
+
+## 19. v1.5.3 — more pronounced Photos button
+
+- [ ] Feed's header shows a bronze-tinted pill labeled "Photos" (icon + text), not just a bare icon — matches the visual weight of Flop's "+" and Vault's "+" buttons.
+- [ ] Tapping it still opens the Photos grid as before.
+
+## 20. v1.5.4 — hide audio, Agenda dedup fix, swipe nav
 
 - [ ] Feed: a transcribed voice note shows a **"Hide audio"** link below the transcript → tap it → the play button and duration track disappear, leaving just the text; tap **"Show audio"** to bring the player back.
 - [ ] Same Hide/Show audio toggle works on a voice note in **View All**, on a **Flip** day page, and inside a **Flop** voice note.
 - [ ] Transcribe a voice note whose text contains a date (e.g. "call mom next Friday") → it appears once on the **Agenda**.
 - [ ] Tap **✎ Edit** on that transcript, tweak a word (keep the date phrase), Save → the note still appears **only once** on the Agenda, not duplicated.
 - [ ] Edit the transcript again to remove the date phrase entirely → the old Agenda entry for that note is gone (not left behind as a stale duplicate).
-- [ ] A small dot strip appears just above the tab bar while on **Feed**, **Flip**, or **Flop**; it's **not** shown on Agenda or View All.
+- [ ] A small dot strip appears just above the tab bar while on **Feed**, **Flip**, or **Flop**; it's **not** shown on Agenda, View All, or Vault.
 - [ ] On Feed, swipe the dot strip **left** → jumps to Flip; swipe left again → jumps to Flop; swiping left again does nothing (already at the end).
 - [ ] Swipe the strip **right** from Flop → back to Flip → back to Feed; swiping right from Feed does nothing.
 - [ ] The active dot always matches the current tab (leftmost on Feed, middle on Flip, rightmost on Flop) whether you got there by swiping or by tapping a tab icon.

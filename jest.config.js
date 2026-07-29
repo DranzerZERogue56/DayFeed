@@ -13,5 +13,6 @@ module.exports = {
   moduleNameMapper: {
     '^expo-sqlite$': '<rootDir>/test/mocks/expo-sqlite.ts',
     '^expo-crypto$': '<rootDir>/test/mocks/expo-crypto.ts',
+    '^expo-secure-store$': '<rootDir>/test/mocks/expo-secure-store.ts',
   },
 };

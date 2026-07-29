@@ -56,6 +56,23 @@ export function BookStackIcon({ size = 22, color, strokeWidth = S }: IconProps) 
   );
 }
 
+/** Vault — padlock. */
+export function LockIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="5" y="11" width="14" height="9.5" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M8 11V8a4 4 0 0 1 8 0v3"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Circle cx="12" cy="15" r="1.4" fill={color} />
+      <Line x1="12" y1="16.4" x2="12" y2="18.2" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 /** Agenda — calendar. */
 export function CalendarIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   return (
@@ -78,6 +95,29 @@ export function CardStackIcon({ size = 22, color, strokeWidth = S }: IconProps) 
       <Path d="M6.5 8V6.5C6.5 5.7 7.2 5 8 5h8c.8 0 1.5.7 1.5 1.5V8" stroke={color} strokeWidth={strokeWidth} />
       <Line x1="7.5" y1="12" x2="16.5" y2="12" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
       <Line x1="7.5" y1="15.5" x2="13.5" y2="15.5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+/** Feed header — photos grid (stacked image frames). */
+export function ImagesIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="3" y="6.5" width="14" height="11" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Circle cx="7.2" cy="10.5" r="1.1" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M3.5 15.5l3.4-3.2c.4-.4 1-.4 1.4 0l2.6 2.5 1.6-1.5c.4-.4 1-.4 1.4 0l2.6 2.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M20 8.5v9c0 1.1-.9 2-2 2h-9"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
