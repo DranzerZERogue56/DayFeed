@@ -1,5 +1,10 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View } from 'react-native';
+import {
+  createBottomTabNavigator,
+  BottomTabBar,
+  type BottomTabBarProps,
+} from '@react-navigation/bottom-tabs';
 import FeedScreen from '../screens/FeedScreen';
 import FlipScreen from '../screens/FlipScreen';
 import AllNotesScreen from '../screens/AllNotesScreen';
@@ -7,6 +12,7 @@ import AgendaScreen from '../screens/AgendaScreen';
 import FlopStack from './FlopStack';
 import type { RootTabParamList } from './types';
 import { useTheme } from '../hooks/ThemeContext';
+import TabSwipeBar from '../components/TabSwipeBar';
 import {
   BookStackIcon,
   CalendarIcon,
@@ -23,10 +29,36 @@ const icon =
   (Glyph: (p: IconProps) => React.JSX.Element) =>
   ({ color }: { color: string }) => <Glyph color={color} size={22} />;
 
+// Feed, Flip, and Flop are the three stops in a note's life — capture,
+// review, organize — so they're what the swipe bar steps between. Agenda and
+// View All are lookups, not part of that flow, so the bar hides on them.
+const SWIPE_ORDER: Array<keyof RootTabParamList> = ['Feed', 'Flip', 'Flop'];
+
+// Wraps the default tab bar with a swipe strip sitting just above it.
+function TabBarWithSwipe(props: BottomTabBarProps) {
+  const { state, navigation } = props;
+  const activeName = state.routes[state.index].name as (typeof SWIPE_ORDER)[number];
+  const swipeIndex = SWIPE_ORDER.indexOf(activeName);
+
+  return (
+    <View>
+      {swipeIndex !== -1 && (
+        <TabSwipeBar
+          activeIndex={swipeIndex}
+          count={SWIPE_ORDER.length}
+          onNavigate={(index) => navigation.navigate(SWIPE_ORDER[index])}
+        />
+      )}
+      <BottomTabBar {...props} />
+    </View>
+  );
+}
+
 export default function RootTabs() {
   const { colors } = useTheme();
   return (
     <Tab.Navigator
+      tabBar={(props) => <TabBarWithSwipe {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
