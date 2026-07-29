@@ -9,6 +9,7 @@ import React, {
 import {
   addDetectedDates,
   createNote as dbCreateNote,
+  deleteDetectedDatesForNote,
   deleteNote as dbDeleteNote,
   getNote,
   getReminderIdsForNote,
@@ -68,7 +69,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   const saveTranscript = useCallback(
     async (note: Note, transcript: string) => {
       await setTranscript(note.id, transcript);
-      // Immediately run date detection on the fresh transcript (Phase 4 hook).
+      // Re-detecting replaces this note's dates rather than piling on top of
+      // them, so re-transcribing or editing a transcript doesn't duplicate it
+      // in the Agenda. Cancel any scheduled reminders before the rows go away.
+      for (const rid of await getReminderIdsForNote(note.id)) await cancelReminder(rid);
+      await deleteDetectedDatesForNote(note.id);
       const hits = detectDates(transcript, note.created_at);
       await addDetectedDates(note.id, hits);
       bump();

@@ -106,6 +106,16 @@ export async function getDetectedDatesForDay(dayKey: string): Promise<AgendaEntr
   return rows.map(toAgendaEntry);
 }
 
+/**
+ * Delete all detected dates for a note (e.g. before re-detecting on a fresh
+ * transcript, so an edit replaces its dates instead of piling up duplicates).
+ * Callers should cancel any reminders via getReminderIdsForNote first.
+ */
+export async function deleteDetectedDatesForNote(noteId: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`DELETE FROM detected_dates WHERE note_id = ?`, noteId);
+}
+
 /** Set or clear the scheduled-notification id for one detected date. */
 export async function setDetectedDateReminder(
   id: string,

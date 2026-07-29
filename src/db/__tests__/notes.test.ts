@@ -11,6 +11,7 @@ import {
 } from '../notes';
 import {
   addDetectedDates,
+  deleteDetectedDatesForNote,
   getAgendaEntries,
   getDayKeysWithAgenda,
   getDetectedDatesForDay,
@@ -127,5 +128,22 @@ describe('detected dates / agenda', () => {
     const n = await createNote({ type: 'text', content: 'no dates here' });
     await addDetectedDates(n.id, []);
     expect(await getAgendaEntries()).toHaveLength(0);
+  });
+
+  it('deleteDetectedDatesForNote clears only that note\'s rows, so re-detecting replaces instead of duplicating', async () => {
+    const n1 = await createNote({ type: 'voice', created_at: at(2026, 7, 19) });
+    const n2 = await createNote({ type: 'text', content: 'review Jul 25', created_at: at(2026, 7, 19) });
+    await addDetectedDates(n1.id, [{ date_key: '2026-08-01', snippet: 'call mom on Friday' }]);
+    await addDetectedDates(n2.id, [{ date_key: '2026-07-25', snippet: 'review Jul 25' }]);
+    expect(await getAgendaEntries()).toHaveLength(2);
+
+    // Simulate re-transcribing n1: clear its old dates before re-detecting.
+    await deleteDetectedDatesForNote(n1.id);
+    await addDetectedDates(n1.id, [{ date_key: '2026-08-01', snippet: 'call mom on Friday' }]);
+
+    const agenda = await getAgendaEntries();
+    expect(agenda).toHaveLength(2);
+    expect(agenda.filter((e) => e.note_id === n1.id)).toHaveLength(1);
+    expect(agenda.filter((e) => e.note_id === n2.id)).toHaveLength(1);
   });
 });
