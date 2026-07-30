@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,6 +14,7 @@ import { applyMarkdownEdit, useMarkdownCursorRef } from '../hooks/useMarkdownInp
 import { transcribeAudio, TranscriptionBusyError } from '../lib/transcription';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
+import { AudioToggleContext } from './VoiceNoteBody';
 
 interface Props {
   note: Note;
@@ -38,6 +39,7 @@ const COLLAPSE_CHARS = 140;
 // Storage-agnostic: `onTranscribed` decides where the text is saved, so stream
 // notes and Flop notes share this control.
 export function TranscribeControl({ audioUri, transcript, onTranscribed }: ControlProps) {
+  const audioToggle = useContext(AudioToggleContext);
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [draft, setDraft] = useState<string | null>(null); // non-null = editing
@@ -105,9 +107,26 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
       <View style={styles.transcriptWrap}>
         <View style={styles.transcriptHead}>
           <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
-          <TouchableOpacity onPress={() => setDraft(transcript)} accessibilityLabel="Edit transcript">
-            <Text style={styles.editLink}>✎ Edit</Text>
-          </TouchableOpacity>
+          <View style={styles.headActions}>
+            <TouchableOpacity
+              style={styles.headButton}
+              onPress={() => setDraft(transcript)}
+              accessibilityLabel="Edit transcript"
+            >
+              <Text style={styles.editLink}>✎ Edit</Text>
+            </TouchableOpacity>
+            {audioToggle && (
+              <TouchableOpacity
+                style={styles.headButton}
+                onPress={audioToggle.onToggle}
+                accessibilityLabel={audioToggle.hidden ? 'Show audio player' : 'Hide audio player'}
+              >
+                <Text style={styles.editLink}>
+                  {audioToggle.hidden ? 'Show audio' : 'Hide audio'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
         <Text style={styles.transcriptText}>{shown}</Text>
         {long && (
@@ -210,6 +229,19 @@ const makeStyles = (colors: ColorPalette) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 3,
+  },
+  headActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  headButton: {
+    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
+    backgroundColor: colors.accentTint,
   },
   transcriptLabel: {
     fontFamily: fonts.mono,
