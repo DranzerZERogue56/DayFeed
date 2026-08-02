@@ -195,6 +195,44 @@ note it under **Findings** at the bottom with the step number.
 - [ ] The active dot always matches the current tab (leftmost on Feed, middle on Flip, rightmost on Flop) whether you got there by swiping or by tapping a tab icon.
 - [ ] Swiping vertically or with very little horizontal movement on the strip does nothing (doesn't accidentally change tabs while scrolling the page above it).
 
+## 21. v1.5.5 — reminder times, radial menu, Feed layout fixes
+
+### Pick the reminder time on Agenda
+
+- [ ] Tap the bell on an Agenda entry that has no reminder yet → a time picker appears (native Android dialog, or a bottom sheet with Cancel/Set on iOS) instead of silently scheduling for 9:00 AM.
+- [ ] Pick a time and confirm → the bell fills in, and the row's caption shows "reminder <chosen time>" (not always "9:00 AM").
+- [ ] Cancel the picker (back button / Cancel) → no reminder is set, bell stays unfilled.
+- [ ] Pick a time that's already passed today (for a date_key of today) → "Too late to remind" alert naming the chosen time, no reminder set.
+- [ ] Tap the filled bell on an existing reminder → it cancels immediately (no picker), same as before.
+- [ ] Force-close and reopen the app → a previously set reminder's caption still shows its originally chosen time (persisted, not reset to a default).
+- [ ] Upgrading in place from v1.5.4 (not a fresh install) → existing reminders still fire and the Agenda opens without error (the reminder_hour/reminder_minute migration ran cleanly).
+
+### Hide-audio toggle beside Edit
+
+- [ ] A transcribed voice note shows **✎ Edit** and **Hide audio** side by side on the TRANSCRIPT header row — not on a separate line below — and both have a bronze hairline border.
+- [ ] Tapping Hide audio still collapses the player; the label flips to Show audio.
+
+### Feed text layout
+
+- [ ] A Feed note mixing numbered, bullet, and checkbox lines, each long enough to wrap 2–3 lines, keeps all text inside the bubble — nothing crosses the right border and no line overlaps the one below it.
+- [ ] Long Feed notes now reach close to the full screen width; a short one-word note still renders as a small bubble.
+- [ ] The same note renders unchanged on Flip and View All.
+
+### Radial long-press menu
+
+- [ ] Long-press a Feed text note → two round `⋯` buttons appear at the left and right edges, about two thirds down the screen.
+- [ ] Tap the left one → Edit / Copy / Flop / Delete fan out in an arc to the right. Tap the right one instead → the same arc, mirrored. No pill is clipped by the screen edge.
+- [ ] Tapping the dimmed backdrop closes the menu without running anything.
+- [ ] **Edit** → the note becomes an editor in place; type `1. ` then Enter and the list auto-continues; Save persists the change, Cancel discards it.
+- [ ] **Copy** → paste elsewhere and the note's text is on the clipboard.
+- [ ] **Delete** → still asks to confirm before removing.
+- [ ] Long-press a voice note → Copy takes the transcript and there is no Edit pill. An un-transcribed voice note shows no Copy pill either.
+- [ ] Long-press a photo note → Copy takes the extracted text; no Flop pill.
+- [ ] The same menu appears on long-press in **View All** and **Vault**.
+- [ ] Delete confirmations and the "… is now a Flop root note" notice still appear as bottom sheets, not radial menus.
+- [ ] Turn on the OS "reduce motion" setting → the pills fade in at their final positions instead of sweeping out.
+- [ ] Menu is legible in both light and dark themes.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

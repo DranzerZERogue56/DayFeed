@@ -63,6 +63,15 @@ export function formatClock(ms: number): string {
   return `${h}:${m} ${ampm}`;
 }
 
+/** Clock time from an hour/minute pair, e.g. formatHourMinute(15, 7) -> "3:07 PM". */
+export function formatHourMinute(hour: number, minute: number): string {
+  let h = hour;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${pad(minute)} ${ampm}`;
+}
+
 /**
  * Absolute stamp for Flop's updated_at, e.g. "Jul 14 2026 · 3:07 PM". Flop notes
  * carry no day_key, so they get a plain timestamp rather than a day header.

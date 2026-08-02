@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,9 +9,10 @@ import { setDetectedDateReminder, type AgendaEntry } from '../db';
 import { cancelReminder, ensureReminderPermission, scheduleReminder } from '../lib/reminders';
 import type { RootTabParamList } from '../navigation/types';
 import { notePreview } from '../utils/notePreview';
-import { formatClock, formatDayHeader, todayKey } from '../utils/date';
+import { formatClock, formatDayHeader, formatHourMinute, todayKey } from '../utils/date';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
+import ReminderTimeSheet from '../components/ReminderTimeSheet';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { BellFilledIcon, BellIcon } from '../components/Icons';
@@ -29,6 +30,7 @@ export default function AgendaScreen() {
   const { entries } = useAgendaEntries();
   const { refresh } = useNotes();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const [pickerEntry, setPickerEntry] = useState<AgendaEntry | null>(null);
 
   const sections = useMemo<Section[]>(() => {
     const byDay = new Map<string, AgendaEntry[]>();
@@ -52,25 +54,36 @@ export default function AgendaScreen() {
     });
   };
 
-  const toggleReminder = async (entry: AgendaEntry) => {
+  const onBellPress = async (entry: AgendaEntry) => {
     if (entry.reminder_id) {
       await cancelReminder(entry.reminder_id);
       await setDetectedDateReminder(entry.id, null);
-    } else {
-      if (!(await ensureReminderPermission())) {
-        Alert.alert(
-          'Notifications are off',
-          'Enable notifications for DayFeed in Android Settings to use reminders.',
-        );
-        return;
-      }
-      const rid = await scheduleReminder(entry.date_key, entry.snippet);
-      if (!rid) {
-        Alert.alert('Too late to remind', 'Reminders fire at 9:00 AM, and that morning has passed.');
-        return;
-      }
-      await setDetectedDateReminder(entry.id, rid);
+      refresh();
+      return;
     }
+    if (!(await ensureReminderPermission())) {
+      Alert.alert(
+        'Notifications are off',
+        'Enable notifications for DayFeed in Android Settings to use reminders.',
+      );
+      return;
+    }
+    setPickerEntry(entry);
+  };
+
+  const onTimeChosen = async (hour: number, minute: number) => {
+    const entry = pickerEntry;
+    setPickerEntry(null);
+    if (!entry) return;
+    const rid = await scheduleReminder(entry.date_key, entry.snippet, hour, minute);
+    if (!rid) {
+      Alert.alert(
+        'Too late to remind',
+        `${formatHourMinute(hour, minute)} on that day has already passed.`,
+      );
+      return;
+    }
+    await setDetectedDateReminder(entry.id, rid, { hour, minute });
     refresh();
   };
 
@@ -105,12 +118,14 @@ export default function AgendaScreen() {
                 </Text>
                 <Text style={styles.written}>
                   written {formatDayHeader(item.note.day_key)} · {formatClock(item.note.created_at)}
-                  {item.reminder_id ? '  ·  reminder 9:00 AM' : ''}
+                  {item.reminder_id && item.reminder_hour !== null && item.reminder_minute !== null
+                    ? `  ·  reminder ${formatHourMinute(item.reminder_hour, item.reminder_minute)}`
+                    : ''}
                 </Text>
               </View>
               {item.date_key >= todayKey() && (
                 <TouchableOpacity
-                  onPress={() => void toggleReminder(item)}
+                  onPress={() => void onBellPress(item)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   style={styles.bellWrap}
                 >
@@ -126,6 +141,14 @@ export default function AgendaScreen() {
           )}
         />
       )}
+
+      <ReminderTimeSheet
+        visible={pickerEntry !== null}
+        initialHour={pickerEntry?.reminder_hour}
+        initialMinute={pickerEntry?.reminder_minute}
+        onCancel={() => setPickerEntry(null)}
+        onConfirm={onTimeChosen}
+      />
     </SafeAreaView>
   );
 }

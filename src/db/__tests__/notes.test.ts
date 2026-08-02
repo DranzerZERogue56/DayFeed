@@ -112,15 +112,21 @@ describe('detected dates / agenda', () => {
     await addDetectedDates(n.id, [{ date_key: '2026-07-25', snippet: 'dentist on the 25th' }]);
     let [entry] = await getAgendaEntries();
     expect(entry.reminder_id).toBeNull();
+    expect(entry.reminder_hour).toBeNull();
+    expect(entry.reminder_minute).toBeNull();
 
-    await setDetectedDateReminder(entry.id, 'notif-1');
+    await setDetectedDateReminder(entry.id, 'notif-1', { hour: 14, minute: 30 });
     [entry] = await getAgendaEntries();
     expect(entry.reminder_id).toBe('notif-1');
+    expect(entry.reminder_hour).toBe(14);
+    expect(entry.reminder_minute).toBe(30);
     expect(await getReminderIdsForNote(n.id)).toEqual(['notif-1']);
 
     await setDetectedDateReminder(entry.id, null);
     [entry] = await getAgendaEntries();
     expect(entry.reminder_id).toBeNull();
+    expect(entry.reminder_hour).toBeNull();
+    expect(entry.reminder_minute).toBeNull();
     expect(await getReminderIdsForNote(n.id)).toEqual([]);
   });
 

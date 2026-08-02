@@ -8,6 +8,7 @@ import {
   formatDayHeader,
   formatDuration,
   formatFlopStamp,
+  formatHourMinute,
   todayKey,
 } from '../date';
 
@@ -66,6 +67,13 @@ describe('clock and duration formatting', () => {
     expect(formatClock(new Date(2026, 6, 19, 0, 7).getTime())).toBe('12:07 AM');
     expect(formatClock(new Date(2026, 6, 19, 12, 0).getTime())).toBe('12:00 PM');
     expect(formatClock(new Date(2026, 6, 19, 15, 7).getTime())).toBe('3:07 PM');
+  });
+
+  it('formats an hour/minute pair the same way as formatClock', () => {
+    expect(formatHourMinute(0, 7)).toBe('12:07 AM');
+    expect(formatHourMinute(12, 0)).toBe('12:00 PM');
+    expect(formatHourMinute(15, 7)).toBe('3:07 PM');
+    expect(formatHourMinute(9, 0)).toBe('9:00 AM');
   });
 
   it('formats the Flop stamp as "Mmm D YYYY · clock"', () => {

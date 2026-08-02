@@ -81,7 +81,15 @@ const MIGRATION_V6 = `
 ALTER TABLE notes ADD COLUMN ocr_text TEXT;
 `;
 
-const LATEST_VERSION = 6;
+// v6 -> v7 (DayFeed v1.5.4): user-chosen reminder time per detected date,
+// replacing the old fixed 9:00 AM. Nullable — old rows (and reminder-less
+// entries) just have no chosen time.
+const MIGRATION_V7 = `
+ALTER TABLE detected_dates ADD COLUMN reminder_hour INTEGER;
+ALTER TABLE detected_dates ADD COLUMN reminder_minute INTEGER;
+`;
+
+const LATEST_VERSION = 7;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -120,6 +128,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 6) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V6);
+    });
+  }
+
+  if (current < 7) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V7);
     });
   }
 

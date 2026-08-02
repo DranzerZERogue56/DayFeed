@@ -11,6 +11,9 @@ export interface DetectedDate {
   snippet: string;
   /** Scheduled notification id, or null when no reminder is set (v1.3). */
   reminder_id: string | null;
+  /** The chosen fire time (v1.5.4) — null alongside a null reminder_id. */
+  reminder_hour: number | null;
+  reminder_minute: number | null;
 }
 
 /** One matched date phrase to insert for a note. */
@@ -49,7 +52,7 @@ export async function addDetectedDates(
 const AGENDA_SELECT = `
 SELECT
   d.id AS d_id, d.note_id AS d_note_id, d.date_key AS d_date_key, d.snippet AS d_snippet,
-  d.reminder_id AS d_reminder_id,
+  d.reminder_id AS d_reminder_id, d.reminder_hour AS d_reminder_hour, d.reminder_minute AS d_reminder_minute,
   n.id, n.type, n.content, n.transcript, n.audio_uri, n.duration_ms,
   n.created_at, n.day_key, n.tags, n.media_uris
 FROM detected_dates d
@@ -62,6 +65,8 @@ interface JoinedRow extends Note {
   d_date_key: string;
   d_snippet: string;
   d_reminder_id: string | null;
+  d_reminder_hour: number | null;
+  d_reminder_minute: number | null;
 }
 
 function toAgendaEntry(r: JoinedRow): AgendaEntry {
@@ -71,6 +76,8 @@ function toAgendaEntry(r: JoinedRow): AgendaEntry {
     date_key: r.d_date_key,
     snippet: r.d_snippet,
     reminder_id: r.d_reminder_id,
+    reminder_hour: r.d_reminder_hour,
+    reminder_minute: r.d_reminder_minute,
     note: {
       id: r.id,
       type: r.type,
@@ -116,13 +123,24 @@ export async function deleteDetectedDatesForNote(noteId: string): Promise<void> 
   await db.runAsync(`DELETE FROM detected_dates WHERE note_id = ?`, noteId);
 }
 
-/** Set or clear the scheduled-notification id for one detected date. */
+/**
+ * Set or clear the scheduled-notification id (and its chosen fire time) for
+ * one detected date. Omit `time` (or pass null) to clear both alongside a
+ * null reminderId.
+ */
 export async function setDetectedDateReminder(
   id: string,
   reminderId: string | null,
+  time: { hour: number; minute: number } | null = null,
 ): Promise<void> {
   const db = await getDb();
-  await db.runAsync(`UPDATE detected_dates SET reminder_id = ? WHERE id = ?`, reminderId, id);
+  await db.runAsync(
+    `UPDATE detected_dates SET reminder_id = ?, reminder_hour = ?, reminder_minute = ? WHERE id = ?`,
+    reminderId,
+    time?.hour ?? null,
+    time?.minute ?? null,
+    id,
+  );
 }
 
 /**
