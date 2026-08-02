@@ -142,7 +142,9 @@ const makeStyles = (colors: ColorPalette) =>
     marginVertical: spacing.xs,
   },
   bubble: {
-    maxWidth: '86%',
+    // Near-full width: short notes still shrink to fit, long ones reach
+    // across the screen rather than wrapping early.
+    maxWidth: '96%',
     minWidth: 120,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

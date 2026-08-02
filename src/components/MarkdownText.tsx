@@ -79,8 +79,12 @@ const makeStyles = (colors: ColorPalette) =>
     marker: {
       marginRight: spacing.sm,
     },
+    // flexShrink (not flex: 1) so the body's intrinsic width still counts
+    // toward the row's max-content width. The Feed's bubble is shrink-to-fit,
+    // and a flexBasis-0 body would leave it sized to the marker alone — the
+    // text then spilling past the bubble and over the line below.
     body: {
-      flex: 1,
+      flexShrink: 1,
     },
     checkboxWrap: {
       marginRight: spacing.sm,
