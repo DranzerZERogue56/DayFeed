@@ -233,6 +233,41 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Turn on the OS "reduce motion" setting → the pills fade in at their final positions instead of sweeping out.
 - [ ] Menu is legible in both light and dark themes.
 
+## 22. v1.6 — Flop document import / export
+
+### Importing files
+
+- [ ] Open a Flop note → a **FILES** section appears below the body with a **+ Add file** button.
+- [ ] Add a `.docx` → the row shows the original filename and its size; the document's text appears underneath under a **TEXT** label and matches the file.
+- [ ] Add a `.md` → its text appears with list markers rendered as bullets/numbers, not raw `-` characters.
+- [ ] Add a `.txt` → its text appears.
+- [ ] Add a `.pdf` → the row appears with **no** extracted text (expected — see below); tapping the row opens it in the system PDF viewer.
+- [ ] Tapping a `.docx`/`.txt` row also opens it in whatever app handles that type.
+- [ ] Add a file whose text is longer than ~240 characters → **Show more** expands it and **Show less** collapses it again.
+- [ ] Tap **Copy** on an extracted text block → it reads "Copied" briefly and the text pastes elsewhere.
+- [ ] Rename a `.zip` to `.docx` and add it → it still attaches, simply with no text, and the app does not crash.
+- [ ] Force-close and reopen the app → attachments and their extracted text are still there.
+- [ ] Tap **✕** on an attachment → a confirmation appears; confirm → that row goes and the others remain.
+- [ ] Delete a Flop note that has attachments **and** a child that also has attachments → the note is gone; re-adding a file to a new note still works (no leftover state).
+- [ ] Note the known limitation: PDFs attach and reopen but contribute no text, because there is no dependable offline PDF text extractor for React Native.
+
+### Exporting
+
+- [ ] A Flop note's top bar shows **Export** between Edit and Delete.
+- [ ] Tap it → a sheet asks the scope: *This note only* / *This note and its children* / *Everything in Flop*.
+- [ ] Choose a scope → a second sheet asks the format: **PDF** or **Word (.docx)**.
+- [ ] Export a nested note as **PDF** → the share sheet opens; save it and confirm the child notes appear indented under their parent, with SUPPORTS / IDEA / OPPOSES labels.
+- [ ] Export the same as **.docx** → it opens in Word or Google Docs **without a "repair this file" prompt**, headings nested by depth.
+- [ ] Export with scope *This note only* → children are absent from the output.
+- [ ] Export with scope *Everything in Flop* → every root note and its tree is present.
+- [ ] Export a note that has attachments → the output lists the attachment filenames (the files themselves are not embedded).
+- [ ] Export a note whose text contains `<`, `&`, and `"` → both formats render those characters literally rather than breaking the document.
+- [ ] Cancel out of either sheet without choosing → nothing is exported.
+
+### Upgrade
+
+- [ ] Install **over** v1.5.5 rather than fresh → existing Flop notes, stream notes, Vault entries and reminders all survive the v8 migration, and the FILES section appears empty on old notes.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

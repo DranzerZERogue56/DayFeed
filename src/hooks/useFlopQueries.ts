@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   getFlopAncestors,
   getFlopChildren,
   getFlopNote,
   getRootFlopNotes,
 } from '../db';
+import { getFlopAttachments, type FlopAttachment } from '../db/flopAttachments';
 import type { FlopCrumb, FlopNote, FlopRoot } from '../db/flopTypes';
 import { useFlop } from './FlopContext';
 
@@ -58,4 +59,28 @@ export function useFlopPage(id: string) {
   }, [id, version]);
 
   return { note, ancestors, children, loading };
+}
+
+/**
+ * Documents attached to one Flop note. Carries its own reload counter rather
+ * than riding the Flop version: adding a file doesn't change the note tree, so
+ * bumping the shared version would re-query every other Flop screen for nothing.
+ */
+export function useFlopAttachments(id: string) {
+  const [attachments, setAttachments] = useState<FlopAttachment[]>([]);
+  const [reload, setReload] = useState(0);
+
+  const refresh = useCallback(() => setReload((n) => n + 1), []);
+
+  useEffect(() => {
+    let alive = true;
+    getFlopAttachments(id).then((rows) => {
+      if (alive) setAttachments(rows);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [id, reload]);
+
+  return { attachments, refresh };
 }

@@ -17,9 +17,13 @@ import { TranscribeControl } from '../components/TranscribeButton';
 import FlopBreadcrumb from '../components/FlopBreadcrumb';
 import FlopComposer from '../components/FlopComposer';
 import FlopChildActions from '../components/FlopChildActions';
+import FlopAttachments from '../components/FlopAttachments';
 import MarkdownText from '../components/MarkdownText';
+import NoteActionsSheet from '../components/NoteActionsSheet';
 import { useFlop } from '../hooks/FlopContext';
-import { useFlopPage } from '../hooks/useFlopQueries';
+import { useFlopAttachments, useFlopPage } from '../hooks/useFlopQueries';
+import { collectExportSections, SCOPE_LABEL, type ExportScope } from '../lib/flopExportData';
+import { exportFlopSections, type ExportFormat } from '../lib/flopExportFile';
 import { applyMarkdownEdit, useMarkdownCursorRef } from '../hooks/useMarkdownInput';
 import { toggleCheckboxLine } from '../lib/markdownList';
 import { countFlopDescendants } from '../db';
@@ -43,6 +47,7 @@ export default function FlopNoteScreen() {
   const { params } = useRoute<RouteProp<FlopStackParamList, 'FlopNote'>>();
   const navigation = useNavigation<NativeStackNavigationProp<FlopStackParamList>>();
   const { note, ancestors, children, loading } = useFlopPage(params.id);
+  const { attachments, refresh: refreshAttachments } = useFlopAttachments(params.id);
   const { editFlopNote, saveFlopTranscript, changeRelation, moveNote, removeFlopNote } = useFlop();
 
   const [composing, setComposing] = useState(false);
@@ -52,6 +57,20 @@ export default function FlopNoteScreen() {
   const [acting, setActing] = useState<{ child: FlopNote; index: number; size: number } | null>(
     null,
   );
+  // Export is a two-step prompt: scope first, then format.
+  const [exportScope, setExportScope] = useState<ExportScope | null>(null);
+  const [pickingScope, setPickingScope] = useState(false);
+
+  const runExport = async (scope: ExportScope, format: ExportFormat) => {
+    setExportScope(null);
+    try {
+      const collected = await collectExportSections(scope, params.id);
+      if (!collected) return;
+      await exportFlopSections(collected.sections, collected.title, format);
+    } catch {
+      Alert.alert('Export failed', 'That export could not be created.');
+    }
+  };
 
   if (!note) {
     return (
@@ -142,6 +161,9 @@ export default function FlopNoteScreen() {
                 <Text style={styles.action}>Edit</Text>
               </TouchableOpacity>
             )}
+            <TouchableOpacity onPress={() => setPickingScope(true)}>
+              <Text style={styles.action}>Export</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => void confirmDelete(note)}>
               <Text style={[styles.action, styles.actionDanger]}>Delete</Text>
             </TouchableOpacity>
@@ -192,6 +214,12 @@ export default function FlopNoteScreen() {
 
         {!editing && (
           <>
+            <FlopAttachments
+              flopId={note.id}
+              attachments={attachments}
+              onChanged={refreshAttachments}
+            />
+
             {CHILD_RELATIONS.map((relation) => {
               const group = children.filter((c) => c.relation === relation);
               if (group.length === 0) return null; // only render groups with members
@@ -263,6 +291,26 @@ export default function FlopNoteScreen() {
           setActing(null);
           void confirmDelete(child);
         }}
+      />
+
+      <NoteActionsSheet
+        visible={pickingScope}
+        subtitle="How much should this export cover?"
+        actions={(['note', 'subtree', 'all'] as ExportScope[]).map((scope) => ({
+          label: SCOPE_LABEL[scope],
+          onPress: () => setExportScope(scope),
+        }))}
+        onClose={() => setPickingScope(false)}
+      />
+
+      <NoteActionsSheet
+        visible={exportScope !== null}
+        subtitle="Export as"
+        actions={[
+          { label: 'PDF', onPress: () => void runExport(exportScope!, 'pdf') },
+          { label: 'Word (.docx)', onPress: () => void runExport(exportScope!, 'docx') },
+        ]}
+        onClose={() => setExportScope(null)}
       />
     </SafeAreaView>
   );

@@ -69,7 +69,8 @@
           "faceIDPermission": "DayFeed uses Face ID to unlock your saved passwords."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ]
   }
 }

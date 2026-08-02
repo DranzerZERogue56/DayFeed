@@ -89,7 +89,26 @@ ALTER TABLE detected_dates ADD COLUMN reminder_hour INTEGER;
 ALTER TABLE detected_dates ADD COLUMN reminder_minute INTEGER;
 `;
 
-const LATEST_VERSION = 7;
+// v7 -> v8 (DayFeed v1.6): documents imported onto a Flop note. The file itself
+// lives in the document directory (see utils/attachmentFiles); this row holds
+// its original name and, where the format allowed it, the text pulled out of it.
+// Cascades with its note, mirroring flop_notes' own self-cascade — though the
+// files on disk still need deleting explicitly.
+const MIGRATION_V8 = `
+CREATE TABLE IF NOT EXISTS flop_attachments (
+  id TEXT PRIMARY KEY NOT NULL,
+  flop_id TEXT NOT NULL REFERENCES flop_notes(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  uri TEXT NOT NULL,
+  mime TEXT,
+  size INTEGER,
+  extracted_text TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_flop_attach_note ON flop_attachments (flop_id);
+`;
+
+const LATEST_VERSION = 8;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -134,6 +153,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 7) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V7);
+    });
+  }
+
+  if (current < 8) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V8);
     });
   }
 

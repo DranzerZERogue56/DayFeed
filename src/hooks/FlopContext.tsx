@@ -10,7 +10,9 @@ import {
 } from '../db';
 import type { FlopChildRelation, FlopNote, NewFlopNoteInput } from '../db/flopTypes';
 import type { Note } from '../db/types';
+import { getFlopSubtreeAttachmentUris } from '../db/flopAttachments';
 import { copyAudioFile, deleteAudioFile } from '../utils/audioFiles';
+import { deleteDocumentFiles } from '../utils/attachmentFiles';
 import { randomUUID } from 'expo-crypto';
 
 // Mutation surface for Flop. Deliberately separate from NotesContext: Flop notes
@@ -83,11 +85,13 @@ export function FlopProvider({ children }: { children: React.ReactNode }) {
 
   const removeFlopNote = useCallback(
     async (id: string) => {
-      // Collect the subtree's audio before the row goes away — the FK cascade
+      // Collect the subtree's files before the row goes away — the FK cascade
       // takes the descendants with it, and their files would otherwise leak.
       const uris = await getFlopSubtreeAudioUris(id);
+      const attachmentUris = await getFlopSubtreeAttachmentUris(id);
       await dbDeleteFlopNote(id);
       for (const uri of uris) await deleteAudioFile(uri);
+      await deleteDocumentFiles(attachmentUris);
       bump();
     },
     [bump],
