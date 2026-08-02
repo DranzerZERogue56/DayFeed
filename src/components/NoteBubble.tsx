@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
@@ -10,9 +11,12 @@ import TranscribeButton from './TranscribeButton';
 import OcrControl from './OcrControl';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer from './PhotoViewer';
-import NoteActionsSheet from './NoteActionsSheet';
+import NoteActionsSheet, { type NoteAction } from './NoteActionsSheet';
+import RadialActionsMenu from './RadialActionsMenu';
+import NoteContentEditor from './NoteContentEditor';
 import MarkdownText from './MarkdownText';
 import { toggleCheckboxLine } from '../lib/markdownList';
+import { copyableText } from '../lib/noteActions';
 
 interface Props {
   note: Note;
@@ -35,6 +39,7 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   });
   const [sheet, setSheet] = useState<'menu' | 'confirm' | null>(null);
   const [photosCollapsed, setPhotosCollapsed] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const deleteDetail = isVoice
     ? 'This voice note will be permanently removed.'
@@ -42,17 +47,26 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
       ? 'This photo note and its images will be permanently removed.'
       : 'This note will be permanently removed.';
 
-  // Photo notes can't be promoted — Flop has no photo type — so they keep the
-  // one-step delete instead of a menu with a single destructive item.
-  const showActions = () => {
-    setSheet(isPhoto || !onSendToFlop ? 'confirm' : 'menu');
-  };
+  const copyText = copyableText(note);
+
+  // Edit is offered for text notes only: voice and photo notes already carry
+  // their own Edit affordance on the transcript / extracted-text block, and a
+  // second one here would mean two editors for the same string.
+  const actions: NoteAction[] = [
+    ...(!isVoice && !isPhoto ? [{ label: 'Edit', onPress: () => setEditing(true) }] : []),
+    ...(copyText
+      ? [{ label: 'Copy', onPress: () => void Clipboard.setStringAsync(copyText) }]
+      : []),
+    // Photo notes can't be promoted — Flop has no photo type.
+    ...(!isPhoto && onSendToFlop ? [{ label: 'Flop', onPress: () => onSendToFlop(note) }] : []),
+    { label: 'Delete', danger: true, onPress: () => setSheet('confirm') },
+  ];
 
   return (
     <View style={styles.wrap}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onLongPress={showActions}
+        onLongPress={() => setSheet('menu')}
         delayLongPress={350}
         style={[styles.bubble, isPhoto && styles.bubblePhoto]}
       >
@@ -91,6 +105,12 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
               </>
             )}
           </>
+        ) : editing ? (
+          <NoteContentEditor
+            initialContent={note.content ?? ''}
+            onSave={(content) => editNoteContent(note, content)}
+            onCancel={() => setEditing(false)}
+          />
         ) : (
           <MarkdownText
             content={note.content ?? ''}
@@ -115,12 +135,9 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         />
       )}
 
-      <NoteActionsSheet
+      <RadialActionsMenu
         visible={sheet === 'menu'}
-        actions={[
-          { label: 'Send to Flop', onPress: () => onSendToFlop?.(note) },
-          { label: 'Delete…', danger: true, onPress: () => setSheet('confirm') },
-        ]}
+        actions={actions}
         onClose={() => setSheet(null)}
       />
       <NoteActionsSheet

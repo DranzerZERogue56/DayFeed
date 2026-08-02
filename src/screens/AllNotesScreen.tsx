@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import * as Clipboard from 'expo-clipboard';
 import {
   FlatList,
   StyleSheet,
@@ -23,8 +24,11 @@ import OcrControl from '../components/OcrControl';
 import MarkdownText from '../components/MarkdownText';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
-import NoteActionsSheet from '../components/NoteActionsSheet';
+import NoteActionsSheet, { type NoteAction } from '../components/NoteActionsSheet';
+import RadialActionsMenu from '../components/RadialActionsMenu';
+import NoteContentEditor from '../components/NoteContentEditor';
 import { toggleCheckboxLine } from '../lib/markdownList';
+import { copyableText } from '../lib/noteActions';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
@@ -112,6 +116,8 @@ export default function AllNotesScreen() {
   const [active, setActive] = useState<Note | null>(null);
   const [sheet, setSheet] = useState<'menu' | 'confirm' | 'sent' | null>(null);
   const [sentTitle, setSentTitle] = useState('');
+  /** Id of the note being edited in place, if any. */
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const sendToFlop = async (note: Note) => {
     const flop = await promoteNote(note);
@@ -120,10 +126,26 @@ export default function AllNotesScreen() {
     setSheet('sent');
   };
 
-  // Photo notes keep the one-step delete; Flop has no photo type to promote to.
   const showActions = (note: Note) => {
     setActive(note);
-    setSheet(note.type === 'photo' ? 'confirm' : 'menu');
+    setSheet('menu');
+  };
+
+  // Edit is text-notes-only: voice and photo notes already edit their
+  // transcript / extracted text through their own controls.
+  const activeActions = (): NoteAction[] => {
+    if (!active) return [];
+    const copyText = copyableText(active);
+    const isPhoto = active.type === 'photo';
+    return [
+      ...(active.type === 'text' ? [{ label: 'Edit', onPress: () => setEditingId(active.id) }] : []),
+      ...(copyText
+        ? [{ label: 'Copy', onPress: () => void Clipboard.setStringAsync(copyText) }]
+        : []),
+      // Photo notes can't be promoted — Flop has no photo type.
+      ...(isPhoto ? [] : [{ label: 'Flop', onPress: () => void sendToFlop(active) }]),
+      { label: 'Delete', danger: true, onPress: () => setSheet('confirm') },
+    ];
   };
 
   return (
@@ -191,6 +213,12 @@ export default function AllNotesScreen() {
                 onOpen={(index) => setViewer({ uris: parseMediaUris(item), index })}
                 styles={styles}
               />
+            ) : editingId === item.id ? (
+              <NoteContentEditor
+                initialContent={item.content ?? ''}
+                onSave={(content) => editNoteContent(item, content)}
+                onCancel={() => setEditingId(null)}
+              />
             ) : (
               <MarkdownText
                 content={item.content ?? ''}
@@ -213,12 +241,9 @@ export default function AllNotesScreen() {
         />
       )}
 
-      <NoteActionsSheet
+      <RadialActionsMenu
         visible={sheet === 'menu'}
-        actions={[
-          { label: 'Send to Flop', onPress: () => active && void sendToFlop(active) },
-          { label: 'Delete…', danger: true, onPress: () => setSheet('confirm') },
-        ]}
+        actions={activeActions()}
         onClose={() => setSheet(null)}
       />
       <NoteActionsSheet

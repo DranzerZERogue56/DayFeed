@@ -8,6 +8,7 @@ import EmptyState from '../components/EmptyState';
 import VaultEntryCard from '../components/VaultEntryCard';
 import VaultEntryComposer from '../components/VaultEntryComposer';
 import NoteActionsSheet from '../components/NoteActionsSheet';
+import RadialActionsMenu from '../components/RadialActionsMenu';
 import { LockIcon } from '../components/Icons';
 import { addEntry, deleteEntry, listEntries, updateEntry, type VaultEntry } from '../lib/vaultStore';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
@@ -156,13 +157,13 @@ export default function VaultScreen() {
         onClose={() => setComposerOpen(false)}
       />
 
-      <NoteActionsSheet
+      <RadialActionsMenu
         visible={actionsFor !== null}
         subtitle={actionsFor?.label}
         actions={[
           { label: 'Edit', onPress: () => actionsFor && openEdit(actionsFor) },
           {
-            label: 'Delete…',
+            label: 'Delete',
             danger: true,
             onPress: () => {
               setConfirmDelete(actionsFor);
