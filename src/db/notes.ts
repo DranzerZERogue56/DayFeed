@@ -1,6 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { getDb } from './connection';
 import { dayKeyFromMs } from '../utils/date';
+import { CLAUDE_TAG } from '../lib/claudeTag';
 import type { NewNoteInput, Note } from './types';
 
 /** Insert a note. id/created_at/day_key are derived here; day_key is stored once. */
@@ -62,6 +63,26 @@ export async function getNotesByDay(dayKey: string): Promise<Note[]> {
   return db.getAllAsync<Note>(
     `SELECT * FROM notes WHERE day_key = ? ORDER BY created_at ASC`,
     dayKey,
+  );
+}
+
+/**
+ * Notes flagged as context for a Claude Code session, oldest-first so the
+ * export reads chronologically.
+ *
+ * `tags` is a JSON array string, so the match is against the quoted token —
+ * '"claude"' rather than 'claude' — which keeps a tag that merely contains the
+ * word (say "claudette") from being picked up. Photo notes are excluded: their
+ * text lives in ocr_text and they are out of scope for this export.
+ */
+export async function getClaudeTaggedNotes(): Promise<Note[]> {
+  const db = await getDb();
+  return db.getAllAsync<Note>(
+    `SELECT * FROM notes
+      WHERE type IN ('text', 'voice')
+        AND tags LIKE '%"' || ? || '"%'
+      ORDER BY created_at ASC`,
+    CLAUDE_TAG,
   );
 }
 

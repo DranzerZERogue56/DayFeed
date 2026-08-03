@@ -20,6 +20,9 @@ interface Props {
   onRecorded: (result: RecorderResult) => void;
   onPermissionDenied: () => void;
   onOpenCamera: () => void;
+  /** Whether the next note captured here is tagged as context for Claude. */
+  taggingForClaude: boolean;
+  onToggleTagging: () => void;
 }
 
 const CANCEL_THRESHOLD = -90; // px dragged left to cancel a recording
@@ -31,6 +34,8 @@ export default function CaptureBar({
   onRecorded,
   onPermissionDenied,
   onOpenCamera,
+  taggingForClaude,
+  onToggleTagging,
 }: Props) {
   const { value: text, onChangeText: setText, inputRef, setValue: setTextValue } =
     useMarkdownInput('');
@@ -179,6 +184,20 @@ export default function CaptureBar({
           >
             <CameraIcon color={colors.textDim} size={22} />
           </TouchableOpacity>
+          {/* Sticky: stays armed across sends so a run of context notes needs
+              arming only once. Lit in the accent colour so it can't quietly
+              tag everything that follows. */}
+          <TouchableOpacity
+            style={[styles.tag, taggingForClaude && styles.tagOn]}
+            onPress={onToggleTagging}
+            accessibilityRole="button"
+            accessibilityState={{ selected: taggingForClaude }}
+            accessibilityLabel={
+              taggingForClaude ? 'Stop tagging notes for Claude' : 'Tag the next note for Claude'
+            }
+          >
+            <Text style={[styles.tagGlyph, taggingForClaude && styles.tagGlyphOn]}>★</Text>
+          </TouchableOpacity>
           <TextInput
             ref={inputRef}
             style={styles.input}
@@ -224,6 +243,27 @@ const makeStyles = (colors: ColorPalette) =>
     backgroundColor: colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.divider,
+  },
+  tag: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  tagOn: {
+    backgroundColor: colors.accentTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
+  },
+  tagGlyph: {
+    fontSize: 20,
+    color: colors.textFaint,
+  },
+  tagGlyphOn: {
+    color: colors.accent,
   },
   camera: {
     width: 44,

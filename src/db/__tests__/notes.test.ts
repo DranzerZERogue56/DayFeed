@@ -4,6 +4,7 @@ import {
   createNote,
   deleteNote,
   getAllNotes,
+  getClaudeTaggedNotes,
   getDayKeysWithNotes,
   getNote,
   getNotesByDay,
@@ -151,5 +152,54 @@ describe('detected dates / agenda', () => {
     expect(agenda).toHaveLength(2);
     expect(agenda.filter((e) => e.note_id === n1.id)).toHaveLength(1);
     expect(agenda.filter((e) => e.note_id === n2.id)).toHaveLength(1);
+  });
+});
+
+describe('getClaudeTaggedNotes', () => {
+  it('returns only notes carrying the claude tag', async () => {
+    const tagged = await createNote({ type: 'text', content: 'context', tags: ['claude'] });
+    await createNote({ type: 'text', content: 'ordinary' });
+    await createNote({ type: 'text', content: 'other tag', tags: ['work'] });
+
+    const rows = await getClaudeTaggedNotes();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(tagged.id);
+  });
+
+  it('includes tagged voice notes', async () => {
+    const v = await createNote({ type: 'voice', audio_uri: 'file:///a.m4a', tags: ['claude'] });
+    await setTranscript(v.id, 'spoken context');
+
+    const rows = await getClaudeTaggedNotes();
+    expect(rows.map((r) => r.transcript)).toEqual(['spoken context']);
+  });
+
+  it('excludes photo notes even when tagged', async () => {
+    await createNote({ type: 'photo', media_uris: ['file:///a.jpg'], tags: ['claude'] });
+    expect(await getClaudeTaggedNotes()).toEqual([]);
+  });
+
+  it('does not match a tag that merely contains the word', async () => {
+    await createNote({ type: 'text', content: 'no', tags: ['claudette'] });
+    await createNote({ type: 'text', content: 'no', tags: ['not-claude'] });
+    expect(await getClaudeTaggedNotes()).toEqual([]);
+  });
+
+  it('finds the tag alongside others', async () => {
+    await createNote({ type: 'text', content: 'yes', tags: ['work', 'claude'] });
+    expect(await getClaudeTaggedNotes()).toHaveLength(1);
+  });
+
+  it('returns them oldest-first so the export reads chronologically', async () => {
+    await createNote({ type: 'text', content: 'first', tags: ['claude'] });
+    await new Promise((r) => setTimeout(r, 5));
+    await createNote({ type: 'text', content: 'second', tags: ['claude'] });
+
+    expect((await getClaudeTaggedNotes()).map((n) => n.content)).toEqual(['first', 'second']);
+  });
+
+  it('returns empty when nothing is tagged', async () => {
+    await createNote({ type: 'text', content: 'ordinary' });
+    expect(await getClaudeTaggedNotes()).toEqual([]);
   });
 });

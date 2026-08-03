@@ -17,6 +17,7 @@ import NoteContentEditor from './NoteContentEditor';
 import MarkdownText from './MarkdownText';
 import { toggleCheckboxLine } from '../lib/markdownList';
 import { copyableText } from '../lib/noteActions';
+import { hasClaudeTag } from '../lib/claudeTag';
 
 interface Props {
   note: Note;
@@ -122,6 +123,12 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         )}
         <View style={styles.footRow}>
           <View style={styles.footRule} />
+          {/* Shows which notes the Claude export will pick up. */}
+          {hasClaudeTag(note.tags) && (
+            <Text style={styles.tagMark} accessibilityLabel="Tagged for Claude">
+              ★
+            </Text>
+          )}
           <Text style={styles.time}>{formatClock(note.created_at)}</Text>
         </View>
       </TouchableOpacity>
@@ -203,6 +210,10 @@ const makeStyles = (colors: ColorPalette) =>
     flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.divider,
+  },
+  tagMark: {
+    color: colors.accent,
+    fontSize: 11,
   },
   time: {
     fontFamily: fonts.mono,
