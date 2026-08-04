@@ -294,6 +294,9 @@ Removals — confirm nothing is left behind:
 
 ## 24. v1.8 — animated launch screen
 
+- [ ] Cold launch shows a **dark circular seal** (book + quill) on cream — **not** three grey circles. The grey bullseye was Expo's placeholder and should be gone for good.
+- [ ] The seal's edge is smooth, not stair-stepped.
+- [ ] The background does not change shade between the seal and the loading ring — that seam must stay invisible.
 - [ ] Cold launch (force-quit first) in **light** mode: no white or grey flash between the app icon splash and the loading ring — the background should never change colour at that hand-off.
 - [ ] The loading ring spins in the centre on paper, then bronzes splash outward from it and deepen to near-black.
 - [ ] The dark cover splits down the middle and sweeps aside, revealing the Feed **already drawn** behind it — not a blank screen that then fills in.

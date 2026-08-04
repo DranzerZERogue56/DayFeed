@@ -2,7 +2,7 @@
   "expo": {
     "name": "DayFeed",
     "slug": "DayFeed",
-    "version": "1.8.2",
+    "version": "1.8.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.dayfeed.app",
-      "versionCode": 28,
+      "versionCode": 29,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA"
@@ -47,7 +47,8 @@
         {
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#FAF8F3"
+          "backgroundColor": "#FAF8F3",
+          "imageWidth": 120
         }
       ],
       [
