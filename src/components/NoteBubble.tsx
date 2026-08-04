@@ -17,7 +17,6 @@ import NoteContentEditor from './NoteContentEditor';
 import MarkdownText from './MarkdownText';
 import { toggleCheckboxLine } from '../lib/markdownList';
 import { copyableText } from '../lib/noteActions';
-import { hasClaudeTag } from '../lib/claudeTag';
 
 interface Props {
   note: Note;
@@ -30,7 +29,7 @@ interface Props {
 export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
-  const { saveOcrText, editNoteContent, toggleNoteClaudeTag } = useNotes();
+  const { saveOcrText, editNoteContent } = useNotes();
   const isVoice = note.type === 'voice';
   const isPhoto = note.type === 'photo';
   const media = isPhoto ? parseMediaUris(note) : [];
@@ -49,7 +48,6 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
       : 'This note will be permanently removed.';
 
   const copyText = copyableText(note);
-  const tagged = hasClaudeTag(note.tags);
 
   // Edit is offered for text notes only: voice and photo notes already carry
   // their own Edit affordance on the transcript / extracted-text block, and a
@@ -61,12 +59,6 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
       : []),
     // Photo notes can't be promoted — Flop has no photo type.
     ...(!isPhoto && onSendToFlop ? [{ label: 'Flop', onPress: () => onSendToFlop(note) }] : []),
-    // The capture bar can only tag a note as it's written; this reaches notes
-    // already in the feed. Photo notes are excluded because the export covers
-    // text and voice only — tagging one would be a promise nothing keeps.
-    ...(!isPhoto
-      ? [{ label: tagged ? 'Untag' : 'Tag', onPress: () => void toggleNoteClaudeTag(note) }]
-      : []),
     { label: 'Delete', danger: true, onPress: () => setSheet('confirm') },
   ];
 
@@ -130,12 +122,6 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         )}
         <View style={styles.footRow}>
           <View style={styles.footRule} />
-          {/* Shows which notes the Claude export will pick up. */}
-          {tagged && (
-            <Text style={styles.tagMark} accessibilityLabel="Tagged for Claude">
-              ★
-            </Text>
-          )}
           <Text style={styles.time}>{formatClock(note.created_at)}</Text>
         </View>
       </TouchableOpacity>
@@ -217,10 +203,6 @@ const makeStyles = (colors: ColorPalette) =>
     flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.divider,
-  },
-  tagMark: {
-    color: colors.accent,
-    fontSize: 11,
   },
   time: {
     fontFamily: fonts.mono,

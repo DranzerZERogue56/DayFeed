@@ -268,58 +268,29 @@ note it under **Findings** at the bottom with the step number.
 
 - [ ] Install **over** v1.5.5 rather than fresh → existing Flop notes, stream notes, Vault entries and reminders all survive the v8 migration, and the FILES section appears empty on old notes.
 
-## 23. v1.6 — notes tagged for Claude
 
-### Tagging
+## 23. v1.7 — Noted-updates
 
-- [ ] The capture bar shows a **★** button between the camera and the text field; it's grey when off.
-- [ ] Tap it → it lights up in bronze with a tinted background.
-- [ ] Type a note and send → the note's footer shows a small bronze ★ next to its timestamp.
-- [ ] The capture bar's ★ **stays armed** after sending. Send a second note → also tagged.
-- [ ] Tap the ★ off, send a third note → no marker on that one.
-- [ ] Arm the ★ and hold the mic to record a voice note → the voice note carries the marker too.
-- [ ] **Recorder regression check** (the ★ sits beside that gesture): press-and-hold the mic records, releasing saves, and sliding left cancels — all still working.
-- [ ] Known limitation: the ★ only tags notes *as you create them*. There's no way to tag a note you wrote earlier.
+- [ ] Feed header shows **Noted-updates** where ★ Export used to be; tapping it opens the overlay.
+- [ ] Empty state explains what the list is for.
+- [ ] Type an update, tap **Add** → it appears numbered 1, and the composer clears.
+- [ ] Add two more → they number 2 and 3 in the order written, oldest at the top.
+- [ ] A multi-line update keeps its line breaks in the list.
+- [ ] **Copy all** → a notice confirms the count; paste elsewhere and check it is a numbered list, continuation lines indented under their first line.
+- [ ] Tap × on an update → it goes, and the remaining ones renumber.
+- [ ] **Clear** asks first; confirming empties the list.
+- [ ] Copy all and Clear are both disabled (dimmed) when the list is empty.
+- [ ] Close and reopen the overlay → the updates are still there.
+- [ ] Force-quit the app and reopen → still there (the v9 table persisted).
+- [ ] Keyboard does not cover the composer while typing.
+- [ ] Check the overlay in both light and dark themes.
 
-### Exporting
+Removals — confirm nothing is left behind:
 
-- [ ] Feed's header shows **★ Export** beside the Photos button.
-- [ ] Tap it with nothing tagged → a sheet says no notes are tagged; no file is produced.
-- [ ] Tag a few notes, tap **★ Export** → the share sheet opens on a markdown file named `dayfeed-claude-notes.md`.
-- [ ] Save it to **Downloads**.
-- [ ] Open the saved file on the phone → it lists only the tagged notes, oldest first, each under a `##` heading with its date and time.
-- [ ] A tagged voice note appears with its **transcript**. A tagged voice note that hasn't been transcribed shows "(voice note, not transcribed yet)" rather than an empty section.
-
-### Pulling to the laptop
-
-- [ ] Plug the phone in over USB, unlock it, accept the debugging prompt.
-- [ ] Run `./scripts/pull-claude-notes.sh` → it reports the source path, the destination, when the export was made on the phone, and the note count.
-- [ ] `.claude-notes/dayfeed-claude-notes.md` exists in the repo and matches what was on the phone.
-- [ ] Run the script with the phone unplugged → it fails with a clear "no phone connected" message rather than a stack trace.
-- [ ] **The actual goal:** ask Claude to read `.claude-notes/dayfeed-claude-notes.md` and act on it, without pasting any note text into the prompt.
-
-## 24. v1.7 — direct note access, tagging existing notes
-
-Tagging notes already in the feed:
-
-- [ ] Long-press an untagged text note → the radial menu shows **Tag**. Tap it → the ★ appears in the note's footer.
-- [ ] Long-press it again → the menu now reads **Untag**. Tap it → the ★ goes away.
-- [ ] Tag a voice note the same way; its ★ appears too.
-- [ ] Long-press a photo note → there is **no** Tag option (the export covers text and voice only).
-- [ ] Tag a note that was written before this version was installed — the whole point of the feature.
-- [ ] Toggling the tag leaves the note's text, transcript and timestamp untouched.
-
-Reading the notes from the laptop:
-
-- [ ] Install this build (the previous one is not debuggable, so `run-as` will refuse until you do).
-- [ ] Plug the phone in, unlock it, accept the debugging prompt.
-- [ ] Ask Claude to read the tagged notes → a permission prompt appears **every** time, even on the second and third run.
-- [ ] The notes that arrive are exactly the tagged ones, oldest first — no untagged notes, no photo notes, no Flop content.
-- [ ] A voice note with no transcript shows as `_(voice note, not transcribed yet)_` rather than blank.
-- [ ] `.claude-notes/access.log` gains one line per run.
-- [ ] Ask Claude to run `adb pull` or `run-as` against the app directly → it is denied by the guard, not merely discouraged.
-- [ ] Unplug the phone and run the script → clear "no phone connected" message, no stack trace.
-- [ ] After all of the above, the notes on the phone are unchanged and nothing has been deleted.
+- [ ] No ★ in the capture bar.
+- [ ] Long-pressing a note shows Edit / Copy / Flop / Delete, with **no** Tag option.
+- [ ] No ★ marker in any note's footer.
+- [ ] Upgrading from v1.7.0 in place keeps existing notes (the v9 migration only adds a table).
 
 ## Findings
 

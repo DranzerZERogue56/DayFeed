@@ -42,6 +42,3 @@ yarn-error.*
 
 # whisper model — too large for git; fetched at build time (see assets/models/README.md)
 /assets/models/*.bin
-
-# notes pulled off the phone by scripts/pull-claude-notes.sh — data, not source
-/.claude-notes/

@@ -24,9 +24,7 @@ import { useNotes } from '../hooks/NotesContext';
 import { useFlop } from '../hooks/FlopContext';
 import { flopTitle } from '../db/flopTypes';
 import { useAllNotes } from '../hooks/useQueries';
-import { getClaudeTaggedNotes } from '../db/notes';
-import { CLAUDE_TAG } from '../lib/claudeTag';
-import { exportClaudeNotes } from '../lib/claudeExportFile';
+import NotedUpdatesScreen from './NotedUpdatesScreen';
 import type { RecorderResult } from '../hooks/useRecorder';
 import type { RootTabParamList } from '../navigation/types';
 import { persistRecording } from '../utils/audioFiles';
@@ -53,9 +51,7 @@ export default function FeedScreen() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [photosOpen, setPhotosOpen] = useState(false);
   const [sentTitle, setSentTitle] = useState<string | null>(null);
-  // Sticky across sends: a run of context notes only needs arming once.
-  const [taggingForClaude, setTaggingForClaude] = useState(false);
-  const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [updatesOpen, setUpdatesOpen] = useState(false);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   // Tapping a day separator carries you into that day in the Flip notebook.
@@ -79,11 +75,8 @@ export default function FeedScreen() {
     return out.reverse();
   }, [notes]);
 
-  /** Tags to stamp on whatever is captured next, per the capture bar's star. */
-  const captureTags = () => (taggingForClaude ? [CLAUDE_TAG] : undefined);
-
   const onSendText = (text: string) => {
-    void addNote({ type: 'text', content: text, tags: captureTags() });
+    void addNote({ type: 'text', content: text });
   };
 
   const onRecorded = async (result: RecorderResult) => {
@@ -93,23 +86,7 @@ export default function FeedScreen() {
       type: 'voice',
       audio_uri: uri,
       duration_ms: result.durationMs,
-      tags: captureTags(),
     });
-  };
-
-  // Tagged notes leave the app as one markdown file, which the share sheet can
-  // drop into Downloads for scripts/pull-claude-notes.sh to collect.
-  const exportForClaude = async () => {
-    try {
-      const tagged = await getClaudeTaggedNotes();
-      if (tagged.length === 0) {
-        setExportNotice('No notes are tagged yet. Arm the ★ in the capture bar first.');
-        return;
-      }
-      await exportClaudeNotes(tagged);
-    } catch {
-      setExportNotice('That export could not be created.');
-    }
   };
 
   const onSendToFlop = async (note: Note) => {
@@ -146,10 +123,10 @@ export default function FeedScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.photosBtn}
-              onPress={() => void exportForClaude()}
-              accessibilityLabel="Export notes tagged for Claude"
+              onPress={() => setUpdatesOpen(true)}
+              accessibilityLabel="Open Noted-updates"
             >
-              <Text style={styles.photosBtnText}>★ Export</Text>
+              <Text style={styles.photosBtnText}>Noted-updates</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.photosBtn}
@@ -196,8 +173,6 @@ export default function FeedScreen() {
           onRecorded={onRecorded}
           onPermissionDenied={onPermissionDenied}
           onOpenCamera={() => setCameraOpen(true)}
-          taggingForClaude={taggingForClaude}
-          onToggleTagging={() => setTaggingForClaude((on) => !on)}
         />
       </KeyboardAvoidingView>
 
@@ -214,6 +189,8 @@ export default function FeedScreen() {
 
       <PhotosScreen visible={photosOpen} onClose={() => setPhotosOpen(false)} />
 
+      <NotedUpdatesScreen visible={updatesOpen} onClose={() => setUpdatesOpen(false)} />
+
       <NoteActionsSheet
         visible={sentTitle !== null}
         subtitle={`“${sentTitle ?? ''}” is now a Flop root note.`}
@@ -227,13 +204,6 @@ export default function FeedScreen() {
           },
         ]}
         onClose={() => setSentTitle(null)}
-      />
-
-      <NoteActionsSheet
-        visible={exportNotice !== null}
-        subtitle={exportNotice ?? ''}
-        actions={[]}
-        onClose={() => setExportNotice(null)}
       />
     </SafeAreaView>
   );

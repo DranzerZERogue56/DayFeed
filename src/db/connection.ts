@@ -108,7 +108,20 @@ CREATE TABLE IF NOT EXISTS flop_attachments (
 CREATE INDEX IF NOT EXISTS idx_flop_attach_note ON flop_attachments (flop_id);
 `;
 
-const LATEST_VERSION = 8;
+// v1.7: Noted-updates — a scratch list for notes destined for a Claude prompt.
+// Deliberately its own table rather than a flag on `notes`: these are written
+// to be copied out and then cleared, and they should not appear in the Feed,
+// the Agenda, or search along with everything else.
+const MIGRATION_V9 = `
+CREATE TABLE IF NOT EXISTS noted_updates (
+  id TEXT PRIMARY KEY NOT NULL,
+  content TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_noted_updates_created ON noted_updates (created_at);
+`;
+
+const LATEST_VERSION = 9;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -159,6 +172,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 8) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V8);
+    });
+  }
+
+  if (current < 9) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V9);
     });
   }
 
