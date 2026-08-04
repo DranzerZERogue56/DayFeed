@@ -10,6 +10,12 @@ import { cancelReminder, ensureReminderPermission, scheduleReminder } from '../l
 import type { RootTabParamList } from '../navigation/types';
 import { notePreview } from '../utils/notePreview';
 import { formatClock, formatDayHeader, formatHourMinute, todayKey } from '../utils/date';
+import {
+  AGENDA_FILTERS,
+  emptyAgendaHint,
+  matchesAgendaFilter,
+  type AgendaFilter,
+} from '../lib/agendaFilter';
 import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import ReminderTimeSheet from '../components/ReminderTimeSheet';
@@ -31,10 +37,15 @@ export default function AgendaScreen() {
   const { refresh } = useNotes();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const [pickerEntry, setPickerEntry] = useState<AgendaEntry | null>(null);
+  const [filter, setFilter] = useState<AgendaFilter>('all');
 
   const sections = useMemo<Section[]>(() => {
+    // Resolved per render rather than held in state: the app can sit open past
+    // midnight, and a stale "today" would quietly filter to the wrong day.
+    const today = todayKey();
     const byDay = new Map<string, AgendaEntry[]>();
     for (const e of entries) {
+      if (!matchesAgendaFilter(e.date_key, filter, today)) continue;
       const arr = byDay.get(e.date_key);
       if (arr) arr.push(e);
       else byDay.set(e.date_key, [e]);
@@ -42,7 +53,7 @@ export default function AgendaScreen() {
     return [...byDay.entries()]
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
       .map(([dayKey, data]) => ({ dayKey, data }));
-  }, [entries]);
+  }, [entries, filter]);
 
   const openInFlip = (entry: AgendaEntry) => {
     // Navigate to the day the source note lives on (its own day_key), and
@@ -91,11 +102,25 @@ export default function AgendaScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScreenHeader overline="Dates found in your notes" title="Agenda" />
 
+      <View style={styles.chips}>
+        {AGENDA_FILTERS.map((f) => {
+          const active = filter === f.key;
+          return (
+            <TouchableOpacity
+              key={f.key}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => setFilter(f.key)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {sections.length === 0 ? (
-        <EmptyState
-          title="No upcoming dates yet."
-          hint="Mention a date in a note — like “call Sam next Friday” — and it shows up here."
-        />
+        <EmptyState {...emptyAgendaHint(filter)} />
       ) : (
         <SectionList
           sections={sections}
@@ -156,6 +181,32 @@ export default function AgendaScreen() {
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  // Same index-card tab chips as View All, so the two filter rows read as one
+  // idea rather than two designs.
+  chips: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
+  },
+  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipText: {
+    fontFamily: fonts.mono,
+    color: colors.textDim,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  chipTextActive: { color: '#FFFFFF' },
   listContent: { padding: spacing.md },
   sectionHeader: {
     fontFamily: fonts.display,

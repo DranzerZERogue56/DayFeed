@@ -333,6 +333,18 @@ Upgrade check:
 
 - [ ] Installing over v1.8.3 keeps every existing note (v10 only adds a nullable column).
 
+## 26. v1.10 — Agenda filters
+
+- [ ] Agenda shows four chips under the header: **ALL · TODAY · WEEK · UPCOMING**, styled like View All's.
+- [ ] It opens on **All**, showing exactly what it showed before — including dates already past.
+- [ ] **Today** shows only entries dated today; nothing from yesterday or tomorrow.
+- [ ] **Week** shows today through six days out, and **excludes yesterday**.
+- [ ] **Upcoming** shows today and later, and hides everything past.
+- [ ] Each empty window explains itself and points at a wider one (e.g. Today empty → "Tap All").
+- [ ] Reminders (the bell) still work while a filter is on, and the row still jumps to Flip.
+- [ ] Filters are **Agenda only** — Feed, Flip, Flop, View All and Vault are untouched.
+- [ ] Check the chips in both light and dark themes.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->
