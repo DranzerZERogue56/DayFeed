@@ -292,6 +292,20 @@ Removals — confirm nothing is left behind:
 - [ ] No ★ marker in any note's footer.
 - [ ] Upgrading from v1.7.0 in place keeps existing notes (the v9 migration only adds a table).
 
+## 24. v1.8 — animated launch screen
+
+- [ ] Cold launch (force-quit first) in **light** mode: no white or grey flash between the app icon splash and the loading ring — the background should never change colour at that hand-off.
+- [ ] The loading ring spins in the centre on paper, then bronzes splash outward from it and deepen to near-black.
+- [ ] The dark cover splits down the middle and sweeps aside, revealing the Feed **already drawn** behind it — not a blank screen that then fills in.
+- [ ] Cold launch in **dark** mode: same sequence, and the cover opens onto a background of the same dark colour, so there is no flash at the seam.
+- [ ] Launch twice in a row (warm start, database opens instantly): the ring still holds long enough to look deliberate, not a single-frame flicker.
+- [ ] Total launch feels quick, not padded. If it drags, the durations are one block at the top of `src/lib/bootSplash.ts`.
+- [ ] The splash circles reach the screen **corners** — no paper-coloured wedges left at the edges as they expand.
+- [ ] Settings → Accessibility → **Remove animations** on → launch shows the ring, then goes straight to the Feed with no splash and no split.
+- [ ] Rotate the phone mid-animation → no crash, no overlay left stranded on screen.
+- [ ] Background the app mid-animation and return → no crash, no stuck overlay.
+- [ ] Once the Feed is visible, tapping works immediately — the overlay must never swallow a tap.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

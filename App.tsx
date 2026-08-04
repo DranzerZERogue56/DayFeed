@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, type Theme } from '@react-navigation/native';
 import { NotesProvider } from './src/hooks/NotesContext';
@@ -8,8 +8,15 @@ import { FlopProvider } from './src/hooks/FlopContext';
 import { AudioPlayerProvider } from './src/hooks/AudioPlayerContext';
 import { ThemeProvider, useTheme } from './src/hooks/ThemeContext';
 import RootTabs from './src/navigation/RootTabs';
+import BootSplash from './src/components/BootSplash';
 import { initDb } from './src/db';
 import { seedIfEmpty } from './src/db/seed';
+
+// Before first render: keep the native splash up until BootSplash has painted,
+// so there is no bare window between the two.
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Already hidden — harmless, and not worth failing a launch over.
+});
 
 // Inside ThemeProvider so navigation chrome and the status bar follow the mode.
 function ThemedApp() {
@@ -36,17 +43,9 @@ function ThemedApp() {
   );
 }
 
-function Boot() {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-      <ActivityIndicator color={colors.accent} size="large" />
-    </View>
-  );
-}
-
 export default function App() {
   const [booted, setBooted] = useState(false);
+  const [bootDone, setBootDone] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -57,12 +56,15 @@ export default function App() {
     })();
   }, []);
 
+  const onBootDone = useCallback(() => setBootDone(true), []);
+
+  // The app tree mounts as soon as the database is open, while BootSplash is
+  // still fully opaque — so the mount is invisible, and the Feed is laid out
+  // behind the cover by the time it opens onto it.
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        {!booted ? (
-          <Boot />
-        ) : (
+        {booted && (
           <NotesProvider>
             <FlopProvider>
               <AudioPlayerProvider>
@@ -71,6 +73,7 @@ export default function App() {
             </FlopProvider>
           </NotesProvider>
         )}
+        {!bootDone && <BootSplash ready={booted} onDone={onBootDone} />}
       </ThemeProvider>
     </SafeAreaProvider>
   );
