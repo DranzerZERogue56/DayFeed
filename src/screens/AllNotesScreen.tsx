@@ -29,6 +29,7 @@ import RadialActionsMenu from '../components/RadialActionsMenu';
 import NoteContentEditor from '../components/NoteContentEditor';
 import { toggleCheckboxLine } from '../lib/markdownList';
 import { copyableText } from '../lib/noteActions';
+import { isExpiring } from '../lib/expiry';
 import { parseMediaUris, type Note } from '../db/types';
 import { formatClock, formatDayHeader } from '../utils/date';
 import { fonts, radius, shadows, spacing, type, type ColorPalette } from '../theme';
@@ -100,7 +101,7 @@ export default function AllNotesScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
   const [viewer, setViewer] = useState<{ uris: string[]; index: number } | null>(null);
-  const { removeNote, editNoteContent } = useNotes();
+  const { removeNote, editNoteContent, toggleNoteExpiry } = useNotes();
   const { promoteNote } = useFlop();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -144,6 +145,15 @@ export default function AllNotesScreen() {
         : []),
       // Photo notes can't be promoted — Flop has no photo type.
       ...(isPhoto ? [] : [{ label: 'Flop', onPress: () => void sendToFlop(active) }]),
+      // Photo notes are excluded: the sweep covers text and voice only.
+      ...(isPhoto
+        ? []
+        : [
+            {
+              label: isExpiring(active) ? 'Keep' : 'Expire',
+              onPress: () => void toggleNoteExpiry(active),
+            },
+          ]),
       { label: 'Delete', danger: true, onPress: () => setSheet('confirm') },
     ];
   };
@@ -197,7 +207,7 @@ export default function AllNotesScreen() {
             activeOpacity={0.8}
             onLongPress={() => showActions(item)}
             delayLongPress={350}
-            style={styles.card}
+            style={[styles.card, isExpiring(item) && styles.cardExpiring]}
           >
             <View style={styles.cardHead}>
               <Text style={styles.cardDay}>{formatDayHeader(item.day_key)}</Text>
@@ -316,6 +326,11 @@ const makeStyles = (colors: ColorPalette) =>
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
     ...shadows.card,
+  },
+  // A note counting down to deletion tonight.
+  cardExpiring: {
+    borderWidth: 1.5,
+    borderColor: colors.danger,
   },
   cardHead: {
     flexDirection: 'row',

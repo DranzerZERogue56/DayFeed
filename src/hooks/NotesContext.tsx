@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 import {
   addDetectedDates,
   createNote as dbCreateNote,
@@ -14,10 +15,13 @@ import {
   getNote,
   getReminderIdsForNote,
   initDb,
+  setNoteExpiry,
   setOcrText,
   setTranscript,
   updateNoteContent,
 } from '../db';
+import { expiryForDay, msUntilNextExpiry } from '../lib/expiry';
+import { cleanupNote, sweepExpiredNotes } from '../lib/expirySweep';
 import { cancelReminder } from '../lib/reminders';
 import { parseMediaUris, type NewNoteInput, type Note } from '../db/types';
 import { deleteAudioFile } from '../utils/audioFiles';
@@ -36,6 +40,10 @@ interface NotesContextValue {
   saveOcrText: (note: Note, text: string) => Promise<void>;
   /** Overwrite a text note's content (checkbox toggles). */
   editNoteContent: (note: Note, content: string) => Promise<void>;
+  /** Tag/untag a note to delete itself at 11:59 PM tonight. */
+  toggleNoteExpiry: (note: Note) => Promise<void>;
+  /** Delete every note past its expiry. Safe to call repeatedly. */
+  sweepExpired: () => Promise<void>;
   /** Force a re-read without mutating (rarely needed). */
   refresh: () => void;
 }
@@ -99,20 +107,56 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
   const removeNote = useCallback(
     async (id: string) => {
-      // Clean up associated files; detected_dates cascade via the FK. Scheduled
-      // reminders live with the OS, so cancel them before the rows go away.
       const existing = await getNote(id);
-      if (existing?.audio_uri) await deleteAudioFile(existing.audio_uri);
-      if (existing) {
-        const media = parseMediaUris(existing);
-        if (media.length) await deleteImageFiles(media);
-      }
-      for (const rid of await getReminderIdsForNote(id)) await cancelReminder(rid);
+      if (existing) await cleanupNote(existing);
       await dbDeleteNote(id);
       bump();
     },
     [bump],
   );
+
+  /**
+   * Delete every note whose expiry has passed.
+   *
+   * Runs at launch before the Feed renders, on return to the foreground, and
+   * from a timer at 11:59 PM if the app happens to be open. The app is offline
+   * with no reliable background execution, so a note can outlive its deadline
+   * on screen — but never past the next time the app is looked at.
+   */
+  const sweepExpired = useCallback(async () => {
+    if ((await sweepExpiredNotes()) > 0) bump();
+  }, [bump]);
+
+  const toggleNoteExpiry = useCallback(
+    async (note: Note) => {
+      await setNoteExpiry(note.id, note.expires_at == null ? expiryForDay(Date.now()) : null);
+      bump();
+    },
+    [bump],
+  );
+
+  // Sweep when the app comes back to the foreground, and again at the next
+  // 11:59 PM if it is still open then. The timer re-arms itself so an app left
+  // running for days keeps clearing each night.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void sweepExpired();
+    });
+
+    let timer: ReturnType<typeof setTimeout>;
+    const arm = () => {
+      timer = setTimeout(() => {
+        void sweepExpired();
+        arm();
+      }, msUntilNextExpiry(Date.now()));
+    };
+    arm();
+
+    return () => {
+      sub.remove();
+      clearTimeout(timer);
+    };
+  }, [sweepExpired]);
 
   const value = useMemo(
     () => ({
@@ -123,6 +167,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
       saveTranscript,
       saveOcrText,
       editNoteContent,
+      toggleNoteExpiry,
+      sweepExpired,
       refresh: bump,
     }),
     [
@@ -133,6 +179,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
       saveTranscript,
       saveOcrText,
       editNoteContent,
+      toggleNoteExpiry,
+      sweepExpired,
       bump,
     ],
   );

@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme } from './src/hooks/ThemeContext';
 import RootTabs from './src/navigation/RootTabs';
 import BootSplash from './src/components/BootSplash';
 import { initDb } from './src/db';
+import { sweepExpiredNotes } from './src/lib/expirySweep';
 import { seedIfEmpty } from './src/db/seed';
 
 // Before first render: keep the native splash up until BootSplash has painted,
@@ -50,6 +51,9 @@ export default function App() {
   useEffect(() => {
     (async () => {
       await initDb();
+      // Clear expired notes BEFORE the app tree mounts, so a note that outlived
+      // its 11:59 PM while the app was closed is never briefly visible.
+      await sweepExpiredNotes();
       // Dev convenience: populate a few notes on first run only.
       if (__DEV__) await seedIfEmpty();
       setBooted(true);

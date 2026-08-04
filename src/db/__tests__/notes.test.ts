@@ -6,7 +6,9 @@ import {
   getAllNotes,
   getDayKeysWithNotes,
   getNote,
+  getExpiredNotes,
   getNotesByDay,
+  setNoteExpiry,
   setTranscript,
 } from '../notes';
 import {
@@ -154,3 +156,47 @@ describe('detected dates / agenda', () => {
   });
 });
 
+
+describe('expiring notes', () => {
+  const DEADLINE = new Date(2026, 7, 4, 23, 59, 0, 0).getTime();
+
+  it('a new note is not tagged to expire', async () => {
+    const n = await createNote({ type: 'text', content: 'plain' });
+    expect(n.expires_at).toBeNull();
+    expect(await getExpiredNotes(DEADLINE + 1)).toEqual([]);
+  });
+
+  it('returns a note once its deadline has arrived', async () => {
+    const n = await createNote({ type: 'text', content: 'gone tonight' });
+    await setNoteExpiry(n.id, DEADLINE);
+
+    expect(await getExpiredNotes(DEADLINE - 1)).toEqual([]);
+    const due = await getExpiredNotes(DEADLINE);
+    expect(due.map((r) => r.id)).toEqual([n.id]);
+  });
+
+  it('leaves untagged notes alone however late it gets', async () => {
+    await createNote({ type: 'text', content: 'keep me' });
+    const doomed = await createNote({ type: 'text', content: 'delete me' });
+    await setNoteExpiry(doomed.id, DEADLINE);
+
+    const due = await getExpiredNotes(DEADLINE + 86_400_000);
+    expect(due.map((r) => r.content)).toEqual(['delete me']);
+  });
+
+  it('untagging takes a note back out of the sweep', async () => {
+    const n = await createNote({ type: 'text', content: 'reprieved' });
+    await setNoteExpiry(n.id, DEADLINE);
+    await setNoteExpiry(n.id, null);
+
+    expect(await getExpiredNotes(DEADLINE + 1)).toEqual([]);
+    expect((await getNote(n.id))?.expires_at).toBeNull();
+  });
+
+  it('covers voice notes, which carry an audio file to clean up', async () => {
+    const v = await createNote({ type: 'voice', audio_uri: 'file:///a.m4a' });
+    await setNoteExpiry(v.id, DEADLINE);
+    const due = await getExpiredNotes(DEADLINE);
+    expect(due[0].audio_uri).toBe('file:///a.m4a');
+  });
+});

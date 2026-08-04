@@ -14,6 +14,7 @@ function note(overrides: Partial<Note>): Note {
     tags: '[]',
     media_uris: null,
     ocr_text: null,
+    expires_at: null,
     ...overrides,
   };
 }

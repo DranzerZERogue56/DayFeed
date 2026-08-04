@@ -54,7 +54,7 @@ SELECT
   d.id AS d_id, d.note_id AS d_note_id, d.date_key AS d_date_key, d.snippet AS d_snippet,
   d.reminder_id AS d_reminder_id, d.reminder_hour AS d_reminder_hour, d.reminder_minute AS d_reminder_minute,
   n.id, n.type, n.content, n.transcript, n.audio_uri, n.duration_ms,
-  n.created_at, n.day_key, n.tags, n.media_uris
+  n.created_at, n.day_key, n.tags, n.media_uris, n.expires_at
 FROM detected_dates d
 JOIN notes n ON n.id = d.note_id
 `;
@@ -90,6 +90,7 @@ function toAgendaEntry(r: JoinedRow): AgendaEntry {
       tags: r.tags,
       media_uris: r.media_uris,
       ocr_text: r.ocr_text,
+      expires_at: r.expires_at,
     },
   };
 }

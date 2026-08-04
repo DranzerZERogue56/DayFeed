@@ -17,6 +17,7 @@ import NoteContentEditor from './NoteContentEditor';
 import MarkdownText from './MarkdownText';
 import { toggleCheckboxLine } from '../lib/markdownList';
 import { copyableText } from '../lib/noteActions';
+import { isExpiring } from '../lib/expiry';
 
 interface Props {
   note: Note;
@@ -29,7 +30,7 @@ interface Props {
 export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
-  const { saveOcrText, editNoteContent } = useNotes();
+  const { saveOcrText, editNoteContent, toggleNoteExpiry } = useNotes();
   const isVoice = note.type === 'voice';
   const isPhoto = note.type === 'photo';
   const media = isPhoto ? parseMediaUris(note) : [];
@@ -48,6 +49,7 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
       : 'This note will be permanently removed.';
 
   const copyText = copyableText(note);
+  const expiring = isExpiring(note);
 
   // Edit is offered for text notes only: voice and photo notes already carry
   // their own Edit affordance on the transcript / extracted-text block, and a
@@ -59,6 +61,11 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
       : []),
     // Photo notes can't be promoted — Flop has no photo type.
     ...(!isPhoto && onSendToFlop ? [{ label: 'Flop', onPress: () => onSendToFlop(note) }] : []),
+    // Photo notes are excluded: the sweep covers text and voice only, so
+    // offering it here would be a promise nothing keeps.
+    ...(!isPhoto
+      ? [{ label: expiring ? 'Keep' : 'Expire', onPress: () => void toggleNoteExpiry(note) }]
+      : []),
     { label: 'Delete', danger: true, onPress: () => setSheet('confirm') },
   ];
 
@@ -68,7 +75,7 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         activeOpacity={0.85}
         onLongPress={() => setSheet('menu')}
         delayLongPress={350}
-        style={[styles.bubble, isPhoto && styles.bubblePhoto]}
+        style={[styles.bubble, isPhoto && styles.bubblePhoto, expiring && styles.bubbleExpiring]}
       >
         {isVoice ? (
           <VoiceNoteBody note={note} variant="list">
@@ -171,6 +178,11 @@ const makeStyles = (colors: ColorPalette) =>
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     ...shadows.card,
+  },
+  // A note counting down to deletion tonight.
+  bubbleExpiring: {
+    borderWidth: 1.5,
+    borderColor: colors.danger,
   },
   bubblePhoto: {
     padding: spacing.xs + 2,

@@ -309,6 +309,30 @@ Removals — confirm nothing is left behind:
 - [ ] Background the app mid-animation and return → no crash, no stuck overlay.
 - [ ] Once the Feed is visible, tapping works immediately — the overlay must never swallow a tap.
 
+## 25. v1.9 — expiring notes
+
+- [ ] Long-press a text note → **Expire** sits between **Flop** and **Delete**.
+- [ ] Five pills now fan out — check none of them **overlap**, especially the top and bottom pair.
+- [ ] Tap Expire → the note gets a **red outline**. Long-press again → the option reads **Keep**; tapping it removes the outline.
+- [ ] A voice note can be tagged the same way.
+- [ ] A photo note offers **no** Expire option.
+- [ ] The same action and the same red outline appear in **View All**.
+- [ ] Tagging survives leaving the tab and coming back, and a force-quit.
+
+The deletion itself — none of this is covered by unit tests:
+
+- [ ] Tag a note, then set the phone's clock past 11:59 PM and reopen DayFeed → the note is **gone**, and never flashed on screen during launch.
+- [ ] Tag another, leave the app **open** across 11:59 PM → it disappears on its own without touching anything.
+- [ ] Tag one, background the app, move the clock past midnight, return to the app → it's gone.
+- [ ] Tag a **voice** note and let it expire → confirm the recording is gone too, not just the bubble.
+- [ ] A note with a **reminder** set that expires → no notification fires the next morning.
+- [ ] Untag before the deadline → the note survives the night.
+- [ ] Set the clock back to normal afterwards.
+
+Upgrade check:
+
+- [ ] Installing over v1.8.3 keeps every existing note (v10 only adds a nullable column).
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

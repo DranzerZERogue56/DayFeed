@@ -19,7 +19,41 @@ export interface RadialSlot {
  */
 export const SWEEP_DEGREES = 80;
 
+/** The radius the arc used when every menu had four actions or fewer. */
+export const BASE_RADIUS = 108;
+
+/** Pill height and the clear space wanted between two adjacent pills, in dp. */
+const PILL_HEIGHT = 40;
+const MIN_GAP = PILL_HEIGHT + 8;
+
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+
+/**
+ * Radius that keeps `count` pills from colliding.
+ *
+ * Pills are spread by angle, so their vertical spacing is `radius × Δsin`, and
+ * Δsin is smallest at the ends of the arc where the fan flattens out. At the
+ * fixed 108 that served four actions, five put the outer pairs 37dp apart —
+ * closer than a pill is tall, so they overlapped. This grows the arc just
+ * enough, and never shrinks below the original, so existing menus are
+ * pixel-identical.
+ */
+export function radiusForCount(count: number): number {
+  if (count < 2) return BASE_RADIUS;
+
+  const step = (SWEEP_DEGREES * 2) / (count - 1);
+  let needed = BASE_RADIUS;
+
+  for (let i = 0; i < count - 1; i++) {
+    const a = -SWEEP_DEGREES + i * step;
+    const b = a + step;
+    const spread = Math.abs(Math.sin(toRadians(b)) - Math.sin(toRadians(a)));
+    // Two pills at the same angle can never be separated by any radius.
+    if (spread > 0) needed = Math.max(needed, MIN_GAP / spread);
+  }
+
+  return Math.ceil(needed);
+}
 
 /**
  * Spread `count` items evenly across the arc centred on the anchor, as offsets

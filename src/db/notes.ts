@@ -19,6 +19,7 @@ export async function createNote(input: NewNoteInput): Promise<Note> {
     tags: JSON.stringify(input.tags ?? []),
     media_uris: input.media_uris ? JSON.stringify(input.media_uris) : null,
     ocr_text: null,
+    expires_at: null,
   };
   await db.runAsync(
     `INSERT INTO notes
@@ -54,6 +55,24 @@ export async function setOcrText(id: string, text: string): Promise<void> {
 export async function updateNoteContent(id: string, content: string): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE notes SET content = ? WHERE id = ?`, content, id);
+}
+
+/** Tag a note to delete itself at `expiresAt`, or pass null to keep it. */
+export async function setNoteExpiry(id: string, expiresAt: number | null): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE notes SET expires_at = ? WHERE id = ?`, expiresAt, id);
+}
+
+/**
+ * Notes whose deadline has arrived. Indexed on expires_at, since this runs on
+ * every launch and every return to the foreground.
+ */
+export async function getExpiredNotes(now: number): Promise<Note[]> {
+  const db = await getDb();
+  return db.getAllAsync<Note>(
+    `SELECT * FROM notes WHERE expires_at IS NOT NULL AND expires_at <= ?`,
+    now,
+  );
 }
 
 /** All notes for a single day, oldest-first (chat/notebook reading order). */

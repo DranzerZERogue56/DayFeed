@@ -1,4 +1,4 @@
-import { radialSlots, SWEEP_DEGREES } from '../radialLayout';
+import { BASE_RADIUS, radialSlots, radiusForCount, SWEEP_DEGREES } from '../radialLayout';
 
 const R = 110;
 
@@ -57,5 +57,43 @@ describe('radialSlots', () => {
 
     expect(left.every((s) => s.x > 0)).toBe(true);
     expect(right.every((s) => s.x < 0)).toBe(true);
+  });
+});
+
+describe('radiusForCount', () => {
+  // The Expire action took Feed's menu from four pills to five. At the old
+  // fixed radius the outer pills sat 37dp apart while a pill is 40dp tall, so
+  // they overlapped — this is that regression, pinned.
+  const PILL_HEIGHT = 40;
+
+  function smallestGap(count: number): number {
+    const slots = radialSlots(count, 'left', radiusForCount(count));
+    let min = Infinity;
+    for (let i = 1; i < slots.length; i++) {
+      min = Math.min(min, Math.abs(slots[i].y - slots[i - 1].y));
+    }
+    return min;
+  }
+
+  it('leaves existing menus untouched', () => {
+    for (const count of [1, 2, 3, 4]) {
+      expect(radiusForCount(count)).toBe(BASE_RADIUS);
+    }
+  });
+
+  it('never lets adjacent pills overlap, however many there are', () => {
+    for (let count = 2; count <= 8; count++) {
+      expect(smallestGap(count)).toBeGreaterThanOrEqual(PILL_HEIGHT);
+    }
+  });
+
+  it('grows the arc once five pills no longer fit', () => {
+    expect(radiusForCount(5)).toBeGreaterThan(BASE_RADIUS);
+  });
+
+  it('never shrinks as pills are added', () => {
+    for (let count = 2; count <= 8; count++) {
+      expect(radiusForCount(count + 1)).toBeGreaterThanOrEqual(radiusForCount(count));
+    }
   });
 });

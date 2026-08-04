@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { radialSlots } from '../lib/radialLayout';
+import { radialSlots, radiusForCount } from '../lib/radialLayout';
 import type { NoteAction } from './NoteActionsSheet';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
@@ -25,7 +25,6 @@ interface Props {
 type Side = 'left' | 'right';
 
 /** How far the pills sit from their anchor's centre. */
-const ARC_RADIUS = 108;
 const ANCHOR_SIZE = 52;
 const PILL_WIDTH = 104;
 const PILL_HEIGHT = 40;
@@ -68,7 +67,10 @@ export default function RadialActionsMenu({ visible, subtitle, actions, onClose 
   };
 
   const anchorTop = height * ANCHOR_TOP_FRACTION;
-  const slots = openSide ? radialSlots(actions.length, openSide, ARC_RADIUS) : [];
+  // Grows with the action count so the outer pills can't overlap; identical to
+  // the old fixed radius for menus of four or fewer.
+  const arcRadius = radiusForCount(actions.length);
+  const slots = openSide ? radialSlots(actions.length, openSide, arcRadius) : [];
 
   const renderAnchor = (side: Side) => (
     <Pressable
@@ -94,7 +96,7 @@ export default function RadialActionsMenu({ visible, subtitle, actions, onClose 
           <Text
             style={[
               styles.subtitle,
-              { top: Math.max(spacing.xl, anchorTop - ARC_RADIUS - spacing.xl * 2) },
+              { top: Math.max(spacing.xl, anchorTop - arcRadius - spacing.xl * 2) },
             ]}
           >
             {subtitle}

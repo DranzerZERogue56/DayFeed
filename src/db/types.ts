@@ -22,6 +22,12 @@ export interface Note {
   media_uris: string | null;
   /** On-device OCR text extracted from a photo note's images. Null until run. */
   ocr_text: string | null;
+  /**
+   * When this note deletes itself (epoch ms), or null to keep it.
+   *
+   * Set to 11:59 PM on the night the tag was applied — see lib/expiry.ts.
+   */
+  expires_at: number | null;
 }
 
 /** Parse a photo note's media_uris JSON into a string[]. Safe on null/garbage. */

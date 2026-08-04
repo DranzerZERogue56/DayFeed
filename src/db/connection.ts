@@ -121,7 +121,18 @@ CREATE TABLE IF NOT EXISTS noted_updates (
 CREATE INDEX IF NOT EXISTS idx_noted_updates_created ON noted_updates (created_at);
 `;
 
-const LATEST_VERSION = 9;
+// v1.9: expiring notes — a note tagged to delete itself at 11:59 PM tonight.
+//
+// A column rather than a token in `tags`: the deadline is a time, the sweep
+// that drives the whole feature is `WHERE expires_at <= ?`, and that wants an
+// index. It also can't be derived from created_at, since the deadline is the
+// night the tag was applied, not the night the note was written.
+const MIGRATION_V10 = `
+ALTER TABLE notes ADD COLUMN expires_at INTEGER;
+CREATE INDEX IF NOT EXISTS idx_notes_expires ON notes (expires_at);
+`;
+
+const LATEST_VERSION = 10;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -178,6 +189,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 9) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V9);
+    });
+  }
+
+  if (current < 10) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V10);
     });
   }
 
