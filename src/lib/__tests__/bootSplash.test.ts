@@ -4,6 +4,7 @@ import {
   RING_MS,
   RING_STAGGER_MS,
   SPLASH_COLORS,
+  WATCHDOG_MS,
   coverRadius,
   ringDelay,
   splashDuration,
@@ -79,5 +80,16 @@ describe('splashDuration', () => {
 
   it('stays under a second and a half, so launch does not drag', () => {
     expect(splashDuration()).toBeLessThan(1500);
+  });
+});
+
+describe('WATCHDOG_MS', () => {
+  it('leaves the full animation room to finish before firing', () => {
+    // A backstop that fired mid-animation would cut the launch short every time.
+    expect(WATCHDOG_MS).toBeGreaterThan(splashDuration());
+  });
+
+  it('still opens the app promptly if the animation never completes', () => {
+    expect(WATCHDOG_MS).toBeLessThanOrEqual(5000);
   });
 });

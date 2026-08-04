@@ -10,6 +10,7 @@ import {
   RING_MS,
   SPLASH_COLORS,
   SPLIT_MS,
+  WATCHDOG_MS,
   coverRadius,
   ringDelay,
 } from '../lib/bootSplash';
@@ -40,7 +41,16 @@ export default function BootSplash({ ready, onDone }: Props) {
   const spinnerFade = useRef(new Animated.Value(1)).current;
 
   const mountedAt = useRef(Date.now());
-  const started = useRef(false);
+
+  // Read through a ref, and keep it out of the effect's dependencies.
+  //
+  // This setting resolves asynchronously, so it can flip *after* the sequence
+  // is already scheduled. As a dependency it re-ran the effect, whose cleanup
+  // cleared the pending timers — and a "have I started?" guard then refused to
+  // reschedule them, leaving the overlay up forever over a working app. The
+  // effect now depends only on `ready`, which changes exactly once.
+  const reduceMotionRef = useRef(reduceMotion);
+  reduceMotionRef.current = reduceMotion;
 
   const radius = coverRadius(width, height);
 
@@ -66,12 +76,19 @@ export default function BootSplash({ ready, onDone }: Props) {
     return () => loop.stop();
   }, [spin]);
 
+  // The watchdog lives in its own effect so nothing can clear it but unmount.
+  // Whatever the animation does, the app opens.
   useEffect(() => {
-    if (!ready || started.current) return;
-    started.current = true;
+    if (!ready) return;
+    const t = setTimeout(() => onDone(), MIN_SPINNER_MS + WATCHDOG_MS);
+    return () => clearTimeout(t);
+  }, [ready, onDone]);
+
+  useEffect(() => {
+    if (!ready) return;
 
     // Reduced motion: the ring did its job, go straight to the app.
-    if (reduceMotion) {
+    if (reduceMotionRef.current) {
       onDone();
       return;
     }
@@ -82,23 +99,28 @@ export default function BootSplash({ ready, onDone }: Props) {
 
     const timer = setTimeout(() => {
       Animated.sequence([
-        Animated.parallel([
-          Animated.timing(spinnerFade, {
-            toValue: 0,
-            duration: RING_MS / 2,
-            useNativeDriver: true,
-          }),
-          ...rings.map((value, i) =>
-            Animated.timing(value, {
-              toValue: 1,
-              delay: ringDelay(i),
-              duration: RING_MS,
-              // Fast out of the gate, easing into the edge — a splash, not a wipe.
-              easing: Easing.out(Easing.cubic),
+        Animated.parallel(
+          [
+            Animated.timing(spinnerFade, {
+              toValue: 0,
+              duration: RING_MS / 2,
               useNativeDriver: true,
             }),
-          ),
-        ]),
+            ...rings.map((value, i) =>
+              Animated.timing(value, {
+                toValue: 1,
+                delay: ringDelay(i),
+                duration: RING_MS,
+                // Fast out of the gate, easing into the edge — a splash, not a wipe.
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+              }),
+            ),
+          ],
+          // The ring fades out long before the last colour lands; without this
+          // its completion could take the rest of the group down with it.
+          { stopTogether: false },
+        ),
         Animated.delay(HOLD_MS),
         Animated.timing(open, {
           toValue: 1,
@@ -106,13 +128,12 @@ export default function BootSplash({ ready, onDone }: Props) {
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
         }),
-      ]).start(({ finished }) => {
-        if (finished) onDone();
-      });
+      ]).start(() => onDone());
     }, wait);
 
+
     return () => clearTimeout(timer);
-  }, [ready, reduceMotion, onDone, rings, open, spinnerFade]);
+  }, [ready, onDone, rings, open, spinnerFade]);
 
   const spinDeg = useMemo(
     () => spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }),
@@ -141,9 +162,13 @@ export default function BootSplash({ ready, onDone }: Props) {
       // The overlay is decorative; never let it swallow taps meant for the app.
       pointerEvents="none"
     >
-      {/* The paper the ring sits on, matching the native splash exactly. */}
+      {/* The paper the ring sits on, matching the native splash exactly.
+          Note styles.sheet, NOT styles.fill: fill carries the zIndex that
+          lifts the whole overlay above the app, and reusing it here lifted
+          this backdrop above the rings, the ring and the cover too — an
+          opaque rectangle over the entire animation. */}
       <Animated.View
-        style={[styles.fill, { backgroundColor: BOOT_BG, opacity: beneathCover }]}
+        style={[styles.sheet, { backgroundColor: BOOT_BG, opacity: beneathCover }]}
       />
 
       {/* The colours, each a circle big enough to cover the screen when grown. */}
@@ -225,7 +250,11 @@ export default function BootSplash({ ready, onDone }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // Only the overlay root carries the zIndex. Anything inside it that also
+  // needs to fill the screen uses `sheet`, so the overlay's own draw order
+  // stays as written.
   fill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 },
+  sheet: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   ring: { position: 'absolute' },
   center: {
     position: 'absolute',

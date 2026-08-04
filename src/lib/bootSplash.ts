@@ -42,6 +42,14 @@ export const SPLIT_MS = 380; // the cover sweeping aside
 export const MIN_SPINNER_MS = 400;
 
 /**
+ * Hard ceiling on the whole sequence, after which the app opens regardless.
+ *
+ * Generous enough never to clip a healthy animation — it is a backstop, not a
+ * schedule.
+ */
+export const WATCHDOG_MS = 4000;
+
+/**
  * Radius a centred circle needs to cover the whole screen.
  *
  * The half-diagonal, not `max(width, height) / 2` — on a tall phone the latter

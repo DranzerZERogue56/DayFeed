@@ -117,7 +117,6 @@ export default function FeedScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScreenHeader
-        overline="Quick capture"
         title="DayFeed"
         action={
           <View style={styles.headerActions}>
@@ -217,14 +216,16 @@ const makeStyles = (colors: ColorPalette) =>
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
+  // Sized tight on purpose: these two sit beside the screen title, and a few
+  // pixels either way decides whether "DayFeed" keeps its single line.
   photosBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.pill,
     backgroundColor: colors.accentTint,
     borderWidth: StyleSheet.hairlineWidth,
@@ -233,7 +234,7 @@ const makeStyles = (colors: ColorPalette) =>
   photosBtnText: {
     fontFamily: fonts.body,
     color: colors.accent,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
 });

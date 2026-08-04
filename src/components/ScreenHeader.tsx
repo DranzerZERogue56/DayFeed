@@ -5,8 +5,11 @@ import { fonts, spacing, type, type ColorPalette } from '../theme';
 import { MoonIcon, SunIcon } from './Icons';
 
 interface Props {
-  /** Mono small-caps eyebrow above the title, e.g. "QUICK CAPTURE". */
-  overline: string;
+  /**
+   * Mono small-caps eyebrow above the title, e.g. "QUICK CAPTURE".
+   * Omit it where the title alone is enough and the row needs the height.
+   */
+  overline?: string;
   title: string;
   /** Optional control pinned to the right edge (calendar button, add button…). */
   action?: React.ReactNode;
@@ -22,8 +25,12 @@ export default function ScreenHeader({ overline, title, action }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.textCol}>
-        <Text style={styles.overline}>{overline.toUpperCase()}</Text>
-        <Text style={styles.title}>{title}</Text>
+        {!!overline && <Text style={styles.overline}>{overline.toUpperCase()}</Text>}
+        {/* One line: the title is a fixed short word per screen, and letting it
+            wrap pushed the action buttons out of alignment with it. */}
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
       </View>
       {action}
       <TouchableOpacity
