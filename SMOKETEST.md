@@ -298,6 +298,29 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Run the script with the phone unplugged → it fails with a clear "no phone connected" message rather than a stack trace.
 - [ ] **The actual goal:** ask Claude to read `.claude-notes/dayfeed-claude-notes.md` and act on it, without pasting any note text into the prompt.
 
+## 24. v1.7 — direct note access, tagging existing notes
+
+Tagging notes already in the feed:
+
+- [ ] Long-press an untagged text note → the radial menu shows **Tag**. Tap it → the ★ appears in the note's footer.
+- [ ] Long-press it again → the menu now reads **Untag**. Tap it → the ★ goes away.
+- [ ] Tag a voice note the same way; its ★ appears too.
+- [ ] Long-press a photo note → there is **no** Tag option (the export covers text and voice only).
+- [ ] Tag a note that was written before this version was installed — the whole point of the feature.
+- [ ] Toggling the tag leaves the note's text, transcript and timestamp untouched.
+
+Reading the notes from the laptop:
+
+- [ ] Install this build (the previous one is not debuggable, so `run-as` will refuse until you do).
+- [ ] Plug the phone in, unlock it, accept the debugging prompt.
+- [ ] Ask Claude to read the tagged notes → a permission prompt appears **every** time, even on the second and third run.
+- [ ] The notes that arrive are exactly the tagged ones, oldest first — no untagged notes, no photo notes, no Flop content.
+- [ ] A voice note with no transcript shows as `_(voice note, not transcribed yet)_` rather than blank.
+- [ ] `.claude-notes/access.log` gains one line per run.
+- [ ] Ask Claude to run `adb pull` or `run-as` against the app directly → it is denied by the guard, not merely discouraged.
+- [ ] Unplug the phone and run the script → clear "no phone connected" message, no stack trace.
+- [ ] After all of the above, the notes on the phone are unchanged and nothing has been deleted.
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

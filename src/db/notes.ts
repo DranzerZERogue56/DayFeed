@@ -57,6 +57,12 @@ export async function updateNoteContent(id: string, content: string): Promise<vo
   await db.runAsync(`UPDATE notes SET content = ? WHERE id = ?`, content, id);
 }
 
+/** Overwrite a note's `tags` column (JSON array text). See lib/claudeTag.ts. */
+export async function setNoteTags(id: string, tagsJson: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE notes SET tags = ? WHERE id = ?`, tagsJson, id);
+}
+
 /** All notes for a single day, oldest-first (chat/notebook reading order). */
 export async function getNotesByDay(dayKey: string): Promise<Note[]> {
   const db = await getDb();

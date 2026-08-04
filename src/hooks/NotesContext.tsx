@@ -14,10 +14,12 @@ import {
   getNote,
   getReminderIdsForNote,
   initDb,
+  setNoteTags,
   setOcrText,
   setTranscript,
   updateNoteContent,
 } from '../db';
+import { toggleClaudeTag } from '../lib/claudeTag';
 import { cancelReminder } from '../lib/reminders';
 import { parseMediaUris, type NewNoteInput, type Note } from '../db/types';
 import { deleteAudioFile } from '../utils/audioFiles';
@@ -36,6 +38,8 @@ interface NotesContextValue {
   saveOcrText: (note: Note, text: string) => Promise<void>;
   /** Overwrite a text note's content (checkbox toggles). */
   editNoteContent: (note: Note, content: string) => Promise<void>;
+  /** Add/remove the Claude tag on an existing note. */
+  toggleNoteClaudeTag: (note: Note) => Promise<void>;
   /** Force a re-read without mutating (rarely needed). */
   refresh: () => void;
 }
@@ -97,6 +101,14 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     [bump],
   );
 
+  const toggleNoteClaudeTag = useCallback(
+    async (note: Note) => {
+      await setNoteTags(note.id, toggleClaudeTag(note.tags));
+      bump();
+    },
+    [bump],
+  );
+
   const removeNote = useCallback(
     async (id: string) => {
       // Clean up associated files; detected_dates cascade via the FK. Scheduled
@@ -123,9 +135,20 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
       saveTranscript,
       saveOcrText,
       editNoteContent,
+      toggleNoteClaudeTag,
       refresh: bump,
     }),
-    [version, ready, addNote, removeNote, saveTranscript, saveOcrText, editNoteContent, bump],
+    [
+      version,
+      ready,
+      addNote,
+      removeNote,
+      saveTranscript,
+      saveOcrText,
+      editNoteContent,
+      toggleNoteClaudeTag,
+      bump,
+    ],
   );
 
   return <NotesContext.Provider value={value}>{children}</NotesContext.Provider>;

@@ -1,10 +1,16 @@
 // Notes marked as context for a Claude Code session.
 //
-// The app is offline and its database sits in private storage on the phone, so
-// Claude can't read notes directly. Instead a tagged note is exported to one
-// markdown file, saved to the phone's Downloads, and pulled to the laptop by
-// scripts/pull-claude-notes.sh. This module is the single source of truth for
-// the tag and the file, so the writer and the reader can't drift apart.
+// The app is offline and its database sits in private storage on the phone.
+// There are two ways a tagged note reaches a Claude Code session:
+//
+//   - scripts/pull-claude-notes.sh reads the tagged rows straight off the
+//     phone over adb, under the access rules written up in CLAUDE.md.
+//   - the in-app ★ Export writes this markdown to a file to share by hand,
+//     for when there's no cable.
+//
+// This module is the single source of truth for the tag and the export format,
+// so the two routes and the reader can't drift apart. The script reproduces
+// the same markdown in SQL — change one, change the other.
 import type { Note } from '../db/types';
 
 /** The one tag this feature uses. Stored in the note's `tags` JSON array. */
@@ -28,6 +34,36 @@ export function hasClaudeTag(tagsJson: string | null | undefined): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * The note's tags as an array, or `[]` for anything unparseable.
+ *
+ * Same defensiveness as `hasClaudeTag`: garbage in the column must not take a
+ * screen down, and treating it as "no tags" is the safe reading.
+ */
+export function parseTags(tagsJson: string | null | undefined): string[] {
+  if (!tagsJson) return [];
+  try {
+    const parsed: unknown = JSON.parse(tagsJson);
+    return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Add or remove the Claude tag, returning the new `tags` JSON to store.
+ *
+ * Other tags are preserved — this feature owns exactly one token and must not
+ * clobber whatever else ends up in the column later.
+ */
+export function toggleClaudeTag(tagsJson: string | null | undefined): string {
+  const tags = parseTags(tagsJson);
+  const next = tags.includes(CLAUDE_TAG)
+    ? tags.filter((t) => t !== CLAUDE_TAG)
+    : [...tags, CLAUDE_TAG];
+  return JSON.stringify(next);
 }
 
 function stamp(ms: number): string {

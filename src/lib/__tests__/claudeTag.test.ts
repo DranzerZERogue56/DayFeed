@@ -3,6 +3,8 @@ import {
   claudeNotesToMarkdown,
   hasClaudeTag,
   noteExportText,
+  parseTags,
+  toggleClaudeTag,
 } from '../claudeTag';
 import type { Note } from '../../db/types';
 
@@ -112,5 +114,47 @@ describe('claudeNotesToMarkdown', () => {
     const md = claudeNotesToMarkdown([], at);
     expect(md).toContain('0 notes');
     expect(md).toContain('No notes are currently tagged');
+  });
+});
+
+describe('parseTags', () => {
+  it('reads a JSON array of tags', () => {
+    expect(parseTags('["claude","work"]')).toEqual(['claude', 'work']);
+  });
+
+  it('treats null, empty and malformed columns as no tags', () => {
+    expect(parseTags(null)).toEqual([]);
+    expect(parseTags('')).toEqual([]);
+    expect(parseTags('{not json')).toEqual([]);
+  });
+
+  it('drops non-string entries rather than passing them on', () => {
+    expect(parseTags('["claude",7,null]')).toEqual(['claude']);
+  });
+});
+
+describe('toggleClaudeTag', () => {
+  it('adds the tag to an untagged note', () => {
+    expect(JSON.parse(toggleClaudeTag('[]'))).toEqual([CLAUDE_TAG]);
+  });
+
+  it('removes the tag from a tagged note', () => {
+    expect(JSON.parse(toggleClaudeTag('["claude"]'))).toEqual([]);
+  });
+
+  it('leaves other tags alone in both directions', () => {
+    expect(JSON.parse(toggleClaudeTag('["work"]'))).toEqual(['work', CLAUDE_TAG]);
+    expect(JSON.parse(toggleClaudeTag('["work","claude"]'))).toEqual(['work']);
+  });
+
+  it('tags a note whose column is null or malformed', () => {
+    expect(JSON.parse(toggleClaudeTag(null))).toEqual([CLAUDE_TAG]);
+    expect(JSON.parse(toggleClaudeTag('{not json'))).toEqual([CLAUDE_TAG]);
+  });
+
+  it('round-trips back to untagged', () => {
+    const on = toggleClaudeTag('[]');
+    expect(hasClaudeTag(on)).toBe(true);
+    expect(hasClaudeTag(toggleClaudeTag(on))).toBe(false);
   });
 });
