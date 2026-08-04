@@ -21,6 +21,7 @@ export const lightColors = {
   accentEdge: 'rgba(166,124,82,0.28)', // washed bronze for borders
 
   danger: '#B4473F', // muted brick red, warm-palette friendly
+  success: '#5A7052', // moss green — done, finished (matches Flop's "support")
 
   // Aliases kept so existing components resolve to the new palette.
   border: '#E8E5E0', // = divider
@@ -54,6 +55,7 @@ export const darkColors: ColorPalette = {
   accentEdge: 'rgba(200,155,102,0.35)',
 
   danger: '#D0776C', // lifted brick red for dark surfaces
+  success: '#8FA986', // moss lifted for dark leather
 
   border: '#3D2F20', // = divider
   voiceAccent: '#C89B66', // = accent

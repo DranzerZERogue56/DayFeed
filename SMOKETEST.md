@@ -345,6 +345,22 @@ Upgrade check:
 - [ ] Filters are **Agenda only** — Feed, Flip, Flop, View All and Vault are untouched.
 - [ ] Check the chips in both light and dark themes.
 
+## 27. v1.11 — completing agenda entries
+
+- [ ] Every Agenda row has an empty circle on the left, the same size as the bell.
+- [ ] Tap it → it **fills green** and the whole row takes a **green outline**, left rule included.
+- [ ] Tap again → it empties and the row goes back to bronze.
+- [ ] Chips now read **NEW · TODAY · WEEK · UPCOMING · DONE**, all five on one line without scrolling.
+- [ ] Agenda opens on **New**, and a completed entry **disappears from it**.
+- [ ] A completed entry also disappears from **Today**, **Week** and **Upcoming** — completion beats the time window.
+- [ ] **Done** shows completed entries and nothing else, whatever their date.
+- [ ] Set a **reminder** on an entry, then complete it → the bell disappears and the reminder is **cancelled** (no notification the next morning).
+- [ ] Un-completing an entry does **not** bring the old reminder back — set it again if wanted.
+- [ ] Completion survives leaving the tab, and a force-quit.
+- [ ] Tapping the row (not the circle) still jumps to the note in Flip.
+- [ ] Check the green in both light and dark themes.
+- [ ] Installing over v1.10.0 keeps every note and every agenda entry (v11 only adds a nullable column).
+
 ## Findings
 
 <!-- e.g. "§5 breadcrumb: tapping root crumb flashes wrong page" -->

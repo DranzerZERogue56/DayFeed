@@ -18,6 +18,7 @@ import {
   getDayKeysWithAgenda,
   getDetectedDatesForDay,
   getReminderIdsForNote,
+  setDetectedDateCompleted,
   setDetectedDateReminder,
 } from '../detectedDates';
 
@@ -198,5 +199,38 @@ describe('expiring notes', () => {
     await setNoteExpiry(v.id, DEADLINE);
     const due = await getExpiredNotes(DEADLINE);
     expect(due[0].audio_uri).toBe('file:///a.m4a');
+  });
+});
+
+describe('completing agenda entries', () => {
+  it('starts outstanding and round-trips through done and back', async () => {
+    const n = await createNote({ type: 'text', content: 'call Sam next Friday' });
+    await addDetectedDates(n.id, [{ date_key: '2026-08-07', snippet: 'call Sam' }]);
+
+    const [before] = await getAgendaEntries();
+    expect(before.completed_at).toBeNull();
+
+    await setDetectedDateCompleted(before.id, 1_700_000_000_000);
+    expect((await getAgendaEntries())[0].completed_at).toBe(1_700_000_000_000);
+
+    await setDetectedDateCompleted(before.id, null);
+    expect((await getAgendaEntries())[0].completed_at).toBeNull();
+  });
+
+  it('completes one entry of a note without touching its siblings', async () => {
+    // One note can mention several dates; finishing one says nothing about
+    // the rest, which is why completion is per-entry and not per-note.
+    const n = await createNote({ type: 'text', content: 'two dates' });
+    await addDetectedDates(n.id, [
+      { date_key: '2026-08-07', snippet: 'first' },
+      { date_key: '2026-08-09', snippet: 'second' },
+    ]);
+
+    const entries = await getAgendaEntries();
+    await setDetectedDateCompleted(entries[0].id, 1_700_000_000_000);
+
+    const after = await getAgendaEntries();
+    expect(after.find((e) => e.id === entries[0].id)?.completed_at).toBe(1_700_000_000_000);
+    expect(after.find((e) => e.id === entries[1].id)?.completed_at).toBeNull();
   });
 });

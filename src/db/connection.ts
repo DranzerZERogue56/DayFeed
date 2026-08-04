@@ -132,7 +132,14 @@ ALTER TABLE notes ADD COLUMN expires_at INTEGER;
 CREATE INDEX IF NOT EXISTS idx_notes_expires ON notes (expires_at);
 `;
 
-const LATEST_VERSION = 10;
+// v1.11: agenda entries can be ticked off. Per-entry rather than per-note: one
+// note can mention several dates, and finishing one says nothing about the rest.
+const MIGRATION_V11 = `
+ALTER TABLE detected_dates ADD COLUMN completed_at INTEGER;
+CREATE INDEX IF NOT EXISTS idx_detected_completed ON detected_dates (completed_at);
+`;
+
+const LATEST_VERSION = 11;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -195,6 +202,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 10) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V10);
+    });
+  }
+
+  if (current < 11) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V11);
     });
   }
 

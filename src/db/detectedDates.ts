@@ -14,6 +14,8 @@ export interface DetectedDate {
   /** The chosen fire time (v1.5.4) — null alongside a null reminder_id. */
   reminder_hour: number | null;
   reminder_minute: number | null;
+  /** When this entry was ticked off (epoch ms), or null while outstanding. */
+  completed_at: number | null;
 }
 
 /** One matched date phrase to insert for a note. */
@@ -53,6 +55,7 @@ const AGENDA_SELECT = `
 SELECT
   d.id AS d_id, d.note_id AS d_note_id, d.date_key AS d_date_key, d.snippet AS d_snippet,
   d.reminder_id AS d_reminder_id, d.reminder_hour AS d_reminder_hour, d.reminder_minute AS d_reminder_minute,
+  d.completed_at AS d_completed_at,
   n.id, n.type, n.content, n.transcript, n.audio_uri, n.duration_ms,
   n.created_at, n.day_key, n.tags, n.media_uris, n.expires_at
 FROM detected_dates d
@@ -67,6 +70,7 @@ interface JoinedRow extends Note {
   d_reminder_id: string | null;
   d_reminder_hour: number | null;
   d_reminder_minute: number | null;
+  d_completed_at: number | null;
 }
 
 function toAgendaEntry(r: JoinedRow): AgendaEntry {
@@ -78,6 +82,7 @@ function toAgendaEntry(r: JoinedRow): AgendaEntry {
     reminder_id: r.d_reminder_id,
     reminder_hour: r.d_reminder_hour,
     reminder_minute: r.d_reminder_minute,
+    completed_at: r.d_completed_at,
     note: {
       id: r.id,
       type: r.type,
@@ -129,6 +134,15 @@ export async function deleteDetectedDatesForNote(noteId: string): Promise<void> 
  * one detected date. Omit `time` (or pass null) to clear both alongside a
  * null reminderId.
  */
+/** Tick an agenda entry off, or pass null to reopen it. */
+export async function setDetectedDateCompleted(
+  id: string,
+  completedAt: number | null,
+): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`UPDATE detected_dates SET completed_at = ? WHERE id = ?`, completedAt, id);
+}
+
 export async function setDetectedDateReminder(
   id: string,
   reminderId: string | null,

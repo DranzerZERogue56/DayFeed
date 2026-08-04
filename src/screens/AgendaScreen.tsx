@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNotes } from '../hooks/NotesContext';
 import { useAgendaEntries } from '../hooks/useQueries';
-import { setDetectedDateReminder, type AgendaEntry } from '../db';
+import { setDetectedDateCompleted, setDetectedDateReminder, type AgendaEntry } from '../db';
 import { cancelReminder, ensureReminderPermission, scheduleReminder } from '../lib/reminders';
 import type { RootTabParamList } from '../navigation/types';
 import { notePreview } from '../utils/notePreview';
@@ -37,7 +37,7 @@ export default function AgendaScreen() {
   const { refresh } = useNotes();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const [pickerEntry, setPickerEntry] = useState<AgendaEntry | null>(null);
-  const [filter, setFilter] = useState<AgendaFilter>('all');
+  const [filter, setFilter] = useState<AgendaFilter>('new');
 
   const sections = useMemo<Section[]>(() => {
     // Resolved per render rather than held in state: the app can sit open past
@@ -45,7 +45,7 @@ export default function AgendaScreen() {
     const today = todayKey();
     const byDay = new Map<string, AgendaEntry[]>();
     for (const e of entries) {
-      if (!matchesAgendaFilter(e.date_key, filter, today)) continue;
+      if (!matchesAgendaFilter(e, filter, today)) continue;
       const arr = byDay.get(e.date_key);
       if (arr) arr.push(e);
       else byDay.set(e.date_key, [e]);
@@ -63,6 +63,17 @@ export default function AgendaScreen() {
       ts: Date.now(),
       noteId: entry.note.id,
     });
+  };
+
+  const onCompletePress = async (entry: AgendaEntry) => {
+    const done = entry.completed_at != null;
+    // Finishing something should not leave it buzzing tomorrow morning.
+    if (!done && entry.reminder_id) {
+      await cancelReminder(entry.reminder_id);
+      await setDetectedDateReminder(entry.id, null);
+    }
+    await setDetectedDateCompleted(entry.id, done ? null : Date.now());
+    refresh();
   };
 
   const onBellPress = async (entry: AgendaEntry) => {
@@ -132,10 +143,20 @@ export default function AgendaScreen() {
           )}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.row}
+              style={[styles.row, item.completed_at != null && styles.rowDone]}
               activeOpacity={0.8}
               onPress={() => openInFlip(item)}
             >
+              <TouchableOpacity
+                onPress={() => void onCompletePress(item)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={[styles.tick, item.completed_at != null && styles.tickDone]}
+                accessibilityRole="button"
+                accessibilityState={{ checked: item.completed_at != null }}
+                accessibilityLabel={
+                  item.completed_at != null ? 'Mark as not done' : 'Mark as done'
+                }
+              />
               <View style={styles.rowBody}>
                 <Text style={styles.snippet}>{item.snippet}</Text>
                 <Text style={styles.source} numberOfLines={1}>
@@ -148,7 +169,7 @@ export default function AgendaScreen() {
                     : ''}
                 </Text>
               </View>
-              {item.date_key >= todayKey() && (
+              {item.completed_at == null && item.date_key >= todayKey() && (
                 <TouchableOpacity
                   onPress={() => void onBellPress(item)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -218,6 +239,13 @@ const makeStyles = (colors: ColorPalette) =>
   },
   // A bronze left edge marks "this row points somewhere" — the same cue as
   // Flop's relation-colored child cards.
+  // A finished entry: green all the way round, including the left rule, so it
+  // doesn't read as half-bronze half-green.
+  rowDone: {
+    borderWidth: 1.5,
+    borderColor: colors.success,
+    borderLeftColor: colors.success,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -236,6 +264,16 @@ const makeStyles = (colors: ColorPalette) =>
   source: { fontFamily: fonts.body, color: colors.textDim, fontSize: 13, marginTop: 2 },
   written: { fontFamily: fonts.mono, color: colors.textFaint, fontSize: 11, marginTop: 3 },
   chevron: { color: colors.accent, fontSize: 24, marginLeft: spacing.sm },
+  // Matches the bell icon's 20dp so the two controls read as a pair.
+  tick: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.textFaint,
+    marginRight: spacing.md,
+  },
+  tickDone: { backgroundColor: colors.success, borderColor: colors.success },
   bellWrap: { marginLeft: spacing.sm, padding: 2 },
   bell: { fontSize: 18 },
   // Off state: greyed out, like an unlit lamp on the same shelf.

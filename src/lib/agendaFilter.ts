@@ -1,58 +1,76 @@
-// Time-window filters for the Agenda.
+// Filters for the Agenda: what is still outstanding, and when.
 //
 // Agenda rows are keyed by 'YYYY-MM-DD' (see dayKeyFromMs in utils/date.ts),
-// and that format sorts and compares correctly as a plain string — so the
+// and that format sorts and compares correctly as a plain string — so the time
 // windows are string comparisons rather than Date arithmetic, with no timezone
 // or DST edge cases to get wrong.
 import { addDaysToKey } from '../utils/date';
 
-export type AgendaFilter = 'all' | 'today' | 'week' | 'upcoming';
+export type AgendaFilter = 'new' | 'today' | 'week' | 'upcoming' | 'done';
 
 export const AGENDA_FILTERS: { key: AgendaFilter; label: string }[] = [
-  { key: 'all', label: 'All' },
+  { key: 'new', label: 'New' },
   { key: 'today', label: 'Today' },
   { key: 'week', label: 'Week' },
   { key: 'upcoming', label: 'Upcoming' },
+  // "Done" rather than "Completed" so all five chips fit one row without
+  // scrolling — a chip hidden off-screen is a chip nobody finds.
+  { key: 'done', label: 'Done' },
 ];
 
 /** Last day of the 'week' window: today plus six, i.e. seven days inclusive. */
 export const WEEK_SPAN_DAYS = 6;
 
+/** The parts of an agenda entry the filters actually look at. */
+export interface AgendaFilterable {
+  date_key: string;
+  completed_at: number | null;
+}
+
 /**
- * Whether a day belongs in the given window.
+ * Whether an entry belongs in the given filter.
+ *
+ * Completion outranks time: every window except 'done' shows only what is
+ * still outstanding, so ticking something off takes it out of Today and Week
+ * as well as New. Otherwise a finished item would keep occupying the view it
+ * was finished in.
  *
  * 'week' is a rolling seven days from today rather than a calendar week, so it
  * always shows a full week of runway instead of collapsing to a single day by
- * Saturday. Both 'week' and 'upcoming' start at today — a date that has already
- * gone by is not something still ahead of you.
+ * Saturday. Both 'week' and 'upcoming' start at today — a date already gone by
+ * is not something still ahead of you.
  */
 export function matchesAgendaFilter(
-  dateKey: string,
+  entry: AgendaFilterable,
   filter: AgendaFilter,
   today: string,
 ): boolean {
+  const done = entry.completed_at != null;
+  if (filter === 'done') return done;
+  if (done) return false;
+
   switch (filter) {
-    case 'all':
+    case 'new':
       return true;
     case 'today':
-      return dateKey === today;
+      return entry.date_key === today;
     case 'week':
-      return dateKey >= today && dateKey <= addDaysToKey(today, WEEK_SPAN_DAYS);
+      return entry.date_key >= today && entry.date_key <= addDaysToKey(today, WEEK_SPAN_DAYS);
     case 'upcoming':
-      return dateKey >= today;
+      return entry.date_key >= today;
   }
 }
 
-/** What to say when a window turns up nothing — each is empty for its own reason. */
+/** What to say when a filter turns up nothing — each is empty for its own reason. */
 export function emptyAgendaHint(filter: AgendaFilter): { title: string; hint: string } {
   switch (filter) {
-    case 'all':
+    case 'new':
       return {
-        title: 'No upcoming dates yet.',
+        title: 'Nothing outstanding.',
         hint: 'Mention a date in a note — like “call Sam next Friday” — and it shows up here.',
       };
     case 'today':
-      return { title: 'Nothing due today.', hint: 'Tap All to see everything on the calendar.' };
+      return { title: 'Nothing due today.', hint: 'Tap New to see everything outstanding.' };
     case 'week':
       return {
         title: 'Nothing in the next seven days.',
@@ -61,7 +79,12 @@ export function emptyAgendaHint(filter: AgendaFilter): { title: string; hint: st
     case 'upcoming':
       return {
         title: 'Nothing ahead.',
-        hint: 'Every date found in your notes has already passed. Tap All to see them.',
+        hint: 'Every outstanding date has already passed. Tap New to see them.',
+      };
+    case 'done':
+      return {
+        title: 'Nothing ticked off yet.',
+        hint: 'Tap the circle on an entry to mark it done.',
       };
   }
 }
