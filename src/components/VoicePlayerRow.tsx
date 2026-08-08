@@ -73,17 +73,19 @@ const makeStyles = (colors: ColorPalette) =>
     alignItems: 'center',
     minWidth: 180,
   },
+  // 2/3 of the original 34dp control — the transcript is the main content
+  // once it exists, so the player reads as a secondary strip beneath it.
   iconWrap: {
-    width: 34,
-    height: 34,
+    width: 23,
+    height: 23,
     borderRadius: radius.pill,
-    borderWidth: 1.5,
+    borderWidth: 1.3,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
   },
   icon: {
-    fontSize: 13,
+    fontSize: 9,
     fontWeight: '700',
   },
   middle: {

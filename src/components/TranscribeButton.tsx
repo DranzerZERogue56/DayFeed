@@ -113,7 +113,7 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
               onPress={() => setDraft(transcript)}
               accessibilityLabel="Edit transcript"
             >
-              <Text style={styles.editLink}>✎ Edit</Text>
+              <Text style={styles.editLink}>✎</Text>
             </TouchableOpacity>
             {audioToggle && (
               <TouchableOpacity
@@ -121,9 +121,9 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
                 onPress={audioToggle.onToggle}
                 accessibilityLabel={audioToggle.hidden ? 'Show audio player' : 'Hide audio player'}
               >
-                <Text style={styles.editLink}>
-                  {audioToggle.hidden ? 'Show audio' : 'Hide audio'}
-                </Text>
+                {/* One glyph, flipped: pointing down opens the audio section
+                    (it's collapsed), pointing up closes it (it's showing). */}
+                <Text style={[styles.editLink, !audioToggle.hidden && styles.chevronOpen]}>⌄</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -254,6 +254,9 @@ const makeStyles = (colors: ColorPalette) =>
     color: colors.accent,
     fontSize: 12,
     fontWeight: '700',
+  },
+  chevronOpen: {
+    transform: [{ rotate: '180deg' }],
   },
   transcriptText: {
     fontFamily: fonts.body,
