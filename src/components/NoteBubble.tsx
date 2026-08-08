@@ -41,9 +41,6 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const [sheet, setSheet] = useState<'menu' | 'confirm' | null>(null);
   const [photosCollapsed, setPhotosCollapsed] = useState(false);
   const [editing, setEditing] = useState(false);
-  // Mirrors VoiceNoteBody's collapsed state so the footer (rendered outside
-  // it, as a sibling) can tighten up when there's no player above it.
-  const [audioCollapsed, setAudioCollapsed] = useState(false);
 
   const deleteDetail = isVoice
     ? 'This voice note will be permanently removed.'
@@ -78,15 +75,10 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         activeOpacity={0.85}
         onLongPress={() => setSheet('menu')}
         delayLongPress={350}
-        style={[
-          styles.bubble,
-          isPhoto && styles.bubblePhoto,
-          expiring && styles.bubbleExpiring,
-          isVoice && audioCollapsed && styles.bubbleVoiceCollapsed,
-        ]}
+        style={[styles.bubble, isPhoto && styles.bubblePhoto, expiring && styles.bubbleExpiring]}
       >
         {isVoice ? (
-          <VoiceNoteBody note={note} variant="list" onHiddenChange={setAudioCollapsed}>
+          <VoiceNoteBody note={note} variant="list">
             <TranscribeButton note={note} tone="list" />
           </VoiceNoteBody>
         ) : isPhoto ? (
@@ -136,7 +128,6 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
           />
         )}
         <View style={styles.footRow}>
-          <View style={styles.footRule} />
           <Text style={styles.time}>{formatClock(note.created_at)}</Text>
         </View>
       </TouchableOpacity>
@@ -171,7 +162,7 @@ const makeStyles = (colors: ColorPalette) =>
     width: '100%',
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
-    marginVertical: spacing.xs,
+    marginVertical: 2,
   },
   bubble: {
     // Near-full width: short notes still shrink to fit, long ones reach
@@ -183,8 +174,10 @@ const makeStyles = (colors: ColorPalette) =>
     borderBottomRightRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.divider,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    // Deliberately tight: the Feed is a scanning surface, and on a one-line
+    // note the padding used to outweigh the text it wrapped.
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
     ...shadows.card,
   },
   // A note counting down to deletion tonight.
@@ -196,17 +189,14 @@ const makeStyles = (colors: ColorPalette) =>
     padding: spacing.xs + 2,
     paddingBottom: spacing.sm,
   },
-  // No player above the transcript when the audio section is collapsed, so
-  // the bubble's own bottom padding plus the footer's marginTop reads as an
-  // oversized gap beneath the timestamp rule — trim it back.
-  bubbleVoiceCollapsed: {
-    paddingBottom: spacing.sm,
-  },
+  // A step below `type.noteBody` (18), and local rather than a theme token:
+  // the Feed is scanned, while Flip and View All are read, so only this
+  // surface trades legibility for density.
   text: {
     fontFamily: fonts.body,
     color: colors.text,
-    fontSize: type.noteBody,
-    lineHeight: 26,
+    fontSize: 16,
+    lineHeight: 22,
   },
   toggleLink: {
     fontFamily: fonts.body,
@@ -218,22 +208,19 @@ const makeStyles = (colors: ColorPalette) =>
   photosGap: {
     marginTop: spacing.sm,
   },
-  // Index-card footer: a faint rule running up to the right-set timestamp.
+  // Just the timestamp, tucked into the corner. The rule that used to run up
+  // to it drew a horizontal line through every note in the feed for no
+  // information — the same reason the voice player lost its progress track.
   footRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: spacing.sm,
-  },
-  footRule: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
+    justifyContent: 'flex-end',
+    marginTop: 2,
   },
   time: {
     fontFamily: fonts.mono,
     color: colors.textFaint,
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 0.5,
   },
 });
