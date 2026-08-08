@@ -22,19 +22,34 @@ interface Props {
   variant?: 'own' | 'paper' | 'list';
   /** The TranscribeButton/TranscribeControl element for this note. */
   children: React.ReactNode;
+  /**
+   * Notified whenever the player's collapsed state changes. For a caller that
+   * renders its own footer *outside* this component (NoteBubble's timestamp
+   * row), this is how that footer learns to tighten up when there's no player
+   * above it.
+   */
+  onHiddenChange?: (hidden: boolean) => void;
 }
 
 // Wraps a voice note's player + transcribe control. Once a transcript exists,
-// the transcribe control shows a "Hide audio" toggle (beside its Edit button)
-// that collapses the player and its controls away, leaving just the text.
-export default function VoiceNoteBody({ note, variant, children }: Props) {
+// the transcribe control shows a collapse toggle (beside its Edit button) that
+// collapses the player and its controls away, leaving just the text.
+export default function VoiceNoteBody({ note, variant, children, onHiddenChange }: Props) {
   const [audioHidden, setAudioHidden] = useState(false);
   const hasTranscript = !!note.transcript;
   const showPlayer = !hasTranscript || !audioHidden;
 
   const toggle = useMemo<AudioToggle>(
-    () => ({ hidden: audioHidden, onToggle: () => setAudioHidden((h) => !h) }),
-    [audioHidden],
+    () => ({
+      hidden: audioHidden,
+      onToggle: () =>
+        setAudioHidden((h) => {
+          const next = !h;
+          onHiddenChange?.(next);
+          return next;
+        }),
+    }),
+    [audioHidden, onHiddenChange],
   );
 
   return (

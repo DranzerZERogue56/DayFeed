@@ -41,6 +41,9 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
   const [sheet, setSheet] = useState<'menu' | 'confirm' | null>(null);
   const [photosCollapsed, setPhotosCollapsed] = useState(false);
   const [editing, setEditing] = useState(false);
+  // Mirrors VoiceNoteBody's collapsed state so the footer (rendered outside
+  // it, as a sibling) can tighten up when there's no player above it.
+  const [audioCollapsed, setAudioCollapsed] = useState(false);
 
   const deleteDetail = isVoice
     ? 'This voice note will be permanently removed.'
@@ -75,10 +78,15 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         activeOpacity={0.85}
         onLongPress={() => setSheet('menu')}
         delayLongPress={350}
-        style={[styles.bubble, isPhoto && styles.bubblePhoto, expiring && styles.bubbleExpiring]}
+        style={[
+          styles.bubble,
+          isPhoto && styles.bubblePhoto,
+          expiring && styles.bubbleExpiring,
+          isVoice && audioCollapsed && styles.bubbleVoiceCollapsed,
+        ]}
       >
         {isVoice ? (
-          <VoiceNoteBody note={note} variant="list">
+          <VoiceNoteBody note={note} variant="list" onHiddenChange={setAudioCollapsed}>
             <TranscribeButton note={note} tone="list" />
           </VoiceNoteBody>
         ) : isPhoto ? (
@@ -186,6 +194,12 @@ const makeStyles = (colors: ColorPalette) =>
   },
   bubblePhoto: {
     padding: spacing.xs + 2,
+    paddingBottom: spacing.sm,
+  },
+  // No player above the transcript when the audio section is collapsed, so
+  // the bubble's own bottom padding plus the footer's marginTop reads as an
+  // oversized gap beneath the timestamp rule — trim it back.
+  bubbleVoiceCollapsed: {
     paddingBottom: spacing.sm,
   },
   text: {

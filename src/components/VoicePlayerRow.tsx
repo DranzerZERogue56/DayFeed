@@ -26,13 +26,10 @@ export default function VoicePlayerRow({ note, variant = 'own' }: Props) {
 
   const total = note.duration_ms ?? player.durationMs;
   const pos = isCurrent ? player.positionMs : 0;
-  const progress = total > 0 ? Math.min(1, pos / total) : 0;
   const label = isCurrent && pos > 0 ? formatDuration(pos) : formatDuration(total);
 
-  const paper = variant === 'paper';
-  // Play control is always the bronze accent (per design); track sits on paper/card.
+  // Play control is always the bronze accent (per design).
   const iconColor = colors.accent;
-  const trackBg = paper ? colors.pageLine : colors.surfaceAlt;
   const textColor = colors.textDim;
 
   const onPress = () => {
@@ -50,16 +47,6 @@ export default function VoicePlayerRow({ note, variant = 'own' }: Props) {
     >
       <View style={[styles.iconWrap, { borderColor: iconColor }]}>
         <Text style={[styles.icon, { color: iconColor }]}>{isPlaying ? '❚❚' : '▶'}</Text>
-      </View>
-      <View style={styles.middle}>
-        <View style={[styles.track, { backgroundColor: trackBg }]}>
-          <View
-            style={[
-              styles.fill,
-              { backgroundColor: iconColor, width: `${progress * 100}%` },
-            ]}
-          />
-        </View>
       </View>
       <Text style={[styles.duration, { color: textColor }]}>{label}</Text>
     </TouchableOpacity>
@@ -87,19 +74,6 @@ const makeStyles = (colors: ColorPalette) =>
   icon: {
     fontSize: 9,
     fontWeight: '700',
-  },
-  middle: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  track: {
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: 4,
-    borderRadius: 2,
   },
   duration: {
     fontFamily: fonts.mono,

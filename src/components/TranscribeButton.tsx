@@ -103,8 +103,12 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
 
     const long = transcript.length > COLLAPSE_CHARS;
     const shown = long && !expanded ? transcript.slice(0, COLLAPSE_CHARS) + '…' : transcript;
+    // With no player above it (audio collapsed), the rule + gap that normally
+    // separate the transcript from the player would just be blank space at
+    // the top of the note.
+    const audioCollapsed = !!audioToggle?.hidden;
     return (
-      <View style={styles.transcriptWrap}>
+      <View style={[styles.transcriptWrap, audioCollapsed && styles.transcriptWrapFlush]}>
         <View style={styles.transcriptHead}>
           <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
           <View style={styles.headActions}>
@@ -223,6 +227,11 @@ const makeStyles = (colors: ColorPalette) =>
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.divider,
+  },
+  transcriptWrapFlush: {
+    marginTop: 0,
+    paddingTop: 0,
+    borderTopWidth: 0,
   },
   transcriptHead: {
     flexDirection: 'row',
