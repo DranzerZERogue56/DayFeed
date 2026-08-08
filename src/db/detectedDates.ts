@@ -129,11 +129,6 @@ export async function deleteDetectedDatesForNote(noteId: string): Promise<void> 
   await db.runAsync(`DELETE FROM detected_dates WHERE note_id = ?`, noteId);
 }
 
-/**
- * Set or clear the scheduled-notification id (and its chosen fire time) for
- * one detected date. Omit `time` (or pass null) to clear both alongside a
- * null reminderId.
- */
 /** Tick an agenda entry off, or pass null to reopen it. */
 export async function setDetectedDateCompleted(
   id: string,
@@ -143,6 +138,11 @@ export async function setDetectedDateCompleted(
   await db.runAsync(`UPDATE detected_dates SET completed_at = ? WHERE id = ?`, completedAt, id);
 }
 
+/**
+ * Set or clear the scheduled-notification id (and its chosen fire time) for
+ * one detected date. Omit `time` (or pass null) to clear both alongside a
+ * null reminderId.
+ */
 export async function setDetectedDateReminder(
   id: string,
   reminderId: string | null,

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import * as Clipboard from 'expo-clipboard';
 import {
   FlatList,
@@ -105,12 +105,21 @@ export default function AllNotesScreen() {
   const { promoteNote } = useFlop();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
+  // Query on the debounced term, not each keystroke: every search change is a
+  // LIKE scan over the whole notes table, and typing a word would otherwise run
+  // one per letter. The input itself stays live via `search`.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const opts = useMemo(
     () => ({
       type: filter === 'all' ? undefined : filter,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
     }),
-    [filter, search],
+    [filter, debouncedSearch],
   );
   const { notes } = useAllNotes(opts);
 

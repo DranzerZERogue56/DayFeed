@@ -32,7 +32,10 @@ export default function PhotoGrid({ uris, onOpen, maxVisible = 4, size = 76 }: P
             onPress={() => onOpen(i)}
             style={[styles.cell, { width: size, height: size }]}
           >
-            <Image source={{ uri }} style={styles.image} resizeMode="cover" />
+            {/* resizeMethod="resize" downsamples during decode: these are
+                multi-megapixel camera files shown at ~76dp, and decoding them
+                full-size costs both scroll speed and memory. */}
+            <Image source={{ uri }} style={styles.image} resizeMode="cover" resizeMethod="resize" />
             {showBadge && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>+{overflow}</Text>

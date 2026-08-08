@@ -51,11 +51,19 @@ export default function App() {
   useEffect(() => {
     (async () => {
       await initDb();
-      // Clear expired notes BEFORE the app tree mounts, so a note that outlived
-      // its 11:59 PM while the app was closed is never briefly visible.
-      await sweepExpiredNotes();
-      // Dev convenience: populate a few notes on first run only.
-      if (__DEV__) await seedIfEmpty();
+      try {
+        // Clear expired notes BEFORE the app tree mounts, so a note that
+        // outlived its 11:59 PM while the app was closed is never briefly
+        // visible.
+        await sweepExpiredNotes();
+        // Dev convenience: populate a few notes on first run only.
+        if (__DEV__) await seedIfEmpty();
+      } catch {
+        // A failed sweep must not strand the launch: if `booted` never flips,
+        // BootSplash's watchdog eventually removes the splash over an empty
+        // tree and the app is a blank window. The sweep re-runs on the next
+        // foreground anyway.
+      }
       setBooted(true);
     })();
   }, []);
