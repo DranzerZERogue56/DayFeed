@@ -223,8 +223,8 @@ export default function AllNotesScreen() {
               <Text style={styles.cardTime}>{formatClock(item.created_at)}</Text>
             </View>
             {item.type === 'voice' ? (
-              <VoiceNoteBody note={item} variant="list">
-                <TranscribeButton note={item} tone="list" />
+              <VoiceNoteBody note={item}>
+                <TranscribeButton note={item} />
               </VoiceNoteBody>
             ) : item.type === 'photo' ? (
               <PhotoNoteBody

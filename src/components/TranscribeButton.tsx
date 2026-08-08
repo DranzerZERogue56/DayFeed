@@ -14,12 +14,13 @@ import { applyMarkdownEdit, useMarkdownCursorRef } from '../hooks/useMarkdownInp
 import { transcribeAudio, TranscriptionBusyError } from '../lib/transcription';
 import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
-import { AudioToggleContext } from './VoiceNoteBody';
+import { VoicePlayerContext } from './VoiceNoteBody';
+import VoicePlayerRow from './VoicePlayerRow';
 
 interface Props {
   note: Note;
-  /** Retained for call sites; all surfaces are now light so styling is shared. */
-  tone?: 'own' | 'paper' | 'list';
+  /** Right-aligned content for the audio row — see ControlProps.trailing. */
+  trailing?: React.ReactNode;
 }
 
 interface ControlProps {
@@ -27,19 +28,33 @@ interface ControlProps {
   transcript: string | null;
   /** Persist the finished transcript. The caller decides which table it lands in. */
   onTranscribed: (text: string) => Promise<void>;
+  /**
+   * Optional right-aligned content for the audio row. The Feed passes its
+   * timestamp here so the time shares that row instead of needing one of its
+   * own; the surfaces that print a timestamp elsewhere pass nothing.
+   */
+  trailing?: React.ReactNode;
 }
 
 const COLLAPSE_CHARS = 140;
 
-// Per-voice-note transcription control — a bronze accent moment. Shows a
-// "Transcribe" button until a transcript exists, then renders the transcript
-// (collapsible if long). Disabled while a job runs; one job runs app-wide at a
-// time, across both the notes and flop_notes tables.
+// Per-voice-note transcription control. Shows a "Transcribe" button until a
+// transcript exists, then the transcript itself (collapsible if long) above a
+// thin row carrying the player and the edit action. Disabled while a job runs;
+// one job runs app-wide at a time, across both the notes and flop_notes tables.
+//
+// The transcript leads because it is the content — the audio reads as a
+// footnote under it, which keeps a voice note close in height to a text one.
 //
 // Storage-agnostic: `onTranscribed` decides where the text is saved, so stream
 // notes and Flop notes share this control.
-export function TranscribeControl({ audioUri, transcript, onTranscribed }: ControlProps) {
-  const audioToggle = useContext(AudioToggleContext);
+export function TranscribeControl({
+  audioUri,
+  transcript,
+  onTranscribed,
+  trailing,
+}: ControlProps) {
+  const voice = useContext(VoicePlayerContext);
   const [running, setRunning] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [draft, setDraft] = useState<string | null>(null); // non-null = editing
@@ -77,8 +92,7 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
         }
       };
       return (
-        <View style={styles.transcriptWrap}>
-          <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
+        <View>
           <TextInput
             ref={editorRef}
             style={styles.editor}
@@ -97,47 +111,39 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
               <Text style={[styles.moreLink, styles.saveLink]}>{saving ? 'Saving…' : 'Save'}</Text>
             </TouchableOpacity>
           </View>
+          {/* No edit glyph here — you are already editing. The row stays so
+              the caller's timestamp doesn't vanish mid-edit. */}
+          <View style={styles.audioRow}>
+            {voice && <VoicePlayerRow note={voice.note} />}
+            <View style={styles.audioSpacer} />
+            {trailing}
+          </View>
         </View>
       );
     }
 
     const long = transcript.length > COLLAPSE_CHARS;
     const shown = long && !expanded ? transcript.slice(0, COLLAPSE_CHARS) + '…' : transcript;
-    // With no player above it (audio collapsed), the rule + gap that normally
-    // separate the transcript from the player would just be blank space at
-    // the top of the note.
-    const audioCollapsed = !!audioToggle?.hidden;
     return (
-      <View style={[styles.transcriptWrap, audioCollapsed && styles.transcriptWrapFlush]}>
-        <View style={styles.transcriptHead}>
-          <Text style={styles.transcriptLabel}>TRANSCRIPT</Text>
-          <View style={styles.headActions}>
-            <TouchableOpacity
-              style={styles.headButton}
-              onPress={() => setDraft(transcript)}
-              accessibilityLabel="Edit transcript"
-            >
-              <Text style={styles.editLink}>✎</Text>
-            </TouchableOpacity>
-            {audioToggle && (
-              <TouchableOpacity
-                style={styles.headButton}
-                onPress={audioToggle.onToggle}
-                accessibilityLabel={audioToggle.hidden ? 'Show audio player' : 'Hide audio player'}
-              >
-                {/* One glyph, flipped: pointing down opens the audio section
-                    (it's collapsed), pointing up closes it (it's showing). */}
-                <Text style={[styles.editLink, !audioToggle.hidden && styles.chevronOpen]}>⌄</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+      <View>
         <Text style={styles.transcriptText}>{shown}</Text>
         {long && (
           <TouchableOpacity onPress={() => setExpanded((e) => !e)}>
             <Text style={styles.moreLink}>{expanded ? 'Show less' : 'Show more'}</Text>
           </TouchableOpacity>
         )}
+        <View style={styles.audioRow}>
+          {voice && <VoicePlayerRow note={voice.note} />}
+          <TouchableOpacity
+            onPress={() => setDraft(transcript)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Edit transcript"
+          >
+            <Text style={styles.editGlyph}>✎</Text>
+          </TouchableOpacity>
+          <View style={styles.audioSpacer} />
+          {trailing}
+        </View>
       </View>
     );
   }
@@ -168,34 +174,42 @@ export function TranscribeControl({ audioUri, transcript, onTranscribed }: Contr
     }
   };
 
+  // Nothing transcribed yet: the player and the Transcribe action share the
+  // same row the audio footnote will occupy once a transcript exists.
   return (
-    <TouchableOpacity
-      style={styles.button}
-      onPress={run}
-      disabled={running}
-      accessibilityLabel="Transcribe voice note"
-    >
-      {running ? (
-        <>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={styles.buttonText}>Transcribing…</Text>
-        </>
-      ) : (
-        <Text style={styles.buttonText}>✎ Transcribe</Text>
-      )}
-    </TouchableOpacity>
+    <View style={styles.audioRow}>
+      {voice && <VoicePlayerRow note={voice.note} />}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={run}
+        disabled={running}
+        accessibilityLabel="Transcribe voice note"
+      >
+        {running ? (
+          <>
+            <ActivityIndicator size="small" color={colors.accent} />
+            <Text style={styles.buttonText}>Transcribing…</Text>
+          </>
+        ) : (
+          <Text style={styles.buttonText}>✎ Transcribe</Text>
+        )}
+      </TouchableOpacity>
+      <View style={styles.audioSpacer} />
+      {trailing}
+    </View>
   );
 }
 
 // Stream-note binding: saves to `notes` and runs date detection over the fresh
 // transcript (Phase 4). Flop notes use TranscribeControl directly — Flop is
 // timeless by design and must never feed the agenda.
-export default function TranscribeButton({ note }: Props) {
+export default function TranscribeButton({ note, trailing }: Props) {
   const { saveTranscript } = useNotes();
   return (
     <TranscribeControl
       audioUri={note.audio_uri}
       transcript={note.transcript}
+      trailing={trailing}
       onTranscribed={(text) => saveTranscript(note, text)}
     />
   );
@@ -203,18 +217,18 @@ export default function TranscribeButton({ note }: Props) {
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
+  // Keeps its pill: this is the primary action on a note with no transcript
+  // yet, not an icon affordance like the edit glyph.
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginTop: spacing.sm,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.pill,
     backgroundColor: colors.accentTint,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.accentEdge,
-    alignSelf: 'flex-start',
   },
   buttonText: {
     fontFamily: fonts.body,
@@ -222,50 +236,24 @@ const makeStyles = (colors: ColorPalette) =>
     fontSize: 13,
     fontWeight: '700',
   },
-  transcriptWrap: {
-    marginTop: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-  },
-  transcriptWrapFlush: {
-    marginTop: 0,
-    paddingTop: 0,
-    borderTopWidth: 0,
-  },
-  transcriptHead: {
+  // The audio footnote: player, edit glyph, then whatever the caller wants
+  // right-aligned (the Feed puts its timestamp here).
+  audioRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 3,
+    gap: spacing.sm,
+    marginTop: 4,
   },
-  headActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+  audioSpacer: {
+    flex: 1,
   },
-  headButton: {
-    paddingVertical: 3,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.accentEdge,
-    backgroundColor: colors.accentTint,
-  },
-  transcriptLabel: {
-    fontFamily: fonts.mono,
-    color: colors.accent,
-    fontSize: 10,
-    letterSpacing: 1,
-  },
-  editLink: {
+  // A bare glyph rather than a pill — it sits beside the play control, and two
+  // competing bordered shapes on one small row read as noise.
+  editGlyph: {
     fontFamily: fonts.body,
     color: colors.accent,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
-  },
-  chevronOpen: {
-    transform: [{ rotate: '180deg' }],
   },
   transcriptText: {
     fontFamily: fonts.body,

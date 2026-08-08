@@ -192,7 +192,7 @@ export default function FlopNoteScreen() {
             <Text style={styles.headline}>{flopTitle(note)}</Text>
             {note.type === 'voice' ? (
               <View style={styles.voiceWrap}>
-                <VoiceNoteBody note={note} variant="list">
+                <VoiceNoteBody note={note}>
                   <TranscribeControl
                     audioUri={note.audio_uri}
                     transcript={note.transcript}

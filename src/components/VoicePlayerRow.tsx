@@ -11,13 +11,11 @@ type PlayableNote = Pick<Note, 'id' | 'audio_uri' | 'duration_ms'>;
 
 interface Props {
   note: PlayableNote;
-  /** 'own' = tinted for the sender bubble; 'paper' = notebook page; 'list' = View All. */
-  variant?: 'own' | 'paper' | 'list';
 }
 
-// Play/pause toggle + duration label. No waveform (per spec). Shows live progress
-// while this note is the one playing.
-export default function VoicePlayerRow({ note, variant = 'own' }: Props) {
+// Play/pause toggle + elapsed/total duration. No waveform (per spec). Sits
+// inline in the transcribe control's bottom row, beneath the transcript.
+export default function VoicePlayerRow({ note }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, relationStyle } = useTheme();
   const player = useAudioPlayer();
@@ -58,7 +56,6 @@ const makeStyles = (colors: ColorPalette) =>
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 180,
   },
   // 2/3 of the original 34dp control — the transcript is the main content
   // once it exists, so the player reads as a secondary strip beneath it.

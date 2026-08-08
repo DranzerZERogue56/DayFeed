@@ -1,48 +1,39 @@
-import React, { createContext, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import React, { createContext, useMemo } from 'react';
 import type { Note } from '../db/types';
-import VoicePlayerRow from './VoicePlayerRow';
 
-type PlayableNote = Pick<Note, 'id' | 'audio_uri' | 'duration_ms' | 'transcript'>;
+export type PlayableNote = Pick<Note, 'id' | 'audio_uri' | 'duration_ms' | 'transcript'>;
 
 /**
- * Lets the transcribe control render the hide-audio toggle beside its Edit
- * button while the hidden state stays here, next to the player it collapses.
- * Null when there is no transcript, i.e. nothing to collapse down to.
+ * Hands the note down to the transcribe control so it can render the player on
+ * the same row as its own actions.
+ *
+ * The two have to share a row — transcript above, `▶ 0:01 ✎` below — but the
+ * edit action drives state inside TranscribeControl while the note is known
+ * here, so one of them has to reach the other. Passing the note down is the
+ * cheaper direction.
  */
-export interface AudioToggle {
-  hidden: boolean;
-  onToggle: () => void;
+export interface VoicePlayerValue {
+  note: PlayableNote;
 }
 
-export const AudioToggleContext = createContext<AudioToggle | null>(null);
+export const VoicePlayerContext = createContext<VoicePlayerValue | null>(null);
 
 interface Props {
   note: PlayableNote;
-  variant?: 'own' | 'paper' | 'list';
   /** The TranscribeButton/TranscribeControl element for this note. */
   children: React.ReactNode;
 }
 
-// Wraps a voice note's player + transcribe control. Once a transcript exists,
-// the transcribe control shows a collapse toggle (beside its Edit button) that
-// collapses the player and its controls away, leaving just the text.
-export default function VoiceNoteBody({ note, variant, children }: Props) {
-  const [audioHidden, setAudioHidden] = useState(false);
-  const hasTranscript = !!note.transcript;
-  const showPlayer = !hasTranscript || !audioHidden;
+// Provides a voice note's player to the transcribe control beneath it.
+//
+// Note the invariant: this renders no player of its own, so a VoiceNoteBody
+// with no TranscribeControl underneath shows no play button. Every call site
+// passes one. A TranscribeControl used *without* this provider (none today)
+// simply renders no player rather than failing.
+export default function VoiceNoteBody({ note, children }: Props) {
+  // Memoized: this value goes into context, so a fresh object every render
+  // would re-render every consumer beneath it.
+  const value = useMemo<VoicePlayerValue>(() => ({ note }), [note]);
 
-  const toggle = useMemo<AudioToggle>(
-    () => ({ hidden: audioHidden, onToggle: () => setAudioHidden((h) => !h) }),
-    [audioHidden],
-  );
-
-  return (
-    <View>
-      {showPlayer && <VoicePlayerRow note={note} variant={variant} />}
-      <AudioToggleContext.Provider value={hasTranscript ? toggle : null}>
-        {children}
-      </AudioToggleContext.Provider>
-    </View>
-  );
+  return <VoicePlayerContext.Provider value={value}>{children}</VoicePlayerContext.Provider>;
 }

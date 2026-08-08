@@ -161,8 +161,8 @@ export default function DayPage({ dayKey, highlightNoteId, highlightToken }: Pro
                   <Text style={styles.time}>{formatClock(n.created_at)}</Text>
                   {n.type === 'voice' ? (
                     <View style={styles.voiceWrap}>
-                      <VoiceNoteBody note={n} variant="paper">
-                        <TranscribeButton note={n} tone="paper" />
+                      <VoiceNoteBody note={n}>
+                        <TranscribeButton note={n} />
                       </VoiceNoteBody>
                     </View>
                   ) : n.type === 'photo' ? (

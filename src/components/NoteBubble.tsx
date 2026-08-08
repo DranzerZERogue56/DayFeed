@@ -78,8 +78,13 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
         style={[styles.bubble, isPhoto && styles.bubblePhoto, expiring && styles.bubbleExpiring]}
       >
         {isVoice ? (
-          <VoiceNoteBody note={note} variant="list">
-            <TranscribeButton note={note} tone="list" />
+          // The timestamp rides along in the transcribe control's audio row
+          // rather than claiming a line of its own beneath it.
+          <VoiceNoteBody note={note}>
+            <TranscribeButton
+              note={note}
+              trailing={<Text style={styles.time}>{formatClock(note.created_at)}</Text>}
+            />
           </VoiceNoteBody>
         ) : isPhoto ? (
           <>
@@ -127,9 +132,11 @@ export default function NoteBubble({ note, onDelete, onSendToFlop }: Props) {
             }
           />
         )}
-        <View style={styles.footRow}>
-          <Text style={styles.time}>{formatClock(note.created_at)}</Text>
-        </View>
+        {!isVoice && (
+          <View style={styles.footRow}>
+            <Text style={styles.time}>{formatClock(note.created_at)}</Text>
+          </View>
+        )}
       </TouchableOpacity>
 
       {isPhoto && media.length > 0 && (
