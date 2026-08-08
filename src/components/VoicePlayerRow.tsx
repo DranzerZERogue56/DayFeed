@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useAudioPlayer } from '../hooks/AudioPlayerContext';
 import type { Note } from '../db/types';
 import { formatDuration } from '../utils/date';
-import { fonts, radius, spacing, type ColorPalette } from '../theme';
+import { fonts, spacing, type ColorPalette } from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 /** Structural, not `Note` — Flop voice notes live in their own table but play the same. */
@@ -43,9 +43,7 @@ export default function VoicePlayerRow({ note }: Props) {
       accessibilityRole="button"
       accessibilityLabel={isPlaying ? 'Pause voice note' : 'Play voice note'}
     >
-      <View style={[styles.iconWrap, { borderColor: iconColor }]}>
-        <Text style={[styles.icon, { color: iconColor }]}>{isPlaying ? '❚❚' : '▶'}</Text>
-      </View>
+      <Text style={[styles.icon, { color: iconColor }]}>{isPlaying ? '❚❚' : '▶'}</Text>
       <Text style={[styles.duration, { color: textColor }]}>{label}</Text>
     </TouchableOpacity>
   );
@@ -57,20 +55,17 @@ const makeStyles = (colors: ColorPalette) =>
     flexDirection: 'row',
     alignItems: 'center',
   },
-  // 2/3 of the original 34dp control — the transcript is the main content
-  // once it exists, so the player reads as a secondary strip beneath it.
-  iconWrap: {
-    width: 23,
-    height: 23,
-    borderRadius: radius.pill,
-    borderWidth: 1.3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-  },
+  // A bare glyph at the same size as the edit pencil it sits beside — the two
+  // read as one pair of controls. The circle this used to wear made the play
+  // button the heaviest thing on a row where the transcript is the point.
   icon: {
-    fontSize: 9,
+    fontFamily: fonts.body,
+    fontSize: 14,
     fontWeight: '700',
+    // Fixed width so swapping ▶ for the wider ❚❚ doesn't shove the duration
+    // and everything after it sideways on every play/pause.
+    minWidth: 18,
+    textAlign: 'center',
   },
   duration: {
     fontFamily: fonts.mono,
