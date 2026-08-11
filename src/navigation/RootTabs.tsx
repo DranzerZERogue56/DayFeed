@@ -108,7 +108,9 @@ export default function RootTabs() {
       <Tab.Screen
         name="All"
         component={AllNotesScreen}
-        options={{ tabBarIcon: icon(CardStackIcon), tabBarLabel: 'View All' }}
+        // 'All', not 'View All': the Fly tab makes seven, and at that width
+        // Android truncated the longer label to "View ...".
+        options={{ tabBarIcon: icon(CardStackIcon), tabBarLabel: 'All' }}
       />
       <Tab.Screen
         name="Vault"

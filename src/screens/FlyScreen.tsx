@@ -61,6 +61,9 @@ export default function FlyScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmRemoveStory, setConfirmRemoveStory] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
+  // The story editor needs the screen to itself: with the keyboard up, the bars
+  // below squeezed its Cancel/Save row out of the scroll area entirely.
+  const [storyEditing, setStoryEditing] = useState(false);
   const [prompt, setPrompt] = useState(DEFAULT_FLY_PROMPT);
   // Yesterday's key, held only while the nudge is worth showing. Dismissal is
   // per-session on purpose: an unfinished day is worth mentioning again
@@ -263,6 +266,7 @@ export default function FlyScreen() {
                 stale={storyStale}
                 onSave={onSaveStory}
                 onDelete={() => setConfirmRemoveStory(true)}
+                onEditingChange={setStoryEditing}
               />
             )}
             {notes.map((n) => (
@@ -297,7 +301,7 @@ export default function FlyScreen() {
 
         {/* The end-of-day pass. Hidden on an empty day so a blank board isn't
             offering to consolidate nothing. */}
-        {notes.length > 0 && (
+        {notes.length > 0 && !storyEditing && (
           <View style={styles.consolidateBar}>
             <TouchableOpacity
               style={styles.consolidateBtn}
@@ -324,7 +328,7 @@ export default function FlyScreen() {
             day instead would be worse: created_at is still the current clock
             time, so "yesterday at 9am" would sort into the story at 4pm. A past
             day is for reading and consolidating. */}
-        {atToday ? (
+        {storyEditing ? null : atToday ? (
           <CaptureBar
             onSendText={(text) => void onSendText(text)}
             onRecorded={onRecorded}
@@ -490,7 +494,9 @@ const makeStyles = (colors: ColorPalette) =>
     arrowDisabled: { color: colors.textFaint },
     listContent: {
       paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
+      paddingTop: spacing.md,
+      // Room to scroll the last entry clear of the bars pinned beneath.
+      paddingBottom: spacing.xl,
     },
     entry: {
       marginBottom: spacing.md,

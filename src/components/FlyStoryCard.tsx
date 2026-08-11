@@ -11,6 +11,8 @@ interface Props {
   stale: boolean;
   onSave: (content: string) => Promise<void>;
   onDelete: () => void;
+  /** Lets the screen clear the bars below out of the editor's way. */
+  onEditingChange?: (editing: boolean) => void;
 }
 
 const COLLAPSE_CHARS = 400;
@@ -20,24 +22,37 @@ const COLLAPSE_CHARS = 400;
 // Serif and full-width — this is the finished thing, and the timestamped
 // fragments beneath it are the working. Long stories collapse so the board
 // underneath stays reachable without a long scroll.
-export default function FlyStoryCard({ story, stale, onSave, onDelete }: Props) {
+export default function FlyStoryCard({
+  story,
+  stale,
+  onSave,
+  onDelete,
+  onEditingChange,
+}: Props) {
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [draft, setDraft] = useState<string | null>(null); // non-null = editing
   const [saving, setSaving] = useState(false);
 
+  // One place to flip the draft, so the screen is never told the editor is open
+  // when it isn't (leaving the capture bar hidden with no way to bring it back).
+  const setEditing = (next: string | null) => {
+    setDraft(next);
+    onEditingChange?.(next !== null);
+  };
+
   if (draft !== null) {
     const save = async () => {
       const text = draft.trim();
       if (!text || text === story.content) {
-        setDraft(null);
+        setEditing(null);
         return;
       }
       setSaving(true);
       try {
         await onSave(text);
-        setDraft(null);
+        setEditing(null);
       } finally {
         setSaving(false);
       }
@@ -54,7 +69,7 @@ export default function FlyStoryCard({ story, stale, onSave, onDelete }: Props) 
           editable={!saving}
         />
         <View style={styles.actions}>
-          <TouchableOpacity onPress={() => setDraft(null)} disabled={saving}>
+          <TouchableOpacity onPress={() => setEditing(null)} disabled={saving}>
             <Text style={styles.link}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => void save()} disabled={saving}>
@@ -92,7 +107,7 @@ export default function FlyStoryCard({ story, stale, onSave, onDelete }: Props) 
         <TouchableOpacity onPress={onDelete} hitSlop={8}>
           <Text style={[styles.link, styles.danger]}>Remove</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setDraft(story.content)} hitSlop={8}>
+        <TouchableOpacity onPress={() => setEditing(story.content)} hitSlop={8}>
           <Text style={[styles.link, styles.strong]}>Edit</Text>
         </TouchableOpacity>
       </View>
@@ -140,6 +155,12 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 16,
       lineHeight: 26,
       minHeight: 160,
+      // Capped, and it scrolls inside itself past this. Without a ceiling the
+      // editor grows with the story, and on a long one the Cancel/Save row
+      // below it was pushed off the bottom of the scroll area — with autoFocus
+      // raising the keyboard immediately, both actions were unreachable the
+      // instant you tapped Edit.
+      maxHeight: 240,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.accentEdge,
       borderRadius: radius.sm,
