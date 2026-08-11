@@ -318,12 +318,30 @@ export default function FlyScreen() {
           </View>
         )}
 
-        <CaptureBar
-          onSendText={(text) => void onSendText(text)}
-          onRecorded={onRecorded}
-          onPermissionDenied={onPermissionDenied}
-          placeholder="What just happened…"
-        />
+        {/* Capture only on today. createFlyNote derives day_key from now, so a
+            memo recorded while viewing an earlier day would file itself under
+            today and vanish from the board on screen. Writing it to the viewed
+            day instead would be worse: created_at is still the current clock
+            time, so "yesterday at 9am" would sort into the story at 4pm. A past
+            day is for reading and consolidating. */}
+        {atToday ? (
+          <CaptureBar
+            onSendText={(text) => void onSendText(text)}
+            onRecorded={onRecorded}
+            onPermissionDenied={onPermissionDenied}
+            placeholder="What just happened…"
+          />
+        ) : (
+          <TouchableOpacity
+            style={styles.pastBar}
+            onPress={() => setDayKey(todayKey())}
+            accessibilityLabel="Back to today to write"
+          >
+            <Text style={styles.pastBarText}>
+              A past day — <Text style={styles.pastBarLink}>go to today</Text> to write.
+            </Text>
+          </TouchableOpacity>
+        )}
       </KeyboardAvoidingView>
 
       <DatePickerModal
@@ -485,6 +503,22 @@ const makeStyles = (colors: ColorPalette) =>
       color: colors.textDim,
       fontSize: 11,
       marginBottom: 3,
+    },
+    pastBar: {
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      backgroundColor: colors.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.divider,
+    },
+    pastBarText: {
+      fontFamily: fonts.body,
+      color: colors.textDim,
+      fontSize: 13,
+    },
+    pastBarLink: {
+      color: colors.accent,
+      fontWeight: '700',
     },
     consolidateBar: {
       flexDirection: 'row',
