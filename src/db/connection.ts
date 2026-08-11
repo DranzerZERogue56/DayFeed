@@ -139,7 +139,37 @@ ALTER TABLE detected_dates ADD COLUMN completed_at INTEGER;
 CREATE INDEX IF NOT EXISTS idx_detected_completed ON detected_dates (completed_at);
 `;
 
-const LATEST_VERSION = 11;
+// v1.12: Fly — a daily journal captured across the day, then consolidated into
+// one story per day.
+//
+// Its own tables rather than a flag on `notes`, for the same reason
+// noted_updates has its own (MIGRATION_V9): Fly entries are a separate journal
+// and must not appear in the Feed, the Agenda, search, or the expiry sweep.
+//
+// fly_stories is keyed by day_key rather than an id — a day has exactly one
+// story, so regenerating it is an upsert rather than a delete-then-insert.
+const MIGRATION_V12 = `
+CREATE TABLE IF NOT EXISTS fly_notes (
+  id TEXT PRIMARY KEY NOT NULL,
+  type TEXT NOT NULL,
+  content TEXT,
+  audio_uri TEXT,
+  duration_ms INTEGER,
+  transcript TEXT,
+  created_at INTEGER NOT NULL,
+  day_key TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_fly_day_key ON fly_notes (day_key);
+
+CREATE TABLE IF NOT EXISTS fly_stories (
+  day_key TEXT PRIMARY KEY NOT NULL,
+  content TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+`;
+
+const LATEST_VERSION = 12;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -208,6 +238,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 11) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V11);
+    });
+  }
+
+  if (current < 12) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V12);
     });
   }
 

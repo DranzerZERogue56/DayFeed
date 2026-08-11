@@ -10,6 +10,7 @@ import FlipScreen from '../screens/FlipScreen';
 import AllNotesScreen from '../screens/AllNotesScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import FlopStack from './FlopStack';
+import FlyScreen from '../screens/FlyScreen';
 import VaultScreen from '../screens/VaultScreen';
 import type { RootTabParamList } from './types';
 import { useTheme } from '../hooks/ThemeContext';
@@ -20,6 +21,7 @@ import {
   CardStackIcon,
   LockIcon,
   OpenBookIcon,
+  QuillIcon,
   SpeechBubbleIcon,
   type IconProps,
 } from '../components/Icons';
@@ -31,10 +33,11 @@ const icon =
   (Glyph: (p: IconProps) => React.JSX.Element) =>
   ({ color }: { color: string }) => <Glyph color={color} size={22} />;
 
-// Feed, Flip, and Flop are the three stops in a note's life — capture,
-// review, organize — so they're what the swipe bar steps between. Agenda and
-// View All are lookups, not part of that flow, so the bar hides on them.
-const SWIPE_ORDER: Array<keyof RootTabParamList> = ['Feed', 'Flip', 'Flop'];
+// Feed, Flip, Flop and Fly are the four stops in a note's life — capture,
+// review, organize, and write the day down — so they're what the swipe bar
+// steps between. Agenda and View All are lookups, not part of that flow, so
+// the bar hides on them.
+const SWIPE_ORDER: Array<keyof RootTabParamList> = ['Feed', 'Flip', 'Flop', 'Fly'];
 
 // Wraps the default tab bar with a swipe strip sitting just above it.
 function TabBarWithSwipe(props: BottomTabBarProps) {
@@ -91,6 +94,11 @@ export default function RootTabs() {
         name="Flop"
         component={FlopStack}
         options={{ tabBarIcon: icon(BookStackIcon), tabBarLabel: 'Flop' }}
+      />
+      <Tab.Screen
+        name="Fly"
+        component={FlyScreen}
+        options={{ tabBarIcon: icon(QuillIcon), tabBarLabel: 'Fly' }}
       />
       <Tab.Screen
         name="Agenda"

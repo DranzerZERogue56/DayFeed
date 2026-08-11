@@ -15,8 +15,8 @@ interface Props {
 }
 
 // A small strip above the tab bar: drag left/right to step between Feed,
-// Flip, and Flop without reaching down to the tab icons. The dots double as
-// a position indicator — the active one stretches into a pill.
+// Flip, Flop and Fly without reaching down to the tab icons. The dots double
+// as a position indicator — the active one stretches into a pill.
 export default function TabSwipeBar({ activeIndex, count, onNavigate }: Props) {
   const styles = useStyles(makeStyles);
   // PanResponder captures the gesture once at mount; read the live index
@@ -43,7 +43,7 @@ export default function TabSwipeBar({ activeIndex, count, onNavigate }: Props) {
       style={styles.wrap}
       {...panResponder.panHandlers}
       accessibilityRole="adjustable"
-      accessibilityLabel="Switch between Feed, Flip, and Flop"
+      accessibilityLabel="Switch between Feed, Flip, Flop and Fly"
       accessibilityValue={{ min: 0, max: count - 1, now: activeIndex }}
       onAccessibilityAction={(e) => {
         if (e.nativeEvent.actionName === 'increment' && activeIndex < count - 1) {

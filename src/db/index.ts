@@ -6,3 +6,5 @@ export * from './detectedDates';
 export * from './types';
 export * from './flopNotes';
 export * from './flopTypes';
+export * from './flyNotes';
+export * from './flyTypes';

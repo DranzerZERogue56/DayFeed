@@ -8,6 +8,7 @@ export type RootTabParamList = {
   Feed: undefined;
   Flip: { jumpTo?: string; ts?: number; noteId?: string } | undefined;
   Flop: NavigatorScreenParams<FlopStackParamList> | undefined;
+  Fly: undefined;
   All: undefined;
   Agenda: undefined;
   Vault: undefined;

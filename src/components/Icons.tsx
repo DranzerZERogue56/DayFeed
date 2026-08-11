@@ -56,6 +56,30 @@ export function BookStackIcon({ size = 22, color, strokeWidth = S }: IconProps) 
   );
 }
 
+/** Fly — a quill, for the day written down as a story. */
+export function QuillIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M20 4c-6 .5-10 3-12 6.5-1.2 2.1-1.4 4.3-1.2 6.2C9 15 12.2 12.8 16 11.5c-2.6 2.4-5.6 4-8.6 5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Line
+        x1="7.4"
+        y1="16.6"
+        x2="4"
+        y2="20"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 /** Vault — padlock. */
 export function LockIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   return (

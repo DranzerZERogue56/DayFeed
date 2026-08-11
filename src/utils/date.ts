@@ -42,14 +42,26 @@ const MONTHS = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
+/**
+ * Absolute day label, e.g. "Mon, Jul 14 2026" — never relative.
+ *
+ * Split out from formatDayHeader for text that outlives the moment it was
+ * written: a Fly clipboard payload saying "Today" means something different
+ * every day it is read, and the weekday is often the whole reason a day went
+ * the way it did.
+ */
+export function formatDayLong(key: string): string {
+  const d = dateFromDayKey(key);
+  return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
+}
+
 /** Human day header, e.g. "Today", "Yesterday", or "Mon, Jul 14 2026". */
 export function formatDayHeader(key: string): string {
   const diff = dayDiff(key, todayKey());
   if (diff === 0) return 'Today';
   if (diff === 1) return 'Yesterday';
   if (diff === -1) return 'Tomorrow';
-  const d = dateFromDayKey(key);
-  return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
+  return formatDayLong(key);
 }
 
 /** Clock time from unix ms, e.g. "3:07 PM". */

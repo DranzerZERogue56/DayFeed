@@ -19,7 +19,12 @@ interface Props {
   onSendText: (text: string) => void;
   onRecorded: (result: RecorderResult) => void;
   onPermissionDenied: () => void;
-  onOpenCamera: () => void;
+  /**
+   * Omit to hide the camera button. Fly is text and voice only — a photo has
+   * nothing to contribute to a day that gets read back as prose.
+   */
+  onOpenCamera?: () => void;
+  placeholder?: string;
 }
 
 const CANCEL_THRESHOLD = -90; // px dragged left to cancel a recording
@@ -31,6 +36,7 @@ export default function CaptureBar({
   onRecorded,
   onPermissionDenied,
   onOpenCamera,
+  placeholder = 'Write a note…',
 }: Props) {
   const { value: text, onChangeText: setText, inputRef, setValue: setTextValue } =
     useMarkdownInput('');
@@ -172,19 +178,21 @@ export default function CaptureBar({
         </Animated.View>
       ) : (
         <>
-          <TouchableOpacity
-            style={styles.camera}
-            onPress={onOpenCamera}
-            accessibilityLabel="Take a photo note"
-          >
-            <CameraIcon color={colors.textDim} size={22} />
-          </TouchableOpacity>
+          {onOpenCamera && (
+            <TouchableOpacity
+              style={styles.camera}
+              onPress={onOpenCamera}
+              accessibilityLabel="Take a photo note"
+            >
+              <CameraIcon color={colors.textDim} size={22} />
+            </TouchableOpacity>
+          )}
           <TextInput
             ref={inputRef}
             style={styles.input}
             value={text}
             onChangeText={setText}
-            placeholder="Write a note…"
+            placeholder={placeholder}
             placeholderTextColor={colors.textFaint}
             multiline
             returnKeyType="send"
