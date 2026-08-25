@@ -15,7 +15,12 @@ import { enqueueTranscription } from '../lib/transcribeQueue';
 import { transcribeAudio } from '../lib/transcription';
 import { deleteWav, writeWavToCache } from '../lib/wavFile';
 import { parseDestination, type VoiceDestination } from '../lib/voiceRouting';
-import { DEFAULT_VOICE_ENGINE, loadVoiceEngine, type VoiceEngine } from '../lib/voiceEngine';
+import {
+  DEFAULT_VOICE_ENGINE,
+  loadVoiceEngine,
+  saveVoiceEngine,
+  type VoiceEngine,
+} from '../lib/voiceEngine';
 import { createFlyNote, deleteFlyNote } from '../db/flyNotes';
 import { useNotes } from './NotesContext';
 import { useFlop } from './FlopContext';
@@ -50,11 +55,14 @@ const UNDO_MS = 6000;
 /**
  * How long an empty Flow field waits before offering whisper instead.
  *
- * Long enough to tap the bubble and say a sentence; short enough that an
- * uninstalled Flow, a missing accessibility permission or a dead connection
- * doesn't leave you staring at a field that will never fill.
+ * Was 15s, on the assumption that Flow failing would be rare. It isn't: Flow's
+ * bubble never arms while a VPN is up (confirmed on-device with Tailscale —
+ * its overlay window stays at alpha=0 in every app, DayFeed and Android
+ * Settings alike), so for anyone running one this is the normal path, not the
+ * exception. 8s still leaves room to tap the bubble and start a sentence,
+ * without making a routine failure feel like a hang.
  */
-const FLOW_IDLE_MS = 15000;
+const FLOW_IDLE_MS = 8000;
 
 export type VoicePhase =
   | 'idle'
@@ -96,6 +104,8 @@ export interface VoiceCaptureActions {
   submitDraft: () => void;
   /** Abandon Flow for this one session and record with whisper instead. */
   fallBackToWhisper: () => void;
+  /** Same, but also make whisper the saved default from now on. */
+  alwaysUseWhisper: () => void;
   /** File the pending transcript in `destination`. */
   chooseDestination: (destination: VoiceDestination) => void;
   /** File `content` in `destination` directly — used by typed routing. */
@@ -382,6 +392,19 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     startWhisper();
   }, [patch, startWhisper]);
 
+  /**
+   * Give up on Flow for good, from the point of failure.
+   *
+   * The moment you discover Flow isn't working is the moment you know you want
+   * to stop using it, and it is the worst possible time to be sent hunting
+   * through a settings screen. Writing the setting from here means the next
+   * dictation just records, with no dead wait at all.
+   */
+  const alwaysUseWhisper = useCallback(() => {
+    void saveVoiceEngine('whisper');
+    fallBackToWhisper();
+  }, [fallBackToWhisper]);
+
   const setDraft = useCallback((text: string) => patch({ draft: text }), [patch]);
 
   const dismiss = useCallback(() => {
@@ -493,6 +516,7 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
       setDraft,
       submitDraft,
       fallBackToWhisper,
+      alwaysUseWhisper,
       chooseDestination,
       saveRouted,
       undoSave,
@@ -504,6 +528,7 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
       setDraft,
       submitDraft,
       fallBackToWhisper,
+      alwaysUseWhisper,
       chooseDestination,
       saveRouted,
       undoSave,

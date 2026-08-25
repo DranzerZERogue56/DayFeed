@@ -88,6 +88,7 @@ export default function VoiceCaptureOverlay() {
     setDraft,
     submitDraft,
     fallBackToWhisper,
+    alwaysUseWhisper,
     chooseDestination,
     undoSave,
     dismiss,
@@ -147,12 +148,18 @@ export default function VoiceCaptureOverlay() {
               />
               {flowStalled ? (
                 <View style={styles.stalled}>
+                  {/* The VPN line is first because it is the cause we have
+                      actually confirmed on this phone: with Tailscale up,
+                      Flow's bubble never appears in any app. */}
                   <Text style={styles.hint}>
-                    Nothing from Flow. It needs an internet connection, and its
-                    accessibility permission turned on.
+                    No bubble from Flow. It won’t appear while a VPN is on — turn Tailscale off and
+                    try again, or check Flow is signed in.
                   </Text>
                   <TouchableOpacity style={styles.primary} onPress={fallBackToWhisper}>
                     <Text style={styles.primaryText}>Record with whisper instead</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={alwaysUseWhisper} hitSlop={8}>
+                    <Text style={styles.alwaysText}>Always use whisper</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -316,6 +323,12 @@ const makeStyles = (colors: ColorPalette) =>
       marginTop: spacing.md,
       gap: spacing.sm,
       alignItems: 'center',
+    },
+    alwaysText: {
+      fontFamily: fonts.body,
+      color: colors.textDim,
+      fontSize: 13,
+      textDecorationLine: 'underline',
     },
     errorIcon: {
       alignItems: 'center',

@@ -25,7 +25,7 @@ const ENGINES: EngineOption[] = [
     value: 'flow',
     label: 'Wispr Flow',
     detail:
-      'Tap the Flow bubble when the dictation field opens, then speak. Needs an internet connection.',
+      'Tap the Flow bubble when the dictation field opens, then speak. Needs an internet connection, and does not work while a VPN is on.',
   },
   {
     value: 'whisper',
@@ -108,6 +108,10 @@ export default function SettingsScreen({ visible, onClose, onEngineChanged }: Pr
               Flow sends your speech to its own servers to transcribe. DayFeed still stores
               everything on the phone and talks to nothing itself, but audio dictated through Flow
               does leave the device. Built-in whisper never does.
+              {'\n\n'}
+              Flow’s bubble does not appear while a VPN is running — this was confirmed on this
+              phone with Tailscale, in every app, not just DayFeed. If you dictate on the VPN, use
+              built-in whisper.
             </Text>
           </View>
         </ScrollView>
