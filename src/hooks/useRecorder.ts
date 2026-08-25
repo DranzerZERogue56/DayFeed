@@ -1,21 +1,23 @@
-import { requestRecordingPermissionsAsync } from 'expo-audio';
-import AudioRecord from '@fugood/react-native-audio-pcm-stream';
 import { Buffer } from 'buffer';
 import { useCallback, useRef, useState } from 'react';
-import { File, Paths } from 'expo-file-system';
+import { acquire, ensureMicPermission, release } from '../lib/micBus';
+import { deleteWav, durationMsForBytes, writeWavToCache } from '../lib/wavFile';
 
-// Voice recording for DayFeed. Records 16 kHz mono 16-bit PCM via a native
-// live-audio-stream module — the format whisper.rn requires — because the
-// Expo audio modules cannot produce raw PCM/WAV on Android.
+// Voice recording for DayFeed. Records 16 kHz mono 16-bit PCM — the format
+// whisper.rn requires — because the Expo audio modules cannot produce raw
+// PCM/WAV on Android.
 //
-// IMPORTANT: the native module (@fugood/react-native-audio-pcm-stream, an
-// unmodified fork of react-native-live-audio-stream) only *streams* PCM
-// chunks via its 'data' event; its own README says as much. Its native
-// stop() takes no Promise and returns nothing — it does NOT write a file or
-// hand back a path, despite earlier code here assuming it did. That meant
-// every recording was silently discarded (a real, saved WAV file never
-// existed). We now assemble the WAV file ourselves in JS from the streamed
-// chunks, which is the only way this module can produce a real file.
+// IMPORTANT: the underlying native module only *streams* PCM chunks; its stop()
+// does NOT write a file or hand back a path, despite earlier code here assuming
+// it did. That meant every recording was silently discarded (a real, saved WAV
+// file never existed). We assemble the WAV file ourselves in JS from the
+// streamed chunks, which is the only way this module can produce a real file.
+//
+// The mic itself is reached through lib/micBus rather than directly, because
+// the native module allows exactly one 'data' listener process-wide and
+// re-registering steals it from whoever had it. micBus arbitrates; this hook
+// is just one of its owners, and the highest-priority one, so starting a
+// recording preempts the wake-word listener and releasing hands it back.
 export interface RecorderResult {
   uri: string;
   durationMs: number;
@@ -29,39 +31,18 @@ export interface StartResult {
    * means a recording session was already active (a UI/gesture bug, not a
    * permission problem) — callers should NOT show the permission alert for
    * this, or a stuck recording will surface as a false "grant permission"
-   * loop even though access was already granted.
+   * loop even though access was already granted. 'unavailable' means the
+   * native recorder refused to initialise, which in practice means another
+   * app is holding the microphone; permission is fine and Settings won't help.
    */
-  reason?: 'permission' | 'busy';
+  reason?: 'permission' | 'busy' | 'unavailable';
 }
 
-const SAMPLE_RATE = 16000;
-const CHANNELS = 1;
-const BITS = 16;
-const BYTES_PER_SEC = (SAMPLE_RATE * CHANNELS * BITS) / 8; // 32000
-const BLOCK_ALIGN = (CHANNELS * BITS) / 8;
 // The native recording thread keeps reading for a moment after stop() sets
 // its flag, so a few more 'data' events land after we ask it to stop. Give
 // them a beat to arrive before assembling the file, or the tail of every
 // note gets clipped.
 const DRAIN_MS = 250;
-
-function buildWavHeader(dataLength: number): Buffer {
-  const header = Buffer.alloc(44);
-  header.write('RIFF', 0, 4, 'ascii');
-  header.writeUInt32LE(36 + dataLength, 4);
-  header.write('WAVE', 8, 4, 'ascii');
-  header.write('fmt ', 12, 4, 'ascii');
-  header.writeUInt32LE(16, 16); // fmt chunk size (PCM)
-  header.writeUInt16LE(1, 20); // audio format: PCM
-  header.writeUInt16LE(CHANNELS, 22);
-  header.writeUInt32LE(SAMPLE_RATE, 24);
-  header.writeUInt32LE(BYTES_PER_SEC, 28); // byte rate
-  header.writeUInt16LE(BLOCK_ALIGN, 32);
-  header.writeUInt16LE(BITS, 34);
-  header.write('data', 36, 4, 'ascii');
-  header.writeUInt32LE(dataLength, 40);
-  return header;
-}
 
 export function useRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -71,8 +52,7 @@ export function useRecorder() {
   const chunksRef = useRef<Buffer[]>([]);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    const { granted } = await requestRecordingPermissionsAsync();
-    return granted;
+    return ensureMicPermission();
   }, []);
 
   const start = useCallback(async (): Promise<StartResult> => {
@@ -88,31 +68,16 @@ export function useRecorder() {
     chunksRef.current = [];
     setElapsedMs(0);
 
-    AudioRecord.init({
-      sampleRate: SAMPLE_RATE,
-      channels: CHANNELS,
-      bitsPerSample: BITS,
-      audioSource: 6, // Android VOICE_RECOGNITION
-      bufferSize: 8192,
-      // The package's typings claim this makes the native side write a WAV
-      // file (and that stop() hands back its path), but the actual Android
-      // implementation never reads this option — it only streams PCM via
-      // the 'data' event. Kept only to satisfy the (inaccurate) required
-      // type; the real file is assembled in finish() below.
-      wavFile: 'unused.wav',
-    });
-
     // The only real audio the native module ever hands back — collect it so
     // finish() can write an actual WAV file. Also drives the live elapsed
     // counter (accurate, decoder-agnostic).
-    AudioRecord.on('data', (chunk) => {
-      const buf = Buffer.from(chunk, 'base64');
+    const ok = await acquire('recorder', (buf) => {
       chunksRef.current.push(buf);
       bytesRef.current += buf.byteLength;
-      setElapsedMs(Math.round((bytesRef.current / BYTES_PER_SEC) * 1000));
+      setElapsedMs(durationMsForBytes(bytesRef.current));
     });
+    if (!ok) return { ok: false, reason: 'unavailable' };
 
-    AudioRecord.start();
     activeRef.current = true;
     setIsRecording(true);
     return { ok: true };
@@ -122,26 +87,17 @@ export function useRecorder() {
     if (!activeRef.current) return null;
     activeRef.current = false;
     setIsRecording(false);
-    // Fire-and-forget: the native stop() has no Promise/return value, it
-    // only flips a flag the recording thread notices on its next loop.
-    AudioRecord.stop();
+    // Keep collecting for one more beat, THEN release. The audio between the
+    // last delivered chunk and the finger lift is still sitting in the native
+    // buffer; letting it arrive is the difference between a clean tail and a
+    // clipped one. Releasing first would either stop the stream outright or
+    // hand it to the wake listener, and that audio would be lost either way.
     await new Promise((resolve) => setTimeout(resolve, DRAIN_MS));
+    release('recorder');
 
     const chunks = chunksRef.current;
     chunksRef.current = [];
-    if (chunks.length === 0) return null;
-
-    const pcm = Buffer.concat(chunks);
-    const wav = Buffer.concat([buildWavHeader(pcm.byteLength), pcm]);
-
-    try {
-      const file = new File(Paths.cache, `dayfeed-rec-${Date.now()}.wav`);
-      file.create({ intermediates: true, overwrite: true });
-      file.write(new Uint8Array(wav.buffer, wav.byteOffset, wav.byteLength));
-      return { uri: file.uri, durationMs: Math.round((pcm.byteLength / BYTES_PER_SEC) * 1000) };
-    } catch {
-      return null;
-    }
+    return writeWavToCache(chunks, 'dayfeed-rec');
   }, []);
 
   /** Stop and return the recorded WAV file + duration. */
@@ -156,12 +112,7 @@ export function useRecorder() {
     const result = await finish();
     setElapsedMs(0);
     if (!result) return;
-    try {
-      const f = new File(result.uri);
-      if (f.exists) f.delete();
-    } catch {
-      // best effort
-    }
+    deleteWav(result.uri);
   }, [finish]);
 
   return { isRecording, elapsedMs, start, stop, cancel, requestPermission };

@@ -1,20 +1,16 @@
 import { setFlyTranscript } from '../db/flyNotes';
+import { enqueueTranscription, transcriptionIdle } from './transcribeQueue';
 import { transcribeAudio } from './transcription';
 
-// Serialised auto-transcription for Fly voice memos.
+// Auto-transcription for Fly voice memos.
 //
 // Fly's whole point is that a day can be handed to a language model as text, so
 // a memo that sits untranscribed is a hole in the story. Everywhere else in the
 // app transcription is a deliberate tap; here it has to happen by itself.
 //
-// A queue rather than a retry loop: lib/transcription.ts allows exactly one
-// native job at a time and throws TranscriptionBusyError on a second. Recording
-// three memos in a row would lose two of them to that error. Chaining onto a
-// module-level promise means each job simply waits for the one before it.
-//
-// Module-level, not per-screen: the chain has to outlive a screen unmount, or
-// navigating away mid-job would strand the queue.
-let chain: Promise<void> = Promise.resolve();
+// The serialisation this used to own now lives in lib/transcribeQueue, shared
+// with the manual ✎ Transcribe button and voice dictation — a Fly memo landing
+// mid-dictation used to make one of them fail with TranscriptionBusyError.
 
 /**
  * Queue a Fly memo for transcription, writing the result when it lands.
@@ -28,7 +24,7 @@ export function enqueueFlyTranscription(
   audioUri: string,
   onDone?: () => void,
 ): void {
-  chain = chain.then(async () => {
+  void enqueueTranscription(async () => {
     try {
       const text = await transcribeAudio(audioUri);
       if (text) {
@@ -43,5 +39,5 @@ export function enqueueFlyTranscription(
 
 /** Test/debug hook: resolves once the queue has drained. */
 export function flyTranscriptionIdle(): Promise<void> {
-  return chain;
+  return transcriptionIdle();
 }

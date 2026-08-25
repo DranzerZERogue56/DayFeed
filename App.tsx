@@ -6,9 +6,11 @@ import { NavigationContainer, DefaultTheme, type Theme } from '@react-navigation
 import { NotesProvider } from './src/hooks/NotesContext';
 import { FlopProvider } from './src/hooks/FlopContext';
 import { AudioPlayerProvider } from './src/hooks/AudioPlayerContext';
+import { VoiceCaptureProvider } from './src/hooks/VoiceCaptureContext';
 import { ThemeProvider, useTheme } from './src/hooks/ThemeContext';
 import RootTabs from './src/navigation/RootTabs';
 import BootSplash from './src/components/BootSplash';
+import VoiceCaptureOverlay from './src/components/VoiceCaptureOverlay';
 import { initDb } from './src/db';
 import { sweepExpiredNotes } from './src/lib/expirySweep';
 import { seedIfEmpty } from './src/db/seed';
@@ -40,6 +42,9 @@ function ThemedApp() {
     <NavigationContainer theme={navTheme}>
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <RootTabs />
+      {/* Inside the container so the saved-note bar sits above the tab bar,
+          but outside RootTabs so it survives every tab switch. */}
+      <VoiceCaptureOverlay />
     </NavigationContainer>
   );
 }
@@ -80,7 +85,10 @@ export default function App() {
           <NotesProvider>
             <FlopProvider>
               <AudioPlayerProvider>
-                <ThemedApp />
+                {/* Below Notes and Flop: dictation files notes through both. */}
+                <VoiceCaptureProvider>
+                  <ThemedApp />
+                </VoiceCaptureProvider>
               </AudioPlayerProvider>
             </FlopProvider>
           </NotesProvider>

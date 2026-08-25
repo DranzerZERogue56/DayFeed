@@ -10,10 +10,11 @@ import {
 } from 'react-native';
 import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
 import { useMarkdownInput } from '../hooks/useMarkdownInput';
+import { useVoiceCapture } from '../hooks/VoiceCaptureContext';
 import { formatDuration } from '../utils/date';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { fonts, radius, spacing, type ColorPalette } from '../theme';
-import { CameraIcon, MicIcon } from './Icons';
+import { CameraIcon, DictateIcon, MicIcon } from './Icons';
 
 interface Props {
   onSendText: (text: string) => void;
@@ -41,6 +42,9 @@ export default function CaptureBar({
   const { value: text, onChangeText: setText, inputRef, setValue: setTextValue } =
     useMarkdownInput('');
   const recorder = useRecorder();
+  // Actions only — this context's identity is stable, so the bar does not
+  // re-render on every waveform frame while dictation is listening.
+  const { open: openDictation } = useVoiceCapture();
   const [willCancel, setWillCancel] = useState(false);
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
@@ -187,6 +191,15 @@ export default function CaptureBar({
               <CameraIcon color={colors.textDim} size={22} />
             </TouchableOpacity>
           )}
+          {/* Distinct from the mic beside it: the mic holds to record audio,
+              this speaks a note into text and files it wherever you say. */}
+          <TouchableOpacity
+            style={styles.dictate}
+            onPress={openDictation}
+            accessibilityLabel="Dictate a note"
+          >
+            <DictateIcon color={colors.textDim} size={22} />
+          </TouchableOpacity>
           <TextInput
             ref={inputRef}
             style={styles.input}
@@ -243,6 +256,15 @@ const makeStyles = (colors: ColorPalette) =>
     marginRight: spacing.sm,
   },
   cameraGlyph: { fontSize: 20 },
+  dictate: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
   input: {
     flex: 1,
     minHeight: 44,

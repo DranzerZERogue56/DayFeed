@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { randomUUID } from 'expo-crypto';
 import * as Clipboard from 'expo-clipboard';
 import CaptureBar from '../components/CaptureBar';
@@ -75,6 +76,12 @@ export default function FlyScreen() {
   const story = useFlyStory(dayKey, version);
 
   const bump = useCallback(() => setVersion((v) => v + 1), []);
+
+  // Fly's version counter is screen-local — there is no FlyProvider for an
+  // outside writer to bump. Voice dictation can file a note straight into
+  // fly_notes while this screen is mounted but not focused, so re-read on
+  // focus; without it that note stays invisible until the app is relaunched.
+  useFocusEffect(bump);
 
   useEffect(() => {
     void loadFlyPrompt().then(setPrompt);
