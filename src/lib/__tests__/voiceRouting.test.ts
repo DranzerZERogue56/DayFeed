@@ -1,4 +1,4 @@
-import { parseDestination } from '../voiceRouting';
+import { parseDestination, planTypedNote } from '../voiceRouting';
 
 describe('parseDestination', () => {
   it('pulls a trailing destination off and strips it from the content', () => {
@@ -69,5 +69,48 @@ describe('parseDestination', () => {
 
   it('handles an empty transcript', () => {
     expect(parseDestination('   ')).toEqual({ content: '', destination: null });
+  });
+});
+
+describe('planTypedNote', () => {
+  it('routes to another tab', () => {
+    expect(planTypedNote('Buy milk to Flop', 'Feed')).toEqual({
+      content: 'Buy milk',
+      destination: 'Flop',
+    });
+  });
+
+  // Still strips the words — they were an instruction either way — but saves
+  // through the screen's own path rather than the cross-tab router.
+  it('strips but stays local when the destination is where you already are', () => {
+    expect(planTypedNote('Buy milk to Feed', 'Feed')).toEqual({
+      content: 'Buy milk',
+      destination: null,
+    });
+    expect(planTypedNote('Buy milk to Fly', 'Fly')).toEqual({
+      content: 'Buy milk',
+      destination: null,
+    });
+  });
+
+  it('leaves an ordinary note completely alone', () => {
+    expect(planTypedNote('Buy milk on Tuesday', 'Feed')).toEqual({
+      content: 'Buy milk on Tuesday',
+      destination: null,
+    });
+  });
+
+  it('does not route on a destination word used mid-sentence', () => {
+    expect(planTypedNote('Put the feed bins away', 'Flop')).toEqual({
+      content: 'Put the feed bins away',
+      destination: null,
+    });
+  });
+
+  it('routes from Fly to Feed', () => {
+    expect(planTypedNote('Call the dentist, to Feed', 'Fly')).toEqual({
+      content: 'Call the dentist',
+      destination: 'Feed',
+    });
   });
 });

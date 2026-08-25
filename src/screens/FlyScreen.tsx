@@ -341,6 +341,7 @@ export default function FlyScreen() {
             onRecorded={onRecorded}
             onPermissionDenied={onPermissionDenied}
             placeholder="What just happened…"
+            routing="Fly"
           />
         ) : (
           <TouchableOpacity

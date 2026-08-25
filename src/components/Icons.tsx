@@ -350,3 +350,18 @@ export function DictateIcon({ size = 22, color, strokeWidth = S }: IconProps) {
     </Svg>
   );
 }
+
+/** Header — settings. */
+export function GearIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="3.2" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M12 3.2v2M12 18.8v2M20.8 12h-2M5.2 12h-2M18.2 5.8l-1.4 1.4M7.2 16.8l-1.4 1.4M18.2 18.2l-1.4-1.4M7.2 7.2L5.8 5.8"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}

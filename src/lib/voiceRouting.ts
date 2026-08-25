@@ -55,3 +55,22 @@ export function parseDestination(text: string): RoutedDictation {
   // Strip a trailing comma left behind by "note text, to Flop".
   return { content: content.replace(/[\s,;]+$/, ''), destination };
 }
+
+/**
+ * Decide what a note typed in `home`'s capture bar should do.
+ *
+ * Routing applies to typed text as well as dictated text, and it has to:
+ * Wispr Flow injects its transcript through the accessibility service exactly
+ * as a keyboard would, so DayFeed genuinely cannot tell a dictated note from a
+ * typed one.
+ *
+ * `destination` comes back non-null only when it differs from `home`. Typing
+ * "…to Feed" while standing in Feed still strips the routing words — they were
+ * an instruction either way — but saves through the screen's own path rather
+ * than round-tripping through the cross-tab router for no reason.
+ */
+export function planTypedNote(text: string, home: VoiceDestination): RoutedDictation {
+  const { content, destination } = parseDestination(text);
+  if (!destination) return { content, destination: null };
+  return { content, destination: destination === home ? null : destination };
+}

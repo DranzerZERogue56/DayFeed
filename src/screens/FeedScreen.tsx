@@ -19,12 +19,13 @@ import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 import CaptureCameraScreen from './CaptureCameraScreen';
 import PhotosScreen from './PhotosScreen';
-import { ImagesIcon } from '../components/Icons';
+import { GearIcon, ImagesIcon } from '../components/Icons';
 import { useNotes } from '../hooks/NotesContext';
 import { useFlop } from '../hooks/FlopContext';
 import { flopTitle } from '../db/flopTypes';
 import { useAllNotes } from '../hooks/useQueries';
 import NotedUpdatesScreen from './NotedUpdatesScreen';
+import SettingsScreen from './SettingsScreen';
 import type { RecorderResult } from '../hooks/useRecorder';
 import type { RootTabParamList } from '../navigation/types';
 import { persistRecording } from '../utils/audioFiles';
@@ -52,6 +53,7 @@ export default function FeedScreen() {
   const [photosOpen, setPhotosOpen] = useState(false);
   const [sentTitle, setSentTitle] = useState<string | null>(null);
   const [updatesOpen, setUpdatesOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   // Tapping a day separator carries you into that day in the Flip notebook.
@@ -135,6 +137,16 @@ export default function FeedScreen() {
               <ImagesIcon color={colors.accent} size={18} />
               <Text style={styles.photosBtnText}>Photos</Text>
             </TouchableOpacity>
+            {/* Icon-only: "Noted-updates" and "Photos" already crowd this row,
+                and a third text pill squeezes the "DayFeed" title into an
+                ellipsis — the same trap the seventh tab label fell into. */}
+            <TouchableOpacity
+              style={styles.settingsBtn}
+              onPress={() => setSettingsOpen(true)}
+              accessibilityLabel="Open Settings"
+            >
+              <GearIcon color={colors.accent} size={18} />
+            </TouchableOpacity>
           </View>
         }
       />
@@ -172,6 +184,7 @@ export default function FeedScreen() {
           onRecorded={onRecorded}
           onPermissionDenied={onPermissionDenied}
           onOpenCamera={() => setCameraOpen(true)}
+          routing="Feed"
         />
       </KeyboardAvoidingView>
 
@@ -189,6 +202,8 @@ export default function FeedScreen() {
       <PhotosScreen visible={photosOpen} onClose={() => setPhotosOpen(false)} />
 
       <NotedUpdatesScreen visible={updatesOpen} onClose={() => setUpdatesOpen(false)} />
+
+      <SettingsScreen visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       <NoteActionsSheet
         visible={sentTitle !== null}
@@ -224,6 +239,16 @@ const makeStyles = (colors: ColorPalette) =>
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentTint,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.accentEdge,
+  },
+  settingsBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 5,
     paddingHorizontal: spacing.sm,
     borderRadius: radius.pill,

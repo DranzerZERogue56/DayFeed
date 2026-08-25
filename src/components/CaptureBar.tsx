@@ -11,6 +11,7 @@ import {
 import { useRecorder, type RecorderResult } from '../hooks/useRecorder';
 import { useMarkdownInput } from '../hooks/useMarkdownInput';
 import { useVoiceCapture } from '../hooks/VoiceCaptureContext';
+import { planTypedNote, type VoiceDestination } from '../lib/voiceRouting';
 import { formatDuration } from '../utils/date';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 import { fonts, radius, spacing, type ColorPalette } from '../theme';
@@ -26,6 +27,18 @@ interface Props {
    */
   onOpenCamera?: () => void;
   placeholder?: string;
+  /**
+   * Which tab this bar writes to. Supplying it turns on trailing-destination
+   * routing for TYPED text ("buy milk to Flop"), which has to work for typed
+   * notes and not just dictated ones: Wispr Flow injects its transcript
+   * through the accessibility service exactly as a keyboard would, so there is
+   * no way to tell a dictated note from a typed one.
+   *
+   * Omitted by FlopComposer on purpose — it creates child notes inside a tree,
+   * where "to Flop" is ambiguous and silently promoting a child to a root
+   * would be a surprise rather than a feature.
+   */
+  routing?: VoiceDestination;
 }
 
 const CANCEL_THRESHOLD = -90; // px dragged left to cancel a recording
@@ -38,13 +51,14 @@ export default function CaptureBar({
   onPermissionDenied,
   onOpenCamera,
   placeholder = 'Write a note…',
+  routing,
 }: Props) {
   const { value: text, onChangeText: setText, inputRef, setValue: setTextValue } =
     useMarkdownInput('');
   const recorder = useRecorder();
   // Actions only — this context's identity is stable, so the bar does not
   // re-render on every waveform frame while dictation is listening.
-  const { open: openDictation } = useVoiceCapture();
+  const { open: openDictation, saveRouted } = useVoiceCapture();
   const [willCancel, setWillCancel] = useState(false);
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
@@ -82,6 +96,20 @@ export default function CaptureBar({
 
   const send = () => {
     if (!canSend) return;
+    if (routing) {
+      // planTypedNote returns a destination only when it differs from this
+      // bar's own tab, so "…to Feed" typed in Feed still loses the routing
+      // words but saves through the screen's normal path.
+      const { content, destination } = planTypedNote(trimmed, routing);
+      if (destination) {
+        saveRouted(destination, content);
+        setTextValue('');
+        return;
+      }
+      onSendText(content);
+      setTextValue('');
+      return;
+    }
     onSendText(trimmed);
     setTextValue('');
   };

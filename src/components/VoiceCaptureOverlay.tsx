@@ -2,9 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  KeyboardAvoidingView,
   Modal,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -79,8 +81,17 @@ const waveStyles = StyleSheet.create({
 });
 
 export default function VoiceCaptureOverlay() {
-  const { phase, level, heard, transcript, savedTo, error } = useVoiceCaptureState();
-  const { finishNow, chooseDestination, undoSave, dismiss } = useVoiceCapture();
+  const { phase, engine, level, heard, transcript, draft, flowStalled, savedTo, error } =
+    useVoiceCaptureState();
+  const {
+    finishNow,
+    setDraft,
+    submitDraft,
+    fallBackToWhisper,
+    chooseDestination,
+    undoSave,
+    dismiss,
+  } = useVoiceCapture();
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
 
@@ -110,8 +121,60 @@ export default function VoiceCaptureOverlay() {
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={dismiss}>
-      <View style={styles.scrim}>
+      {/* "padding" on BOTH platforms: Android edge-to-edge (SDK 52+) no longer
+          resizes the window for the keyboard, so without this the field and
+          its buttons sit hidden behind it. */}
+      <KeyboardAvoidingView style={styles.scrim} behavior="padding">
         <SafeAreaView style={styles.sheet} edges={['bottom']}>
+          {phase === 'dictating' && (
+            <>
+              <Text style={styles.title}>Dictate</Text>
+              {/* The field only needs to be focused — Wispr Flow's bubble
+                  finds it through the accessibility service and injects the
+                  text itself. DayFeed never touches the mic on this path;
+                  taking it would stop Flow from recording at all.
+                  autoFocus, not a .focus() call: declarative focus is the
+                  only mechanism this codebase uses. */}
+              <TextInput
+                style={styles.field}
+                value={draft}
+                onChangeText={setDraft}
+                placeholder="Tap the Flow bubble and speak…"
+                placeholderTextColor={colors.textFaint}
+                multiline
+                autoFocus
+                textAlignVertical="top"
+              />
+              {flowStalled ? (
+                <View style={styles.stalled}>
+                  <Text style={styles.hint}>
+                    Nothing from Flow. It needs an internet connection, and its
+                    accessibility permission turned on.
+                  </Text>
+                  <TouchableOpacity style={styles.primary} onPress={fallBackToWhisper}>
+                    <Text style={styles.primaryText}>Record with whisper instead</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <Text style={styles.hint}>End with “to Feed”, “to Flop” or “to Fly”.</Text>
+              )}
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.ghost} onPress={dismiss}>
+                  <Text style={styles.ghostText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.primary}
+                  onPress={submitDraft}
+                  disabled={!draft.trim()}
+                >
+                  <Text style={[styles.primaryText, !draft.trim() && styles.primaryTextOff]}>
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
           {phase === 'listening' && (
             <>
               <Text style={styles.title}>{heard ? 'Listening…' : 'Say something'}</Text>
@@ -136,7 +199,11 @@ export default function VoiceCaptureOverlay() {
               <View style={styles.spinner}>
                 <ActivityIndicator color={colors.accent} size="large" />
               </View>
-              <Text style={styles.hint}>Running on the phone. No network involved.</Text>
+              <Text style={styles.hint}>
+                {engine === 'whisper'
+                  ? 'Running on the phone. No network involved.'
+                  : 'Filing your note.'}
+              </Text>
               {/* Whisper cannot be interrupted, so this abandons the result
                   rather than stopping the work — but without it a slow or
                   stuck transcription leaves no way off this screen. */}
@@ -183,7 +250,7 @@ export default function VoiceCaptureOverlay() {
             </>
           )}
         </SafeAreaView>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -229,6 +296,26 @@ const makeStyles = (colors: ColorPalette) =>
       height: 64,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    // maxHeight is load-bearing: an autoFocused field that grows without a cap
+    // pushes its own Cancel/Done row off screen once the keyboard is up. Fly's
+    // story editor learned this the hard way.
+    field: {
+      minHeight: 96,
+      maxHeight: 200,
+      marginTop: spacing.lg,
+      padding: spacing.md,
+      borderRadius: radius.lg,
+      backgroundColor: colors.surfaceAlt,
+      color: colors.text,
+      fontFamily: fonts.body,
+      fontSize: 16,
+      lineHeight: 24,
+    },
+    stalled: {
+      marginTop: spacing.md,
+      gap: spacing.sm,
+      alignItems: 'center',
     },
     errorIcon: {
       alignItems: 'center',
