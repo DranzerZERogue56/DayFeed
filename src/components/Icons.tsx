@@ -80,6 +80,61 @@ export function QuillIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   );
 }
 
+/** Vault field — reveal. */
+export function EyeIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={strokeWidth} />
+    </Svg>
+  );
+}
+
+/** Vault field — hide. The eye, struck through. */
+export function EyeOffIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth={strokeWidth} />
+      <Line
+        x1="4"
+        y1="20"
+        x2="20"
+        y2="4"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+/** Copy to clipboard — two sheets, one behind the other. */
+export function CopyIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="9" y="9" width="11" height="11" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M15 6.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 /** Vault — padlock. */
 export function LockIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   return (
@@ -273,6 +328,25 @@ export function CheckboxIcon({
           strokeLinejoin="round"
         />
       )}
+    </Svg>
+  );
+}
+
+/** Capture bar — dictate a note by voice (a mic inside a spoken-word arc). */
+export function DictateIcon({ size = 22, color, strokeWidth = S }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="10" y="3" width="4" height="8.5" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M6.5 10.5a5.5 5.5 0 0 0 11 0"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Line x1="12" y1="16" x2="12" y2="18" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Line x1="7" y1="20.5" x2="17" y2="20.5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path d="M3.2 7.5a7 7 0 0 1 1.4-3" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path d="M20.8 7.5a7 7 0 0 0-1.4-3" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
     </Svg>
   );
 }

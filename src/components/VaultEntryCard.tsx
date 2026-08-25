@@ -8,11 +8,13 @@ import { useStyles } from '../hooks/ThemeContext';
 interface Props {
   entry: VaultEntry;
   onOpenActions: (entry: VaultEntry) => void;
+  /** Passed through from the field pills so the screen can confirm a copy. */
+  onCopied?: (label: string) => void;
 }
 
 // The parent box: what the credentials are for, plus its two unfurl-able
 // child boxes (username, password).
-export default function VaultEntryCard({ entry, onOpenActions }: Props) {
+export default function VaultEntryCard({ entry, onOpenActions, onCopied }: Props) {
   const styles = useStyles(makeStyles);
   return (
     <View style={styles.card}>
@@ -28,8 +30,8 @@ export default function VaultEntryCard({ entry, onOpenActions }: Props) {
           <Text style={styles.kebab}>⋯</Text>
         </TouchableOpacity>
       </View>
-      <VaultFieldPill label="USERNAME" value={entry.username} />
-      <VaultFieldPill label="PASSWORD" value={entry.password} />
+      <VaultFieldPill label="USERNAME" value={entry.username} onCopied={onCopied} />
+      <VaultFieldPill label="PASSWORD" value={entry.password} onCopied={onCopied} />
     </View>
   );
 }

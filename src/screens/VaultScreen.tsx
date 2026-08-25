@@ -29,6 +29,7 @@ export default function VaultScreen() {
   const [editing, setEditing] = useState<VaultEntry | null>(null);
   const [actionsFor, setActionsFor] = useState<VaultEntry | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<VaultEntry | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   const unlock = useCallback(async () => {
     setStatus('checking');
@@ -146,7 +147,9 @@ export default function VaultScreen() {
               hint="Add a username and password for something worth remembering securely."
             />
           }
-          renderItem={({ item }) => <VaultEntryCard entry={item} onOpenActions={setActionsFor} />}
+          renderItem={({ item }) => (
+            <VaultEntryCard entry={item} onOpenActions={setActionsFor} onCopied={setCopied} />
+          )}
         />
       )}
 
@@ -172,6 +175,15 @@ export default function VaultScreen() {
           },
         ]}
         onClose={() => setActionsFor(null)}
+      />
+
+      {/* The value itself is never echoed back here — a confirmation that
+          reprinted the password would undo the masking on the card above it. */}
+      <NoteActionsSheet
+        visible={copied !== null}
+        subtitle={`${copied === 'PASSWORD' ? 'Password' : 'Username'} copied to the clipboard.`}
+        actions={[]}
+        onClose={() => setCopied(null)}
       />
 
       <NoteActionsSheet
