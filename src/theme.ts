@@ -1,11 +1,13 @@
 import { Platform } from 'react-native';
 
 // DayFeed design system — "old bookbinding": warm paper background, crisp white
-// note cards, and a bronze accent (the color of aged book spines). Calm, built
-// for long reading. v1.4 adds a dark companion: the same book after sundown —
-// deep coffee-brown leather, cream ink, brighter bronze. Components never import
-// a palette directly; they read the active one from ThemeContext.
-export const lightColors = {
+// note cards, and an accent (the color of the book's spine). Calm, built for
+// long reading. v1.4 added a dark companion: the same book after sundown —
+// deep coffee-brown leather, cream ink, brighter accent. v1.5 lets the spine
+// color itself be chosen (theme.accentThemes below) while the paper stays put.
+// Components never import a palette directly; they read the active one from
+// ThemeContext.
+const lightBase = {
   bg: '#FAF8F3', // warm off-white "paper" — never harsh white, easy on the eyes
   surface: '#FFFFFF', // crisp white for the bubbles/note cards themselves
   surfaceAlt: '#F1EEE8', // subtle warm fill for inputs, chips, tracks
@@ -15,18 +17,11 @@ export const lightColors = {
   textDim: '#6B6B6B', // muted gray for metadata / secondary
   textFaint: '#9A958C', // faint warm gray for captions / disabled
 
-  accent: '#A67C52', // warm bronze/copper — interaction, pins, active, highlights
-  accentDark: '#8B6B42', // pressed/active bronze (never a drastic change)
-  accentTint: 'rgba(166,124,82,0.10)', // washed bronze for fills/backgrounds
-  accentEdge: 'rgba(166,124,82,0.28)', // washed bronze for borders
-
   danger: '#B4473F', // muted brick red, warm-palette friendly
   success: '#5A7052', // moss green — done, finished (matches Flop's "support")
 
   // Aliases kept so existing components resolve to the new palette.
   border: '#E8E5E0', // = divider
-  voiceAccent: '#A67C52', // = accent
-  bubbleOwn: '#A67C52', // = accent (used for active chips, selected dates, agenda marks)
   bubbleOwnText: '#1A1A1A', // = text
 
   // Flip "paper" sheet (now crisp white against the warm page bg).
@@ -36,10 +31,10 @@ export const lightColors = {
   pageDim: '#9A958C',
 };
 
-export type ColorPalette = typeof lightColors;
+export type BaseTokens = typeof lightBase;
 
 // Dark mode: dark browns, not grays — the leather cover rather than a night sky.
-export const darkColors: ColorPalette = {
+const darkBase: BaseTokens = {
   bg: '#1B130C', // deep coffee leather
   surface: '#271D13', // raised card, a shade warmer/lighter
   surfaceAlt: '#32261A', // inputs, chips, tracks
@@ -49,17 +44,10 @@ export const darkColors: ColorPalette = {
   textDim: '#B5A78F', // parchment gray
   textFaint: '#847660', // faded ink
 
-  accent: '#C89B66', // brightened bronze — keeps contrast on dark brown
-  accentDark: '#A67C52',
-  accentTint: 'rgba(200,155,102,0.14)',
-  accentEdge: 'rgba(200,155,102,0.35)',
-
   danger: '#D0776C', // lifted brick red for dark surfaces
   success: '#8FA986', // moss lifted for dark leather
 
   border: '#3D2F20', // = divider
-  voiceAccent: '#C89B66', // = accent
-  bubbleOwn: '#C89B66', // = accent
   bubbleOwnText: '#EDE4D3', // = text
 
   page: '#271D13',
@@ -67,6 +55,189 @@ export const darkColors: ColorPalette = {
   pageLine: '#3D2F20',
   pageDim: '#847660',
 };
+
+// Accent — the one thing a color theme changes. Interaction, pins, active
+// state, selected chips/dates, the voice-capture ring.
+export interface AccentTokens {
+  accent: string;
+  accentDark: string; // pressed/active (never a drastic change from accent)
+  accentTint: string; // washed accent for fills/backgrounds
+  accentEdge: string; // washed accent for borders
+  voiceAccent: string; // = accent
+  bubbleOwn: string; // = accent (active chips, selected dates, agenda marks)
+}
+
+export type AccentId = 'bronze' | 'ocean' | 'forest' | 'slate' | 'amethyst' | 'blush' | 'teal';
+
+export interface AccentTheme {
+  label: string;
+  light: AccentTokens;
+  dark: AccentTokens;
+}
+
+// Six themes beyond the original bronze: three of the most-liked colors for
+// men (ocean blue, forest green, slate) and three for women (amethyst,
+// blush, teal), per common color-preference surveys. Bronze stays the
+// default so existing installs don't change look until someone picks a
+// theme in Settings.
+export const accentThemes: Record<AccentId, AccentTheme> = {
+  bronze: {
+    label: 'Bronze (original)',
+    light: {
+      accent: '#A67C52',
+      accentDark: '#8B6B42',
+      accentTint: 'rgba(166,124,82,0.10)',
+      accentEdge: 'rgba(166,124,82,0.28)',
+      voiceAccent: '#A67C52',
+      bubbleOwn: '#A67C52',
+    },
+    dark: {
+      accent: '#C89B66',
+      accentDark: '#A67C52',
+      accentTint: 'rgba(200,155,102,0.14)',
+      accentEdge: 'rgba(200,155,102,0.35)',
+      voiceAccent: '#C89B66',
+      bubbleOwn: '#C89B66',
+    },
+  },
+  ocean: {
+    label: 'Ocean',
+    light: {
+      accent: '#3E6FA6',
+      accentDark: '#335A87',
+      accentTint: 'rgba(62,111,166,0.10)',
+      accentEdge: 'rgba(62,111,166,0.28)',
+      voiceAccent: '#3E6FA6',
+      bubbleOwn: '#3E6FA6',
+    },
+    dark: {
+      accent: '#6FA0D8',
+      accentDark: '#3E6FA6',
+      accentTint: 'rgba(111,160,216,0.14)',
+      accentEdge: 'rgba(111,160,216,0.35)',
+      voiceAccent: '#6FA0D8',
+      bubbleOwn: '#6FA0D8',
+    },
+  },
+  forest: {
+    label: 'Forest',
+    light: {
+      accent: '#4C7A52',
+      accentDark: '#3D6242',
+      accentTint: 'rgba(76,122,82,0.10)',
+      accentEdge: 'rgba(76,122,82,0.28)',
+      voiceAccent: '#4C7A52',
+      bubbleOwn: '#4C7A52',
+    },
+    dark: {
+      accent: '#79AD80',
+      accentDark: '#4C7A52',
+      accentTint: 'rgba(121,173,128,0.14)',
+      accentEdge: 'rgba(121,173,128,0.35)',
+      voiceAccent: '#79AD80',
+      bubbleOwn: '#79AD80',
+    },
+  },
+  slate: {
+    label: 'Slate',
+    light: {
+      accent: '#4A5560',
+      accentDark: '#3A434C',
+      accentTint: 'rgba(74,85,96,0.10)',
+      accentEdge: 'rgba(74,85,96,0.28)',
+      voiceAccent: '#4A5560',
+      bubbleOwn: '#4A5560',
+    },
+    dark: {
+      accent: '#8FA0AC',
+      accentDark: '#4A5560',
+      accentTint: 'rgba(143,160,172,0.14)',
+      accentEdge: 'rgba(143,160,172,0.35)',
+      voiceAccent: '#8FA0AC',
+      bubbleOwn: '#8FA0AC',
+    },
+  },
+  amethyst: {
+    label: 'Amethyst',
+    light: {
+      accent: '#7C5C9E',
+      accentDark: '#654B80',
+      accentTint: 'rgba(124,92,158,0.10)',
+      accentEdge: 'rgba(124,92,158,0.28)',
+      voiceAccent: '#7C5C9E',
+      bubbleOwn: '#7C5C9E',
+    },
+    dark: {
+      accent: '#AD8BCB',
+      accentDark: '#7C5C9E',
+      accentTint: 'rgba(173,139,203,0.14)',
+      accentEdge: 'rgba(173,139,203,0.35)',
+      voiceAccent: '#AD8BCB',
+      bubbleOwn: '#AD8BCB',
+    },
+  },
+  blush: {
+    label: 'Blush',
+    light: {
+      accent: '#B4707E',
+      accentDark: '#955C68',
+      accentTint: 'rgba(180,112,126,0.10)',
+      accentEdge: 'rgba(180,112,126,0.28)',
+      voiceAccent: '#B4707E',
+      bubbleOwn: '#B4707E',
+    },
+    dark: {
+      accent: '#D99AA6',
+      accentDark: '#B4707E',
+      accentTint: 'rgba(217,154,166,0.14)',
+      accentEdge: 'rgba(217,154,166,0.35)',
+      voiceAccent: '#D99AA6',
+      bubbleOwn: '#D99AA6',
+    },
+  },
+  teal: {
+    label: 'Teal',
+    light: {
+      accent: '#3D7D79',
+      accentDark: '#326663',
+      accentTint: 'rgba(61,125,121,0.10)',
+      accentEdge: 'rgba(61,125,121,0.28)',
+      voiceAccent: '#3D7D79',
+      bubbleOwn: '#3D7D79',
+    },
+    dark: {
+      accent: '#6FB0AB',
+      accentDark: '#3D7D79',
+      accentTint: 'rgba(111,176,171,0.14)',
+      accentEdge: 'rgba(111,176,171,0.35)',
+      voiceAccent: '#6FB0AB',
+      bubbleOwn: '#6FB0AB',
+    },
+  },
+};
+
+/** Order the theme picker lists them in. */
+export const accentOrder: AccentId[] = [
+  'bronze',
+  'ocean',
+  'forest',
+  'slate',
+  'amethyst',
+  'blush',
+  'teal',
+];
+
+export type ColorPalette = BaseTokens & AccentTokens;
+
+export function makePalette(mode: 'light' | 'dark', accentId: AccentId): ColorPalette {
+  const base = mode === 'dark' ? darkBase : lightBase;
+  const accent = accentThemes[accentId][mode];
+  return { ...base, ...accent };
+}
+
+// Kept for any code that still wants the plain bronze palette directly.
+export const lightColors: ColorPalette = makePalette('light', 'bronze');
+export const darkColors: ColorPalette = makePalette('dark', 'bronze');
 
 // Flop relation colors — the one place the palette expands beyond ink and bronze.
 // Three muted, paper-compatible tones per mode. Color is never the only

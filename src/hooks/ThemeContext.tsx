@@ -9,10 +9,11 @@ import React, {
 import { StyleSheet } from 'react-native';
 import { getSetting, setSetting } from '../db/settings';
 import {
-  darkColors,
-  lightColors,
+  accentOrder,
+  makePalette,
   relationStyleDark,
   relationStyleLight,
+  type AccentId,
   type ColorPalette,
   type RelationStyleMap,
 } from '../theme';
@@ -20,24 +21,35 @@ import {
 export type ThemeMode = 'light' | 'dark';
 
 const THEME_KEY = 'themeMode';
+const ACCENT_KEY = 'themeAccent';
+
+function isAccentId(v: string | null): v is AccentId {
+  return !!v && (accentOrder as string[]).includes(v);
+}
 
 interface ThemeValue {
   mode: ThemeMode;
+  accentId: AccentId;
   colors: ColorPalette;
   relationStyle: RelationStyleMap;
   toggleMode: () => void;
+  setAccentId: (id: AccentId) => void;
 }
 
 const ThemeContext = createContext<ThemeValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>('light');
+  const [accentId, setAccentIdState] = useState<AccentId>('bronze');
 
-  // Restore the persisted choice; default stays light until the read lands
-  // (a one-frame flash at worst — the app boots behind a spinner anyway).
+  // Restore the persisted choices; defaults stay light/bronze until the read
+  // lands (a one-frame flash at worst — the app boots behind a spinner anyway).
   useEffect(() => {
     getSetting(THEME_KEY).then((v) => {
       if (v === 'dark') setMode('dark');
+    });
+    getSetting(ACCENT_KEY).then((v) => {
+      if (isAccentId(v)) setAccentIdState(v);
     });
   }, []);
 
@@ -49,14 +61,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setAccentId = useCallback((id: AccentId) => {
+    setAccentIdState(id);
+    void setSetting(ACCENT_KEY, id);
+  }, []);
+
   const value = useMemo<ThemeValue>(
     () => ({
       mode,
-      colors: mode === 'dark' ? darkColors : lightColors,
+      accentId,
+      colors: makePalette(mode, accentId),
       relationStyle: mode === 'dark' ? relationStyleDark : relationStyleLight,
       toggleMode,
+      setAccentId,
     }),
-    [mode, toggleMode],
+    [mode, accentId, toggleMode, setAccentId],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

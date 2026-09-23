@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadVoiceEngine, saveVoiceEngine, type VoiceEngine } from '../lib/voiceEngine';
-import { fonts, radius, spacing, type, type ColorPalette } from '../theme';
-import { useStyles } from '../hooks/ThemeContext';
+import { accentOrder, accentThemes, fonts, radius, spacing, type, type ColorPalette } from '../theme';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -41,6 +41,7 @@ const ENGINES: EngineOption[] = [
 // NotedUpdatesScreen is the same shape: a file in screens/ shown as an overlay.
 export default function SettingsScreen({ visible, onClose, onEngineChanged }: Props) {
   const styles = useStyles(makeStyles);
+  const { mode, accentId, setAccentId } = useTheme();
   const [engine, setEngine] = useState<VoiceEngine | null>(null);
 
   // Re-read on open rather than trusting a value from a previous visit.
@@ -67,6 +68,39 @@ export default function SettingsScreen({ visible, onClose, onEngineChanged }: Pr
         </View>
 
         <ScrollView contentContainerStyle={styles.body}>
+          <Text style={styles.sectionLabel}>COLOR THEME</Text>
+          <Text style={styles.sectionHint}>
+            The spine color — everything else stays the same warm paper, in light or dark.
+          </Text>
+
+          <View style={styles.swatchRow}>
+            {accentOrder.map((id) => {
+              const theme = accentThemes[id];
+              const swatchColor = theme[mode].accent;
+              const selected = accentId === id;
+              return (
+                <TouchableOpacity
+                  key={id}
+                  style={styles.swatchItem}
+                  onPress={() => setAccentId(id)}
+                  accessibilityLabel={`Use ${theme.label} theme`}
+                  accessibilityState={{ selected }}
+                >
+                  <View
+                    style={[
+                      styles.swatch,
+                      { backgroundColor: swatchColor },
+                      selected && styles.swatchSelected,
+                    ]}
+                  >
+                    {selected && <Text style={styles.swatchTick}>✓</Text>}
+                  </View>
+                  <Text style={styles.swatchLabel}>{theme.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           <Text style={styles.sectionLabel}>DICTATION ENGINE</Text>
           <Text style={styles.sectionHint}>
             What turns your voice into a note when you tap the dictate button.
@@ -150,6 +184,36 @@ const makeStyles = (colors: ColorPalette) =>
       lineHeight: 19,
       marginTop: spacing.xs,
       marginBottom: spacing.md,
+    },
+    swatchRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: spacing.xl,
+    },
+    swatchItem: {
+      width: '25%',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    swatch: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    swatchSelected: {
+      borderColor: colors.text,
+    },
+    swatchTick: { color: colors.surface, fontSize: 16, fontWeight: '700' },
+    swatchLabel: {
+      fontFamily: fonts.body,
+      color: colors.textDim,
+      fontSize: 11,
+      marginTop: spacing.xs,
+      textAlign: 'center',
     },
     option: {
       borderRadius: radius.lg,
