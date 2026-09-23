@@ -71,8 +71,7 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-sharing",
-      "./plugins/withReleaseSigning.js"
+      "expo-sharing"
     ]
   }
 }
