@@ -42,14 +42,11 @@ Everything below stays on your phone, in the app's private storage:
 DayFeed only asks when you use the feature that needs it, and you can turn any
 of these off in your phone's settings.
 
-## Dictation with Wispr Flow (optional)
+## Dictation
 
-In Settings you can choose Wispr Flow to speak your notes. Wispr Flow is a
-**separate app made by a different company**. If you pick it, your speech is
-sent to Wispr Flow's servers by that app to be turned into text, under their
-privacy policy, not this one. DayFeed does not see or handle that connection.
-If you would rather nothing leave your phone, choose the built-in option in
-Settings, which never sends audio anywhere.
+When you speak a note, DayFeed turns your voice into text on your phone, using
+a speech model that ships inside the app. The audio is not sent anywhere, and
+the recording is deleted once the text is made. It works with no signal.
 
 ## Backups
 

@@ -15,12 +15,6 @@ import { enqueueTranscription } from '../lib/transcribeQueue';
 import { transcribeAudio } from '../lib/transcription';
 import { deleteWav, writeWavToCache } from '../lib/wavFile';
 import { parseDestination, type VoiceDestination } from '../lib/voiceRouting';
-import {
-  DEFAULT_VOICE_ENGINE,
-  loadVoiceEngine,
-  saveVoiceEngine,
-  type VoiceEngine,
-} from '../lib/voiceEngine';
 import { createFlyNote, deleteFlyNote } from '../db/flyNotes';
 import { useNotes } from './NotesContext';
 import { useFlop } from './FlopContext';
@@ -52,22 +46,8 @@ const NO_SPEECH_MS = 6000;
 const MAX_MS = 30000;
 /** How long the undo bar stays up after a routed save. */
 const UNDO_MS = 6000;
-/**
- * How long an empty Flow field waits before offering whisper instead.
- *
- * Was 15s, on the assumption that Flow failing would be rare. It isn't: Flow's
- * bubble never arms while a VPN is up (confirmed on-device with Tailscale —
- * its overlay window stays at alpha=0 in every app, DayFeed and Android
- * Settings alike), so for anyone running one this is the normal path, not the
- * exception. 8s still leaves room to tap the bubble and start a sentence,
- * without making a routine failure feel like a hang.
- */
-const FLOW_IDLE_MS = 8000;
-
 export type VoicePhase =
   | 'idle'
-  /** Flow mode: field focused, waiting for Flow to inject text. No mic held. */
-  | 'dictating'
   | 'listening'
   | 'transcribing'
   | 'confirming'
@@ -76,18 +56,12 @@ export type VoicePhase =
 
 export interface VoiceCaptureState {
   phase: VoicePhase;
-  /** Which engine this session is running. */
-  engine: VoiceEngine;
   /** Live mic level 0..1 while listening, for the waveform. */
   level: number;
   /** Whether any speech has been heard yet this session. */
   heard: boolean;
   /** The transcript, once there is one. */
   transcript: string;
-  /** Editable text in the Flow dictation field. */
-  draft: string;
-  /** True once Flow has sat silent long enough to offer whisper instead. */
-  flowStalled: boolean;
   /** Where the note was filed, once it has been. */
   savedTo: VoiceDestination | null;
   error: string | null;
@@ -98,14 +72,6 @@ export interface VoiceCaptureActions {
   open: () => void;
   /** Stop listening early and transcribe what we have. */
   finishNow: () => void;
-  /** Edit the Flow dictation field. */
-  setDraft: (text: string) => void;
-  /** Route and save whatever is in the Flow dictation field. */
-  submitDraft: () => void;
-  /** Abandon Flow for this one session and record with whisper instead. */
-  fallBackToWhisper: () => void;
-  /** Same, but also make whisper the saved default from now on. */
-  alwaysUseWhisper: () => void;
   /** File the pending transcript in `destination`. */
   chooseDestination: (destination: VoiceDestination) => void;
   /** File `content` in `destination` directly — used by typed routing. */
@@ -118,12 +84,9 @@ export interface VoiceCaptureActions {
 
 const IDLE: VoiceCaptureState = {
   phase: 'idle',
-  engine: DEFAULT_VOICE_ENGINE,
   level: 0,
   heard: false,
   transcript: '',
-  draft: '',
-  flowStalled: false,
   savedTo: null,
   error: null,
 };
@@ -142,13 +105,11 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
   // actions context value stable across a listening session.
   const phaseRef = useRef<VoicePhase>('idle');
   const transcriptRef = useRef('');
-  const draftRef = useRef('');
   const undoRef = useRef<(() => Promise<void>) | null>(null);
 
   const patch = useCallback((next: Partial<VoiceCaptureState>) => {
     if (next.phase) phaseRef.current = next.phase;
     if (next.transcript !== undefined) transcriptRef.current = next.transcript;
-    if (next.draft !== undefined) draftRef.current = next.draft;
     setState((prev) => ({ ...prev, ...next }));
   }, []);
 
@@ -318,7 +279,7 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     heardRef.current = false;
     chunksRef.current = [];
     endpointerRef.current.reset();
-    patch({ phase: 'listening', engine: 'whisper', level: 0, heard: false, flowStalled: false });
+    patch({ phase: 'listening', level: 0, heard: false });
 
     void (async () => {
       if (!(await ensureMicPermission())) {
@@ -345,67 +306,17 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     })();
   }, [clearTimers, patch, later, stopListening, onChunk]);
 
-  /**
-   * Open the dictation field and let Wispr Flow fill it.
-   *
-   * Deliberately never touches micBus. Flow needs the microphone to record,
-   * and DayFeed holding it is the one thing that would break this outright.
-   */
-  const startFlow = useCallback(() => {
-    clearTimers();
-    patch({ phase: 'dictating', engine: 'flow', draft: '', flowStalled: false, level: 0 });
-    later(() => {
-      // Flow uninstalled, its accessibility service off, or no connection —
-      // all of which look identical from here: an empty field.
-      if (phaseRef.current === 'dictating' && !draftRef.current.trim()) {
-        patch({ flowStalled: true });
-      }
-    }, FLOW_IDLE_MS);
-  }, [clearTimers, patch, later]);
-
   const open = useCallback(() => {
     const phase = phaseRef.current;
-    if (
-      phase === 'listening' ||
-      phase === 'dictating' ||
-      phase === 'transcribing' ||
-      phase === 'confirming'
-    ) {
+    if (phase === 'listening' || phase === 'transcribing' || phase === 'confirming') {
       return;
     }
     clearTimers();
     sessionRef.current += 1;
     undoRef.current = null;
-    draftRef.current = '';
     setState(IDLE);
-
-    void (async () => {
-      const engine = await loadVoiceEngine();
-      if (engine === 'flow') startFlow();
-      else startWhisper();
-    })();
-  }, [clearTimers, startFlow, startWhisper]);
-
-  /** Give up on Flow for this session only — the saved setting is untouched. */
-  const fallBackToWhisper = useCallback(() => {
-    patch({ draft: '', flowStalled: false });
     startWhisper();
-  }, [patch, startWhisper]);
-
-  /**
-   * Give up on Flow for good, from the point of failure.
-   *
-   * The moment you discover Flow isn't working is the moment you know you want
-   * to stop using it, and it is the worst possible time to be sent hunting
-   * through a settings screen. Writing the setting from here means the next
-   * dictation just records, with no dead wait at all.
-   */
-  const alwaysUseWhisper = useCallback(() => {
-    void saveVoiceEngine('whisper');
-    fallBackToWhisper();
-  }, [fallBackToWhisper]);
-
-  const setDraft = useCallback((text: string) => patch({ draft: text }), [patch]);
+  }, [clearTimers, startWhisper]);
 
   const dismiss = useCallback(() => {
     stopListening();
@@ -416,7 +327,6 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     undoRef.current = null;
     phaseRef.current = 'idle';
     transcriptRef.current = '';
-    draftRef.current = '';
     setState(IDLE);
   }, [stopListening, clearTimers]);
 
@@ -431,32 +341,10 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
   );
 
   /**
-   * Route and save whatever Flow put in the field.
-   *
-   * The field is editable, so this is also the path for a hand-corrected
-   * transcript — a small advantage Flow mode has over the whisper branch,
-   * where the transcript is read-only by the time you see it.
-   */
-  const submitDraft = useCallback(() => {
-    const { content, destination } = parseDestination(draftRef.current);
-    if (!content) {
-      patch({ phase: 'error', error: "There's nothing to save." });
-      return;
-    }
-    clearTimers();
-    patch({ transcript: content, flowStalled: false });
-    if (!destination) {
-      patch({ phase: 'confirming' });
-      return;
-    }
-    void commit(destination, content);
-  }, [patch, clearTimers, commit]);
-
-  /**
    * File a note that was routed from a typed capture bar rather than the sheet.
    *
    * Shares commit() so the undo bar behaves identically whether the routing
-   * words were spoken, injected by Flow, or typed by hand.
+   * words were spoken or typed by hand.
    */
   const saveRouted = useCallback(
     (destination: VoiceDestination, content: string) => {
@@ -480,7 +368,6 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     clearTimers();
     phaseRef.current = 'idle';
     transcriptRef.current = '';
-    draftRef.current = '';
     setState(IDLE);
     void undo().catch(() => {
       // The note stays; the user can delete it by hand. Re-opening the bar to
@@ -513,10 +400,6 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     () => ({
       open,
       finishNow,
-      setDraft,
-      submitDraft,
-      fallBackToWhisper,
-      alwaysUseWhisper,
       chooseDestination,
       saveRouted,
       undoSave,
@@ -525,10 +408,6 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
     [
       open,
       finishNow,
-      setDraft,
-      submitDraft,
-      fallBackToWhisper,
-      alwaysUseWhisper,
       chooseDestination,
       saveRouted,
       undoSave,

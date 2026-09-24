@@ -29,10 +29,8 @@ interface Props {
   placeholder?: string;
   /**
    * Which tab this bar writes to. Supplying it turns on trailing-destination
-   * routing for TYPED text ("buy milk to Flop"), which has to work for typed
-   * notes and not just dictated ones: Wispr Flow injects its transcript
-   * through the accessibility service exactly as a keyboard would, so there is
-   * no way to tell a dictated note from a typed one.
+   * routing for TYPED text ("buy milk to Flop"), the same shortcut as saying
+   * it aloud.
    *
    * Omitted by FlopComposer on purpose — it creates child notes inside a tree,
    * where "to Flop" is ambiguous and silently promoting a child to a root

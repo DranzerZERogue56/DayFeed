@@ -40,14 +40,14 @@ DayFeed has no internet permission and sends nothing anywhere itself.
 | Is data encrypted in transit? | Not applicable (no transit). |
 | Can users request data deletion? | Uninstalling deletes everything. |
 
-Two things to be honest about in the free-text or review notes if asked:
+One thing to be upfront about if a reviewer asks:
 
-- **Wispr Flow** is a separate app the user can choose for dictation. It sends
-  speech to its own servers. DayFeed does not send or receive it. The Settings
-  screen already says this.
 - **Android Auto Backup** may copy notes and photos to the user's own Google
   account. Google treats this as the user's device backup, not developer
   collection.
+
+Speech-to-text runs on the phone with a bundled model, so dictation sends no
+audio anywhere.
 
 ## Permissions (declared in the app)
 

@@ -33,6 +33,7 @@ interface ThemeValue {
   colors: ColorPalette;
   relationStyle: RelationStyleMap;
   toggleMode: () => void;
+  setMode: (mode: ThemeMode) => void;
   setAccentId: (id: AccentId) => void;
 }
 
@@ -61,6 +62,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setModeAndSave = useCallback((next: ThemeMode) => {
+    setMode(next);
+    void setSetting(THEME_KEY, next);
+  }, []);
+
   const setAccentId = useCallback((id: AccentId) => {
     setAccentIdState(id);
     void setSetting(ACCENT_KEY, id);
@@ -73,9 +79,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       colors: makePalette(mode, accentId),
       relationStyle: makeRelationStyle(mode, accentId),
       toggleMode,
+      setMode: setModeAndSave,
       setAccentId,
     }),
-    [mode, accentId, toggleMode, setAccentId],
+    [mode, accentId, toggleMode, setModeAndSave, setAccentId],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
