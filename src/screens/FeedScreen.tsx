@@ -24,7 +24,6 @@ import { useNotes } from '../hooks/NotesContext';
 import { useFlop } from '../hooks/FlopContext';
 import { flopTitle } from '../db/flopTypes';
 import { useAllNotes } from '../hooks/useQueries';
-import NotedUpdatesScreen from './NotedUpdatesScreen';
 import SettingsScreen from './SettingsScreen';
 import type { RecorderResult } from '../hooks/useRecorder';
 import type { RootTabParamList } from '../navigation/types';
@@ -52,7 +51,6 @@ export default function FeedScreen() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [photosOpen, setPhotosOpen] = useState(false);
   const [sentTitle, setSentTitle] = useState<string | null>(null);
-  const [updatesOpen, setUpdatesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -124,22 +122,15 @@ export default function FeedScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.photosBtn}
-              onPress={() => setUpdatesOpen(true)}
-              accessibilityLabel="Open Noted-updates"
-            >
-              <Text style={styles.photosBtnText}>Noted-updates</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.photosBtn}
               onPress={() => setPhotosOpen(true)}
               accessibilityLabel="View photo notes"
             >
               <ImagesIcon color={colors.accent} size={18} />
               <Text style={styles.photosBtnText}>Photos</Text>
             </TouchableOpacity>
-            {/* Icon-only: "Noted-updates" and "Photos" already crowd this row,
-                and a third text pill squeezes the "DayFeed" title into an
-                ellipsis — the same trap the seventh tab label fell into. */}
+            {/* Icon-only: a second text pill next to "Photos" squeezes the
+                "DayFeed" title into an ellipsis — the same trap the seventh
+                tab label fell into. */}
             <TouchableOpacity
               style={styles.settingsBtn}
               onPress={() => setSettingsOpen(true)}
@@ -201,7 +192,6 @@ export default function FeedScreen() {
 
       <PhotosScreen visible={photosOpen} onClose={() => setPhotosOpen(false)} />
 
-      <NotedUpdatesScreen visible={updatesOpen} onClose={() => setUpdatesOpen(false)} />
 
       <SettingsScreen visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
 

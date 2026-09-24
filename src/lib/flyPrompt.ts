@@ -1,8 +1,7 @@
 // Building the clipboard payload that turns a Fly day into a story.
 //
-// Kept apart from the database module so it stays pure and testable, for the
-// same reason lib/notedUpdates.ts is: this is the bit whose exact output
-// matters, because it lands in a prompt.
+// Kept apart from the database module so it stays pure and testable: this is
+// the bit whose exact output matters, because it lands in a prompt.
 //
 // The story itself is generated outside the app. DayFeed is offline by
 // identity, and bundling a language model would add most of a gigabyte to an
@@ -42,8 +41,7 @@ function entryText(note: FlyNote): string | null {
  * to a model like a moment that mattered but wasn't described.
  *
  * Continuation lines are indented under the first, so a multi-line note stays
- * one entry instead of dissolving into the next — the same reason
- * notedUpdatesToClipboard indents.
+ * one entry instead of dissolving into the next.
  */
 export function buildFlyClipboard(
   prompt: string,

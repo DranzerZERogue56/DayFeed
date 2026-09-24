@@ -13,7 +13,7 @@ import FlopStack from './FlopStack';
 import FlyScreen from '../screens/FlyScreen';
 import VaultScreen from '../screens/VaultScreen';
 import type { RootTabParamList } from './types';
-import { useTheme } from '../hooks/ThemeContext';
+import { useTheme, withTabAccent } from '../hooks/ThemeContext';
 import TabSwipeBar from '../components/TabSwipeBar';
 import {
   BookStackIcon,
@@ -28,6 +28,15 @@ import {
 import { fonts } from '../theme';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+
+// Every tab gets its own color inside its screen as well as on its icon.
+const FeedTab = withTabAccent(FeedScreen, 'tabFeed');
+const FlipTab = withTabAccent(FlipScreen, 'tabFlip');
+const FlopTab = withTabAccent(FlopStack, 'tabFlop');
+const FlyTab = withTabAccent(FlyScreen, 'tabFly');
+const AgendaTab = withTabAccent(AgendaScreen, 'tabAgenda');
+const AllTab = withTabAccent(AllNotesScreen, 'tabAll');
+const VaultTab = withTabAccent(VaultScreen, 'tabVault');
 
 const icon =
   (Glyph: (p: IconProps) => React.JSX.Element) =>
@@ -79,12 +88,11 @@ export default function RootTabs() {
         },
       }}
     >
-      {/* Feed, Flip, Flop and Fly each take one color of the active theme's
-          scheme, so the tab you're on is recognizable without reading it.
-          Agenda, All and Vault are lookups, and stay on the spine color. */}
+      {/* Each tab takes its own color from the active theme's scheme, so the
+          tab you're on is recognizable without reading it. */}
       <Tab.Screen
         name="Feed"
-        component={FeedScreen}
+        component={FeedTab}
         options={{
           tabBarIcon: icon(SpeechBubbleIcon),
           tabBarLabel: 'Feed',
@@ -93,7 +101,7 @@ export default function RootTabs() {
       />
       <Tab.Screen
         name="Flip"
-        component={FlipScreen}
+        component={FlipTab}
         options={{
           tabBarIcon: icon(OpenBookIcon),
           tabBarLabel: 'Flip',
@@ -103,7 +111,7 @@ export default function RootTabs() {
       {/* Flop is its own world: a stack, not a screen, so it can drill in. */}
       <Tab.Screen
         name="Flop"
-        component={FlopStack}
+        component={FlopTab}
         options={{
           tabBarIcon: icon(BookStackIcon),
           tabBarLabel: 'Flop',
@@ -112,7 +120,7 @@ export default function RootTabs() {
       />
       <Tab.Screen
         name="Fly"
-        component={FlyScreen}
+        component={FlyTab}
         options={{
           tabBarIcon: icon(QuillIcon),
           tabBarLabel: 'Fly',
@@ -121,20 +129,32 @@ export default function RootTabs() {
       />
       <Tab.Screen
         name="Agenda"
-        component={AgendaScreen}
-        options={{ tabBarIcon: icon(CalendarIcon), tabBarLabel: 'Agenda' }}
+        component={AgendaTab}
+        options={{
+          tabBarIcon: icon(CalendarIcon),
+          tabBarLabel: 'Agenda',
+          tabBarActiveTintColor: colors.tabAgenda,
+        }}
       />
       <Tab.Screen
         name="All"
-        component={AllNotesScreen}
+        component={AllTab}
         // 'All', not 'View All': the Fly tab makes seven, and at that width
         // Android truncated the longer label to "View ...".
-        options={{ tabBarIcon: icon(CardStackIcon), tabBarLabel: 'All' }}
+        options={{
+          tabBarIcon: icon(CardStackIcon),
+          tabBarLabel: 'All',
+          tabBarActiveTintColor: colors.tabAll,
+        }}
       />
       <Tab.Screen
         name="Vault"
-        component={VaultScreen}
-        options={{ tabBarIcon: icon(LockIcon), tabBarLabel: 'Vault' }}
+        component={VaultTab}
+        options={{
+          tabBarIcon: icon(LockIcon),
+          tabBarLabel: 'Vault',
+          tabBarActiveTintColor: colors.tabVault,
+        }}
       />
     </Tab.Navigator>
   );

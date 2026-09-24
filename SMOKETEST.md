@@ -269,28 +269,12 @@ note it under **Findings** at the bottom with the step number.
 - [ ] Install **over** v1.5.5 rather than fresh → existing Flop notes, stream notes, Vault entries and reminders all survive the v8 migration, and the FILES section appears empty on old notes.
 
 
-## 23. v1.7 — Noted-updates
+## 23. v1.7 — Noted-updates (removed)
 
-- [ ] Feed header shows **Noted-updates** where ★ Export used to be; tapping it opens the overlay.
-- [ ] Empty state explains what the list is for.
-- [ ] Type an update, tap **Add** → it appears numbered 1, and the composer clears.
-- [ ] Add two more → they number 2 and 3 in the order written, oldest at the top.
-- [ ] A multi-line update keeps its line breaks in the list.
-- [ ] **Copy all** → a notice confirms the count; paste elsewhere and check it is a numbered list, continuation lines indented under their first line.
-- [ ] Tap × on an update → it goes, and the remaining ones renumber.
-- [ ] **Clear** asks first; confirming empties the list.
-- [ ] Copy all and Clear are both disabled (dimmed) when the list is empty.
-- [ ] Close and reopen the overlay → the updates are still there.
-- [ ] Force-quit the app and reopen → still there (the v9 table persisted).
-- [ ] Keyboard does not cover the composer while typing.
-- [ ] Check the overlay in both light and dark themes.
+The Noted-updates screen and its Feed header button were removed. Nothing to test here; the checks that remain:
 
-Removals — confirm nothing is left behind:
-
-- [ ] No ★ in the capture bar.
-- [ ] Long-pressing a note shows Edit / Copy / Flop / Delete, with **no** Tag option.
-- [ ] No ★ marker in any note's footer.
-- [ ] Upgrading from v1.7.0 in place keeps existing notes (the v9 migration only adds a table).
+- [ ] Feed header shows Photos and the settings icon only — no Noted-updates button.
+- [ ] Upgrading in place keeps existing notes.
 
 ## 24. v1.8 — animated launch screen
 

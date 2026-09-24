@@ -108,10 +108,10 @@ CREATE TABLE IF NOT EXISTS flop_attachments (
 CREATE INDEX IF NOT EXISTS idx_flop_attach_note ON flop_attachments (flop_id);
 `;
 
-// v1.7: Noted-updates — a scratch list for notes destined for a Claude prompt.
-// Deliberately its own table rather than a flag on `notes`: these are written
-// to be copied out and then cleared, and they should not appear in the Feed,
-// the Agenda, or search along with everything else.
+// v1.7: created the table behind the Noted-updates screen. That screen has
+// since been removed, but the migration stays: installs already at v9 have run
+// it, and a fresh install still needs the version numbers to line up. The table
+// is no longer read or written.
 const MIGRATION_V9 = `
 CREATE TABLE IF NOT EXISTS noted_updates (
   id TEXT PRIMARY KEY NOT NULL,
@@ -142,9 +142,9 @@ CREATE INDEX IF NOT EXISTS idx_detected_completed ON detected_dates (completed_a
 // v1.12: Fly — a daily journal captured across the day, then consolidated into
 // one story per day.
 //
-// Its own tables rather than a flag on `notes`, for the same reason
-// noted_updates has its own (MIGRATION_V9): Fly entries are a separate journal
-// and must not appear in the Feed, the Agenda, search, or the expiry sweep.
+// Its own tables rather than a flag on `notes`: Fly entries are a separate
+// journal and must not appear in the Feed, the Agenda, search, or the expiry
+// sweep.
 //
 // fly_stories is keyed by day_key rather than an id — a day has exactly one
 // story, so regenerating it is an upsert rather than a delete-then-insert.

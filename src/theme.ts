@@ -12,12 +12,17 @@ import { contrastRatio, hsl, hsla } from './lib/color';
 // the ink itself all shift to the theme's hue, so Ocean reads as a cool blue
 // notebook rather than the same cream one with blue buttons.
 //
-// Each theme is also a small scheme rather than a single color. Four colors:
+// Each theme is also a small scheme rather than a single color: seven, one for
+// each tab, so the tab you are on has its own color both on its icon and
+// throughout its screen.
 //
-//   primary    the spine — buttons, pins, selected dates, the voice ring
-//   secondary  a green-leaning partner — "Support" relations, the Flip tab
-//   tertiary   a red-leaning partner — "Oppose" relations, the Flop tab
-//   quaternary one more, off on its own — the Fly tab
+//   primary    the spine — Feed, and buttons, pins, selected dates, the voice ring
+//   secondary  a green-leaning partner — Flip, and "Support" relations
+//   tertiary   a red-leaning partner — Flop, and "Oppose" relations
+//   quaternary Fly
+//   quinary    Agenda
+//   senary     All
+//   septenary  Vault
 //
 // Support stays greenish and Oppose reddish in every theme, so the meaning
 // survives a theme change. Color is never the only signal anyway: each of
@@ -43,6 +48,9 @@ export interface ThemeSeeds {
   secondary: Seed;
   tertiary: Seed;
   quaternary: Seed;
+  quinary: Seed;
+  senary: Seed;
+  septenary: Seed;
 }
 
 export type AccentId = 'bronze' | 'ocean' | 'forest' | 'slate' | 'amethyst' | 'blush' | 'teal';
@@ -60,6 +68,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 104, s: 16 },
     tertiary: { h: 6, s: 33 },
     quaternary: { h: 200, s: 24 },
+    quinary: { h: 265, s: 22 },
+    senary: { h: 45, s: 40 },
+    septenary: { h: 330, s: 22 },
   },
   ocean: {
     label: 'Ocean',
@@ -67,6 +78,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 168, s: 38 },
     tertiary: { h: 8, s: 52 },
     quaternary: { h: 262, s: 38 },
+    quinary: { h: 42, s: 55 },
+    senary: { h: 320, s: 38 },
+    septenary: { h: 100, s: 34 },
   },
   forest: {
     label: 'Forest',
@@ -74,6 +88,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 88, s: 32 },
     tertiary: { h: 14, s: 48 },
     quaternary: { h: 196, s: 34 },
+    quinary: { h: 268, s: 30 },
+    senary: { h: 45, s: 50 },
+    septenary: { h: 335, s: 38 },
   },
   slate: {
     label: 'Slate',
@@ -81,6 +98,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 150, s: 22 },
     tertiary: { h: 6, s: 38 },
     quaternary: { h: 268, s: 22 },
+    quinary: { h: 40, s: 40 },
+    senary: { h: 330, s: 25 },
+    septenary: { h: 180, s: 30 },
   },
   amethyst: {
     label: 'Amethyst',
@@ -88,6 +108,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 158, s: 30 },
     tertiary: { h: 342, s: 45 },
     quaternary: { h: 205, s: 36 },
+    quinary: { h: 32, s: 55 },
+    senary: { h: 62, s: 40 },
+    septenary: { h: 120, s: 28 },
   },
   blush: {
     label: 'Blush',
@@ -95,6 +118,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 140, s: 28 },
     tertiary: { h: 18, s: 55 },
     quaternary: { h: 285, s: 34 },
+    quinary: { h: 48, s: 55 },
+    senary: { h: 200, s: 40 },
+    septenary: { h: 85, s: 30 },
   },
   teal: {
     label: 'Teal',
@@ -102,6 +128,9 @@ export const themeSeeds: Record<AccentId, ThemeSeeds> = {
     secondary: { h: 110, s: 28 },
     tertiary: { h: 356, s: 45 },
     quaternary: { h: 218, s: 36 },
+    quinary: { h: 40, s: 55 },
+    senary: { h: 290, s: 30 },
+    septenary: { h: 70, s: 40 },
   },
 };
 
@@ -272,12 +301,15 @@ export interface TabTokens {
   tabFlip: string;
   tabFlop: string;
   tabFly: string;
+  tabAgenda: string;
+  tabAll: string;
+  tabVault: string;
 }
 
 export type ColorPalette = BaseTokens & AccentTokens & TabTokens;
 
 function makeThemePalette(seeds: ThemeSeeds, ladder: Ladder): ColorPalette {
-  const { primary, secondary, tertiary, quaternary } = seeds;
+  const { primary, secondary, tertiary, quaternary, quinary, senary, septenary } = seeds;
   const mode = ladder.mode;
 
   const bg = step(primary, ladder.bg);
@@ -355,6 +387,9 @@ function makeThemePalette(seeds: ThemeSeeds, ladder: Ladder): ColorPalette {
     tabFlip: tone(secondary, ladder.accentL, surface, MIN_ACCENT, mode),
     tabFlop: tone(tertiary, ladder.accentL, surface, MIN_ACCENT, mode),
     tabFly: tone(quaternary, ladder.accentL, surface, MIN_ACCENT, mode),
+    tabAgenda: tone(quinary, ladder.accentL, surface, MIN_ACCENT, mode),
+    tabAll: tone(senary, ladder.accentL, surface, MIN_ACCENT, mode),
+    tabVault: tone(septenary, ladder.accentL, surface, MIN_ACCENT, mode),
   };
 }
 
@@ -394,6 +429,9 @@ const bronzeLight: ColorPalette = {
   tabFlip: '#5A7052',
   tabFlop: '#94524A',
   tabFly: '#4E7382',
+  tabAgenda: '#7A6494',
+  tabAll: '#9A7B2E',
+  tabVault: '#8A5A6E',
 };
 
 // Dark mode: dark browns, not grays — the leather cover rather than a night sky.
@@ -429,6 +467,9 @@ const bronzeDark: ColorPalette = {
   tabFlip: '#8FA986',
   tabFlop: '#D0877D',
   tabFly: '#8FB2C2',
+  tabAgenda: '#A78BC4',
+  tabAll: '#C9A54A',
+  tabVault: '#C48AA0',
 };
 
 export interface AccentTheme {
@@ -457,10 +498,10 @@ export function makePalette(mode: 'light' | 'dark', accentId: AccentId): ColorPa
   return accentThemes[accentId][mode];
 }
 
-/** The scheme's four colors, for the Settings picker swatches. */
+/** The scheme's seven tab colors, for the Settings picker swatches. */
 export function themeSwatch(accentId: AccentId, mode: 'light' | 'dark'): string[] {
   const p = makePalette(mode, accentId);
-  return [p.tabFeed, p.tabFlip, p.tabFlop, p.tabFly];
+  return [p.tabFeed, p.tabFlip, p.tabFlop, p.tabFly, p.tabAgenda, p.tabAll, p.tabVault];
 }
 
 // Kept for any code that still wants the plain bronze palette directly.

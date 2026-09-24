@@ -3,10 +3,9 @@ import { getDb } from './connection';
 import { dayKeyFromMs } from '../utils/date';
 import type { FlyNote, NewFlyNoteInput } from './flyTypes';
 
-// Fly entries live in their own table rather than in `notes`, for the same
-// reason `noted_updates` does (see MIGRATION_V9): they must not surface in the
-// Feed, the Agenda, search, or the expiry sweep. A Fly day is a journal, not a
-// stream — the two are kept apart on purpose.
+// Fly entries live in their own table rather than in `notes`: they must not
+// surface in the Feed, the Agenda, search, or the expiry sweep. A Fly day is a
+// journal, not a stream — the two are kept apart on purpose.
 
 /** Insert a Fly entry. id/created_at/day_key are derived here. */
 export async function createFlyNote(input: NewFlyNoteInput): Promise<FlyNote> {

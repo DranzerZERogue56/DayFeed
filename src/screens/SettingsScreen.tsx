@@ -47,7 +47,6 @@ const ENGINES: EngineOption[] = [
 // Settings. A screen rather than a sheet, but presented as a full-screen modal
 // from Feed's header — the tab bar is full at seven, and RootTabs already
 // records that the seventh truncated "View All" to "View …".
-// NotedUpdatesScreen is the same shape: a file in screens/ shown as an overlay.
 export default function SettingsScreen({ visible, onClose, onEngineChanged }: Props) {
   const styles = useStyles(makeStyles);
   const { mode, accentId, setAccentId } = useTheme();
@@ -80,15 +79,15 @@ export default function SettingsScreen({ visible, onClose, onEngineChanged }: Pr
           <Text style={styles.sectionLabel}>COLOR THEME</Text>
           <Text style={styles.sectionHint}>
             Recolors the whole app — the page, the cards and the ink, not just the buttons.
-            Each theme is four colors: one for the page and the buttons, and one each for
-            Flip, Flop and Fly. Bronze is the original look.
+            Each theme has seven colors, one for each tab, shown when you're on it.
+            Bronze is the original look.
           </Text>
 
           <View style={styles.swatchRow}>
             {accentOrder.map((id) => {
               const theme = accentThemes[id];
               const palette = theme[mode];
-              // The tile is the theme's own page color with its four scheme
+              // The tile is the theme's own page color with its seven scheme
               // colors sitting on it — what you'd actually be switching to,
               // rather than a single dot that can't show the difference.
               const scheme = themeSwatch(id, mode);
@@ -218,7 +217,7 @@ const makeStyles = (colors: ColorPalette) =>
       marginBottom: spacing.md,
     },
     swatch: {
-      width: 64,
+      width: 96,
       height: 52,
       borderRadius: radius.md,
       alignItems: 'center',
@@ -230,8 +229,8 @@ const makeStyles = (colors: ColorPalette) =>
       gap: 4,
     },
     swatchDot: {
-      width: 9,
-      height: 9,
+      width: 10,
+      height: 10,
       borderRadius: radius.pill,
     },
     swatchTick: {
