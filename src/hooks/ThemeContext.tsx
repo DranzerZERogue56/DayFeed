@@ -11,8 +11,7 @@ import { getSetting, setSetting } from '../db/settings';
 import {
   accentOrder,
   makePalette,
-  relationStyleDark,
-  relationStyleLight,
+  makeRelationStyle,
   type AccentId,
   type ColorPalette,
   type RelationStyleMap,
@@ -71,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       mode,
       accentId,
       colors: makePalette(mode, accentId),
-      relationStyle: mode === 'dark' ? relationStyleDark : relationStyleLight,
+      relationStyle: makeRelationStyle(mode, accentId),
       toggleMode,
       setAccentId,
     }),

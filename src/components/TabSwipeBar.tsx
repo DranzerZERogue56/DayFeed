@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { PanResponder, StyleSheet, View } from 'react-native';
 import { spacing, type ColorPalette } from '../theme';
-import { useStyles } from '../hooks/ThemeContext';
+import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 const SWIPE_THRESHOLD = 36;
 const DOT_SIZE = 6;
@@ -19,6 +19,8 @@ interface Props {
 // as a position indicator — the active one stretches into a pill.
 export default function TabSwipeBar({ activeIndex, count, onNavigate }: Props) {
   const styles = useStyles(makeStyles);
+  const { colors } = useTheme();
+  const dotColors = [colors.tabFeed, colors.tabFlip, colors.tabFlop, colors.tabFly];
   // PanResponder captures the gesture once at mount; read the live index
   // through a ref so onPanResponderRelease always sees the current page.
   const indexRef = useRef(activeIndex);
@@ -56,7 +58,16 @@ export default function TabSwipeBar({ activeIndex, count, onNavigate }: Props) {
     >
       <View style={styles.track}>
         {Array.from({ length: count }).map((_, i) => (
-          <View key={i} style={[styles.dot, i === activeIndex && styles.dotActive]} />
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              i === activeIndex && styles.dotActive,
+              // The stretched dot takes the color of the tab it stands for,
+              // so the strip reads as the same four colors as the tab bar.
+              i === activeIndex && dotColors[i] ? { backgroundColor: dotColors[i] } : null,
+            ]}
+          />
         ))}
       </View>
     </View>

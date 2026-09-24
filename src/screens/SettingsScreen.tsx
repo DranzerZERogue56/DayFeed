@@ -2,7 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadVoiceEngine, saveVoiceEngine, type VoiceEngine } from '../lib/voiceEngine';
-import { accentOrder, accentThemes, fonts, radius, spacing, type, type ColorPalette } from '../theme';
+import {
+  accentOrder,
+  accentThemes,
+  fonts,
+  radius,
+  spacing,
+  themeSwatch,
+  type,
+  type ColorPalette,
+} from '../theme';
 import { useStyles, useTheme } from '../hooks/ThemeContext';
 
 interface Props {
@@ -70,13 +79,19 @@ export default function SettingsScreen({ visible, onClose, onEngineChanged }: Pr
         <ScrollView contentContainerStyle={styles.body}>
           <Text style={styles.sectionLabel}>COLOR THEME</Text>
           <Text style={styles.sectionHint}>
-            The spine color — everything else stays the same warm paper, in light or dark.
+            Recolors the whole app — the page, the cards and the ink, not just the buttons.
+            Each theme is four colors: one for the page and the buttons, and one each for
+            Flip, Flop and Fly. Bronze is the original look.
           </Text>
 
           <View style={styles.swatchRow}>
             {accentOrder.map((id) => {
               const theme = accentThemes[id];
-              const swatchColor = theme[mode].accent;
+              const palette = theme[mode];
+              // The tile is the theme's own page color with its four scheme
+              // colors sitting on it — what you'd actually be switching to,
+              // rather than a single dot that can't show the difference.
+              const scheme = themeSwatch(id, mode);
               const selected = accentId === id;
               return (
                 <TouchableOpacity
@@ -89,11 +104,18 @@ export default function SettingsScreen({ visible, onClose, onEngineChanged }: Pr
                   <View
                     style={[
                       styles.swatch,
-                      { backgroundColor: swatchColor },
-                      selected && styles.swatchSelected,
+                      { backgroundColor: palette.bg, borderColor: palette.divider },
+                      selected && { borderColor: palette.accent },
                     ]}
                   >
-                    {selected && <Text style={styles.swatchTick}>✓</Text>}
+                    <View style={styles.swatchDots}>
+                      {scheme.map((c, i) => (
+                        <View key={i} style={[styles.swatchDot, { backgroundColor: c }]} />
+                      ))}
+                    </View>
+                    {selected && (
+                      <Text style={[styles.swatchTick, { color: palette.accent }]}>✓</Text>
+                    )}
                   </View>
                   <Text style={styles.swatchLabel}>{theme.label}</Text>
                 </TouchableOpacity>
@@ -191,23 +213,32 @@ const makeStyles = (colors: ColorPalette) =>
       marginBottom: spacing.xl,
     },
     swatchItem: {
-      width: '25%',
+      width: '33.33%',
       alignItems: 'center',
       marginBottom: spacing.md,
     },
     swatch: {
-      width: 44,
-      height: 44,
-      borderRadius: radius.pill,
+      width: 64,
+      height: 52,
+      borderRadius: radius.md,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 2,
-      borderColor: 'transparent',
     },
-    swatchSelected: {
-      borderColor: colors.text,
+    swatchDots: {
+      flexDirection: 'row',
+      gap: 4,
     },
-    swatchTick: { color: colors.surface, fontSize: 16, fontWeight: '700' },
+    swatchDot: {
+      width: 9,
+      height: 9,
+      borderRadius: radius.pill,
+    },
+    swatchTick: {
+      fontSize: 13,
+      fontWeight: '700',
+      marginTop: 3,
+    },
     swatchLabel: {
       fontFamily: fonts.body,
       color: colors.textDim,

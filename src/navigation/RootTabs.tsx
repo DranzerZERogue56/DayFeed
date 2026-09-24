@@ -79,26 +79,45 @@ export default function RootTabs() {
         },
       }}
     >
+      {/* Feed, Flip, Flop and Fly each take one color of the active theme's
+          scheme, so the tab you're on is recognizable without reading it.
+          Agenda, All and Vault are lookups, and stay on the spine color. */}
       <Tab.Screen
         name="Feed"
         component={FeedScreen}
-        options={{ tabBarIcon: icon(SpeechBubbleIcon), tabBarLabel: 'Feed' }}
+        options={{
+          tabBarIcon: icon(SpeechBubbleIcon),
+          tabBarLabel: 'Feed',
+          tabBarActiveTintColor: colors.tabFeed,
+        }}
       />
       <Tab.Screen
         name="Flip"
         component={FlipScreen}
-        options={{ tabBarIcon: icon(OpenBookIcon), tabBarLabel: 'Flip' }}
+        options={{
+          tabBarIcon: icon(OpenBookIcon),
+          tabBarLabel: 'Flip',
+          tabBarActiveTintColor: colors.tabFlip,
+        }}
       />
       {/* Flop is its own world: a stack, not a screen, so it can drill in. */}
       <Tab.Screen
         name="Flop"
         component={FlopStack}
-        options={{ tabBarIcon: icon(BookStackIcon), tabBarLabel: 'Flop' }}
+        options={{
+          tabBarIcon: icon(BookStackIcon),
+          tabBarLabel: 'Flop',
+          tabBarActiveTintColor: colors.tabFlop,
+        }}
       />
       <Tab.Screen
         name="Fly"
         component={FlyScreen}
-        options={{ tabBarIcon: icon(QuillIcon), tabBarLabel: 'Fly' }}
+        options={{
+          tabBarIcon: icon(QuillIcon),
+          tabBarLabel: 'Fly',
+          tabBarActiveTintColor: colors.tabFly,
+        }}
       />
       <Tab.Screen
         name="Agenda"
