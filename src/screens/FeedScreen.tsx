@@ -128,17 +128,20 @@ export default function FeedScreen() {
               <ImagesIcon color={colors.accent} size={18} />
               <Text style={styles.photosBtnText}>Photos</Text>
             </TouchableOpacity>
-            {/* Icon-only: a second text pill next to "Photos" squeezes the
-                "DayFeed" title into an ellipsis — the same trap the seventh
-                tab label fell into. */}
-            <TouchableOpacity
-              style={styles.settingsBtn}
-              onPress={() => setSettingsOpen(true)}
-              accessibilityLabel="Open Settings"
-            >
-              <GearIcon color={colors.accent} size={18} />
-            </TouchableOpacity>
           </View>
+        }
+        // Icon-only, at the right edge where the day/night toggle sits on the
+        // other tabs: a text pill here squeezes the "DayFeed" title into an
+        // ellipsis. Settings holds the light/dark choice now.
+        trailing={
+          <TouchableOpacity
+            style={styles.settingsBtn}
+            onPress={() => setSettingsOpen(true)}
+            accessibilityLabel="Open Settings"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <GearIcon color={colors.textDim} size={20} />
+          </TouchableOpacity>
         }
       />
       {/* 'padding' on BOTH platforms: Android edge-to-edge (SDK 52+) no longer
@@ -236,16 +239,8 @@ const makeStyles = (colors: ColorPalette) =>
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.accentEdge,
   },
-  settingsBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.accentTint,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.accentEdge,
-  },
+  // Same plain icon and spacing the day/night toggle has on the other tabs.
+  settingsBtn: { marginLeft: spacing.md, padding: 2 },
   photosBtnText: {
     fontFamily: fonts.body,
     color: colors.accent,

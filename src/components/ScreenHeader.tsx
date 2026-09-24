@@ -13,13 +13,18 @@ interface Props {
   title: string;
   /** Optional control pinned to the right edge (calendar button, add button…). */
   action?: React.ReactNode;
+  /**
+   * Replaces the day/night toggle at the far right. Feed uses it for its
+   * Settings button, since Settings now holds the light/dark choice.
+   */
+  trailing?: React.ReactNode;
 }
 
 // The one header every tab shares: a bronze mono overline naming the surface's
 // job, a serif title beneath — the running head of a book chapter. Keeping this
 // identical across screens is what makes the app read as a single bound volume.
 // The moon/sun at the right edge flips the whole book between day and night.
-export default function ScreenHeader({ overline, title, action }: Props) {
+export default function ScreenHeader({ overline, title, action, trailing }: Props) {
   const styles = useStyles(makeStyles);
   const { colors, mode, toggleMode } = useTheme();
   return (
@@ -33,18 +38,20 @@ export default function ScreenHeader({ overline, title, action }: Props) {
         </Text>
       </View>
       {action}
-      <TouchableOpacity
-        onPress={toggleMode}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        style={styles.themeBtn}
-        accessibilityLabel={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-      >
-        {mode === 'light' ? (
-          <MoonIcon color={colors.textDim} size={20} />
-        ) : (
-          <SunIcon color={colors.textDim} size={20} />
-        )}
-      </TouchableOpacity>
+      {trailing ?? (
+        <TouchableOpacity
+          onPress={toggleMode}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.themeBtn}
+          accessibilityLabel={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {mode === 'light' ? (
+            <MoonIcon color={colors.textDim} size={20} />
+          ) : (
+            <SunIcon color={colors.textDim} size={20} />
+          )}
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

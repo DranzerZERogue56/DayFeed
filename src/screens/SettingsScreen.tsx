@@ -45,7 +45,7 @@ export default function SettingsScreen({ visible, onClose }: Props) {
           <Text style={styles.sectionLabel}>APPEARANCE</Text>
           <Text style={styles.sectionHint}>
             Light is paper in daylight. Dark is the same book after sundown, easier on the
-            eyes at night. The sun and moon button at the top of the Feed switches this too.
+            eyes at night. The sun and moon button at the top of the other tabs switches this too.
           </Text>
 
           <View style={styles.modeRow}>
