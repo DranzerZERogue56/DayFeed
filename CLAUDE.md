@@ -41,19 +41,31 @@ automatically — it has to be a config plugin, not a one-time edit, because
 the debug key when no keystore is configured, so a fresh checkout still
 builds.
 
-One-time setup, on the machine that will do release builds:
+The upload key already exists at `~/.dayfeed-keys/dayfeed-upload.keystore`
+(passwords in `~/.dayfeed-keys/keystore.properties`, which points at it by
+absolute path). It lives outside the repo **and outside `android/`** on
+purpose: `expo prebuild --clean` deletes everything in `android/`. After each
+prebuild, copy `~/.dayfeed-keys/keystore.properties` into `android/`. **Back
+up `~/.dayfeed-keys/` somewhere safe** — with Play App Signing a lost upload
+key can be reset by Google, but only if the account is still yours.
 
-```bash
-keytool -genkeypair -v -storetype PKCS12 \
-  -keystore release.keystore -alias dayfeed-release \
-  -keyalg RSA -keysize 2048 -validity 10000
-```
+**Sideloading onto a phone that has the debug-signed app:** move
+`android/keystore.properties` out of the way first. A different signature makes
+Android refuse the update, and the only way past that is uninstalling, which
+deletes the app's notes. With no properties file the build falls back to the
+debug key and installs over the top.
 
-Then, after each `expo prebuild`:
-1. Move `release.keystore` into `android/`.
-2. Copy `keystore.properties.example` (repo root) to `android/keystore.properties`
-   and fill in the real store/key passwords and alias.
+### Release hardening
 
-Both files are gitignored (`*.keystore`, `keystore.properties`) — back the
-keystore up somewhere safe outside the repo. **Losing it means you can never
-publish an update to the same Play Store listing again**, only a new one.
+`plugins/withReleaseShrink.js` turns on code/resource shrinking for release
+builds and adds keep rules for whisper (`com.rnwhisper`) and ML Kit
+(`com.rnmlkit`). Neither ships its own rules, and both are reached from C++ or
+by name, so without them they crash only in release builds. After changing
+either library, run dictation and photo text-scanning in a release build.
+
+`app.json` blocks four permissions the template adds but nothing uses:
+INTERNET, SYSTEM_ALERT_WINDOW and the two FOREGROUND_SERVICE ones. Blocking
+INTERNET means the app cannot reach a dev server, so a dev-client build needs
+that line removed temporarily.
+
+See `PLAY_STORE.md` for the Play Console answers and `PRIVACY.md` for the policy.
