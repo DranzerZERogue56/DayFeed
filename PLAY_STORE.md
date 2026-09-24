@@ -26,9 +26,10 @@ one, which deletes its notes**. Before that, export anything worth keeping
 
 ## Privacy policy
 
-`PRIVACY.md` is the policy text. Play needs it at a **public web address**.
-Options: turn on GitHub Pages for this repo (needs it public), or paste the
-text into any free page host. Fill in the contact email first.
+`PRIVACY.md` is the policy text. It's published via GitHub Pages at
+**https://dranzerzerogue56.github.io/DayFeed/** (source: `docs/index.html`,
+kept in sync with `PRIVACY.md` by hand). Paste that URL into Play Console's
+privacy policy field.
 
 ## Data safety form
 
@@ -68,11 +69,38 @@ rating.
 
 ## Store listing
 
-- **Category:** Productivity. **Contact email:** required.
-- **Assets needed:** 512×512 icon, 1024×500 feature graphic, at least 2 phone
-  screenshots (up to 8). None of these exist yet.
+- **Category:** Productivity. **Contact email:** benwrenn61438@gmail.com.
+- **Assets needed:** 512×512 icon (done, `store-assets/icon-512.png`),
+  1024×500 feature graphic, at least 2 phone screenshots (up to 8). Feature
+  graphic and screenshots still to do.
 - **Short description (80 characters):** "Notes that stay on your phone: quick capture, daily journal, private vault."
-- **Full description:** draft from the README, in plain words.
+- **Full description:**
+
+  > Write things down without handing them to anyone else. DayFeed keeps
+  > every note, photo, and voice memo on your phone — no account, no sign-in,
+  > no internet connection at all.
+  >
+  > Drop a quick note the moment you think of it, in a running feed like a
+  > chat with yourself. Flip back through your notes one day at a time, like
+  > pages in a notebook. Or open Flop, a separate space for the bigger ideas
+  > you're still working out, where you can branch off supporting points,
+  > new ideas, or counterarguments as you go.
+  >
+  > Say a note out loud and DayFeed writes it down for you — the
+  > speech-to-text runs right on your phone, so nothing you say is ever sent
+  > anywhere. Snap a photo of a note or a receipt and DayFeed can pull the
+  > text out of the picture, also without leaving your phone.
+  >
+  > Mention a date in a note — "dentist next Tuesday" — and it shows up on
+  > your agenda automatically, with a reminder if you want one.
+  >
+  > For anything more private, the Vault stores logins and passwords behind
+  > your phone's own fingerprint, face, or screen lock.
+  >
+  > Pick from a handful of color themes and make it feel like yours.
+  >
+  > DayFeed doesn't connect to the internet, doesn't show ads, and doesn't
+  > track you. Your notes are yours, and they stay on your device.
 
 ## Account and testing rules
 
