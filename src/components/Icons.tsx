@@ -351,17 +351,40 @@ export function DictateIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   );
 }
 
-/** Header — settings. */
+// The cog outline, worked out once: eight teeth around a body, each tooth a
+// short trapezoid (narrower at the tip than at the root), with a straight run
+// of body between neighbours. Drawing the points from angles rather than
+// hand-typing a path keeps the teeth evenly spaced. A ring of rays around a
+// circle reads as a sun, which is what this icon used to be.
+const COG_PATH = (() => {
+  const teeth = 8;
+  const root = 6.9; // radius of the body between teeth
+  const tip = 9.4; // radius of the tooth tips
+  const rootHalf = 14; // degrees either side of a tooth centre, at its root
+  const tipHalf = 8; // ...and at its tip
+  const pt = (deg: number, r: number) => {
+    const rad = (deg * Math.PI) / 180;
+    return `${(12 + Math.cos(rad) * r).toFixed(2)} ${(12 + Math.sin(rad) * r).toFixed(2)}`;
+  };
+  const parts: string[] = [];
+  for (let i = 0; i < teeth; i++) {
+    const c = (360 / teeth) * i - 90; // first tooth points straight up
+    parts.push(
+      `${i === 0 ? 'M' : 'L'}${pt(c - rootHalf, root)}`,
+      `L${pt(c - tipHalf, tip)}`,
+      `L${pt(c + tipHalf, tip)}`,
+      `L${pt(c + rootHalf, root)}`,
+    );
+  }
+  return `${parts.join(' ')} Z`;
+})();
+
+/** Header — settings. A cog: toothed wheel with a hole in the middle. */
 export function GearIcon({ size = 22, color, strokeWidth = S }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="3.2" stroke={color} strokeWidth={strokeWidth} />
-      <Path
-        d="M12 3.2v2M12 18.8v2M20.8 12h-2M5.2 12h-2M18.2 5.8l-1.4 1.4M7.2 16.8l-1.4 1.4M18.2 18.2l-1.4-1.4M7.2 7.2L5.8 5.8"
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-      />
+      <Path d={COG_PATH} stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round" />
+      <Circle cx="12" cy="12" r="2.8" stroke={color} strokeWidth={strokeWidth} />
     </Svg>
   );
 }
