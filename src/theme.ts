@@ -13,8 +13,8 @@ import { contrastRatio, hsl, hsla } from './lib/color';
 // notebook rather than the same cream one with blue buttons.
 //
 // Each theme is also a small scheme rather than a single color: seven, one for
-// each tab, so the tab you are on has its own color both on its icon and
-// throughout its screen.
+// each tab. A tab's color goes on its icon in the tab bar while that tab is
+// selected, and nowhere else; everything inside a screen uses the primary.
 //
 //   primary    the spine — Feed, and buttons, pins, selected dates, the voice ring
 //   secondary  a green-leaning partner — Flip, and "Support" relations

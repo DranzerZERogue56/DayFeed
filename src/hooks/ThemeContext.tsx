@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import { StyleSheet } from 'react-native';
 import { getSetting, setSetting } from '../db/settings';
-import { withAlpha } from '../lib/color';
 import {
   accentOrder,
   makePalette,
@@ -92,55 +91,6 @@ export function useTheme(): ThemeValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error('useTheme must be used within a ThemeProvider');
   return ctx;
-}
-
-type TabColorKey =
-  | 'tabFeed'
-  | 'tabFlip'
-  | 'tabFlop'
-  | 'tabFly'
-  | 'tabAgenda'
-  | 'tabAll'
-  | 'tabVault';
-
-/**
- * Re-points everything "accent" inside a screen at that tab's own color.
- * Without this, the tab icon shows Flop's own color while the Flop
- * screen's buttons, links and highlights show the theme's main color — two
- * colors for one place. Wrapped around a whole screen (modals opened from it
- * included, since context follows the tree), it makes the tab and its screen
- * agree, and every component keeps reading `colors.accent` as before.
- */
-export function withTabAccent<P extends object>(
-  Screen: React.ComponentType<P>,
-  key: TabColorKey,
-): React.ComponentType<P> {
-  function Scoped(props: P) {
-    const theme = useTheme();
-    const value = useMemo<ThemeValue>(() => {
-      const c = theme.colors[key];
-      const dark = theme.mode === 'dark';
-      return {
-        ...theme,
-        colors: {
-          ...theme.colors,
-          accent: c,
-          accentDark: c,
-          accentTint: withAlpha(c, dark ? 0.14 : 0.1),
-          accentEdge: withAlpha(c, dark ? 0.35 : 0.28),
-          voiceAccent: c,
-          bubbleOwn: c,
-        },
-      };
-    }, [theme]);
-    return (
-      <ThemeContext.Provider value={value}>
-        <Screen {...props} />
-      </ThemeContext.Provider>
-    );
-  }
-  Scoped.displayName = `TabAccent(${Screen.displayName || Screen.name || 'Screen'})`;
-  return Scoped;
 }
 
 /**

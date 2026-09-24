@@ -13,7 +13,7 @@ import FlopStack from './FlopStack';
 import FlyScreen from '../screens/FlyScreen';
 import VaultScreen from '../screens/VaultScreen';
 import type { RootTabParamList } from './types';
-import { useTheme, withTabAccent } from '../hooks/ThemeContext';
+import { useTheme } from '../hooks/ThemeContext';
 import TabSwipeBar from '../components/TabSwipeBar';
 import {
   BookStackIcon,
@@ -29,18 +29,14 @@ import { fonts } from '../theme';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-// Every tab gets its own color inside its screen as well as on its icon.
-const FeedTab = withTabAccent(FeedScreen, 'tabFeed');
-const FlipTab = withTabAccent(FlipScreen, 'tabFlip');
-const FlopTab = withTabAccent(FlopStack, 'tabFlop');
-const FlyTab = withTabAccent(FlyScreen, 'tabFly');
-const AgendaTab = withTabAccent(AgendaScreen, 'tabAgenda');
-const AllTab = withTabAccent(AllNotesScreen, 'tabAll');
-const VaultTab = withTabAccent(VaultScreen, 'tabVault');
-
+// `activeColor` is this tab's own color from the theme. It goes on the icon
+// alone, and only while the tab is selected; the label under it keeps the
+// theme's main color (tabBarActiveTintColor in screenOptions below).
 const icon =
-  (Glyph: (p: IconProps) => React.JSX.Element) =>
-  ({ color }: { color: string }) => <Glyph color={color} size={22} />;
+  (Glyph: (p: IconProps) => React.JSX.Element, activeColor: string) =>
+  ({ color, focused }: { color: string; focused: boolean }) => (
+    <Glyph color={focused ? activeColor : color} size={22} />
+  );
 
 // Feed, Flip, Flop and Fly are the four stops in a note's life — capture,
 // review, organize, and write the day down — so they're what the swipe bar
@@ -88,72 +84,66 @@ export default function RootTabs() {
         },
       }}
     >
-      {/* Each tab takes its own color from the active theme's scheme, so the
-          tab you're on is recognizable without reading it. */}
+      {/* Each tab's icon takes its own color from the active theme's scheme
+          when you're on it. Only the icon: everything inside the screen keeps
+          the theme's main color. */}
       <Tab.Screen
         name="Feed"
-        component={FeedTab}
+        component={FeedScreen}
         options={{
-          tabBarIcon: icon(SpeechBubbleIcon),
+          tabBarIcon: icon(SpeechBubbleIcon, colors.tabFeed),
           tabBarLabel: 'Feed',
-          tabBarActiveTintColor: colors.tabFeed,
         }}
       />
       <Tab.Screen
         name="Flip"
-        component={FlipTab}
+        component={FlipScreen}
         options={{
-          tabBarIcon: icon(OpenBookIcon),
+          tabBarIcon: icon(OpenBookIcon, colors.tabFlip),
           tabBarLabel: 'Flip',
-          tabBarActiveTintColor: colors.tabFlip,
         }}
       />
       {/* Flop is its own world: a stack, not a screen, so it can drill in. */}
       <Tab.Screen
         name="Flop"
-        component={FlopTab}
+        component={FlopStack}
         options={{
-          tabBarIcon: icon(BookStackIcon),
+          tabBarIcon: icon(BookStackIcon, colors.tabFlop),
           tabBarLabel: 'Flop',
-          tabBarActiveTintColor: colors.tabFlop,
         }}
       />
       <Tab.Screen
         name="Fly"
-        component={FlyTab}
+        component={FlyScreen}
         options={{
-          tabBarIcon: icon(QuillIcon),
+          tabBarIcon: icon(QuillIcon, colors.tabFly),
           tabBarLabel: 'Fly',
-          tabBarActiveTintColor: colors.tabFly,
         }}
       />
       <Tab.Screen
         name="Agenda"
-        component={AgendaTab}
+        component={AgendaScreen}
         options={{
-          tabBarIcon: icon(CalendarIcon),
+          tabBarIcon: icon(CalendarIcon, colors.tabAgenda),
           tabBarLabel: 'Agenda',
-          tabBarActiveTintColor: colors.tabAgenda,
         }}
       />
       <Tab.Screen
         name="All"
-        component={AllTab}
+        component={AllNotesScreen}
         // 'All', not 'View All': the Fly tab makes seven, and at that width
         // Android truncated the longer label to "View ...".
         options={{
-          tabBarIcon: icon(CardStackIcon),
+          tabBarIcon: icon(CardStackIcon, colors.tabAll),
           tabBarLabel: 'All',
-          tabBarActiveTintColor: colors.tabAll,
         }}
       />
       <Tab.Screen
         name="Vault"
-        component={VaultTab}
+        component={VaultScreen}
         options={{
-          tabBarIcon: icon(LockIcon),
+          tabBarIcon: icon(LockIcon, colors.tabVault),
           tabBarLabel: 'Vault',
-          tabBarActiveTintColor: colors.tabVault,
         }}
       />
     </Tab.Navigator>
