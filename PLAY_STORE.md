@@ -70,10 +70,12 @@ rating.
 ## Store listing
 
 - **Category:** Productivity. **Contact email:** benwrenn61438@gmail.com.
-- **Assets needed:** 512×512 icon (done, `store-assets/icon-512.png`),
-  1024×500 feature graphic, at least 2 phone screenshots (up to 8). Feature
-  graphic and screenshots still to do.
-- **Short description (80 characters):** "Notes that stay on your phone: quick capture, daily journal, private vault."
+- **Assets:** 512×512 icon (`store-assets/icon-512.png`) and 1024×500
+  feature graphic (`store-assets/feature-graphic.png`) are done. Play wants at
+  least 2 phone screenshots (up to 8), no taller than twice their width. The two
+  in `store-assets/screenshot-*.png` are cropped to fit, but they show test notes;
+  retake them with believable sample notes before submitting.
+- **Short description (80 characters):** "Private notes that stay on your phone: quick capture, voice notes, and a vault."
 - **Full description:**
 
   > Write things down without handing them to anyone else. DayFeed keeps
