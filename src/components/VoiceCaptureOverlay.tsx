@@ -117,7 +117,7 @@ export default function VoiceCaptureOverlay() {
               <Text style={styles.title}>{heard ? 'Listening…' : 'Say something'}</Text>
               <Waveform level={level} color={colors.voiceAccent} />
               <Text style={styles.hint}>
-                {heard ? 'Stops on its own when you pause.' : 'End with “to Feed”, “to Flop” or “to Fly”.'}
+                {heard ? 'Stops on its own when you pause.' : 'End with “to Feed” or “to Flop”.'}
               </Text>
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.ghost} onPress={dismiss}>

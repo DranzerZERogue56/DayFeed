@@ -6,7 +6,7 @@
 // Flip is deliberately not a destination. It is a *view* of Feed days, not a
 // place notes live, so "to Flip" would have nowhere to write to.
 
-export const VOICE_DESTINATIONS = ['Feed', 'Flop', 'Fly'] as const;
+export const VOICE_DESTINATIONS = ['Feed', 'Flop'] as const;
 export type VoiceDestination = (typeof VOICE_DESTINATIONS)[number];
 
 export interface RoutedDictation {
@@ -24,7 +24,7 @@ export interface RoutedDictation {
 // trailing period, and any case. "send/save/add ... to X" is accepted too
 // because it is how the phrase actually comes out loud.
 const TRAILING_DESTINATION =
-  /[\s,;—-]*(?:(?:and\s+)?(?:send|save|add|put|file)\s+(?:it\s+|this\s+|that\s+)?)?\b(?:to|in|into|on)\s+(feed|flop|fly)\b\s*[.!?]*\s*$/i;
+  /[\s,;—-]*(?:(?:and\s+)?(?:send|save|add|put|file)\s+(?:it\s+|this\s+|that\s+)?)?\b(?:to|in|into|on)\s+(feed|flop)\b\s*[.!?]*\s*$/i;
 
 /** Canonicalise a matched word to the tab name, whatever case it arrived in. */
 function toDestination(word: string): VoiceDestination | null {

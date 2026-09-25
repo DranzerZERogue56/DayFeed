@@ -169,7 +169,15 @@ CREATE TABLE IF NOT EXISTS fly_stories (
 );
 `;
 
-const LATEST_VERSION = 12;
+// v1.15.1: Fly removed — AI story consolidation didn't work reliably enough
+// to keep. Drops its tables rather than leaving them inert; nothing else
+// ever read fly_notes/fly_stories.
+const MIGRATION_V13 = `
+DROP TABLE IF EXISTS fly_notes;
+DROP TABLE IF EXISTS fly_stories;
+`;
+
+const LATEST_VERSION = 13;
 
 /**
  * Run schema migrations based on PRAGMA user_version. Each step is idempotent at
@@ -244,6 +252,12 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   if (current < 12) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATION_V12);
+    });
+  }
+
+  if (current < 13) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATION_V13);
     });
   }
 

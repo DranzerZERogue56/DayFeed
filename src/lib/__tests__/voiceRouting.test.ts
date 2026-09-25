@@ -11,7 +11,6 @@ describe('parseDestination', () => {
   it('accepts each destination, however whisper capitalises it', () => {
     expect(parseDestination('Milk to feed').destination).toBe('Feed');
     expect(parseDestination('Milk to FLOP').destination).toBe('Flop');
-    expect(parseDestination('Milk to Fly').destination).toBe('Fly');
   });
 
   it('tolerates whisper punctuation', () => {
@@ -22,7 +21,6 @@ describe('parseDestination', () => {
   });
 
   it('accepts the spoken longer forms', () => {
-    expect(parseDestination('Buy milk, send it to Fly').destination).toBe('Fly');
     expect(parseDestination('Buy milk and save this to Flop').destination).toBe('Flop');
     expect(parseDestination('Buy milk, put it in Feed').destination).toBe('Feed');
   });
@@ -87,10 +85,6 @@ describe('planTypedNote', () => {
       content: 'Buy milk',
       destination: null,
     });
-    expect(planTypedNote('Buy milk to Fly', 'Fly')).toEqual({
-      content: 'Buy milk',
-      destination: null,
-    });
   });
 
   it('leaves an ordinary note completely alone', () => {
@@ -104,13 +98,6 @@ describe('planTypedNote', () => {
     expect(planTypedNote('Put the feed bins away', 'Flop')).toEqual({
       content: 'Put the feed bins away',
       destination: null,
-    });
-  });
-
-  it('routes from Fly to Feed', () => {
-    expect(planTypedNote('Call the dentist, to Feed', 'Fly')).toEqual({
-      content: 'Call the dentist',
-      destination: 'Feed',
     });
   });
 });

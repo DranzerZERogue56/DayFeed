@@ -80,14 +80,14 @@ describe.each(accentOrder)('theme: %s', (id: AccentId) => {
       expect(contrastRatio(p.accentDark, p.surface)).toBeGreaterThanOrEqual(LARGE_TEXT);
     });
 
-    it('keeps all seven tab colors visible on the tab bar', () => {
+    it('keeps all six tab colors visible on the tab bar', () => {
       for (const c of themeSwatch(id, mode)) {
         expect(contrastRatio(c, p.surface)).toBeGreaterThanOrEqual(LARGE_TEXT);
       }
     });
 
-    it('gives the seven tabs seven distinct colors', () => {
-      expect(new Set(themeSwatch(id, mode)).size).toBe(7);
+    it('gives the six tabs six distinct colors', () => {
+      expect(new Set(themeSwatch(id, mode)).size).toBe(6);
     });
 
     it('keeps danger and success visible', () => {

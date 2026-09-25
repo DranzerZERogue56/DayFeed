@@ -10,7 +10,6 @@ import FlipScreen from '../screens/FlipScreen';
 import AllNotesScreen from '../screens/AllNotesScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import FlopStack from './FlopStack';
-import FlyScreen from '../screens/FlyScreen';
 import VaultScreen from '../screens/VaultScreen';
 import type { RootTabParamList } from './types';
 import { useTheme } from '../hooks/ThemeContext';
@@ -21,7 +20,6 @@ import {
   CardStackIcon,
   LockIcon,
   OpenBookIcon,
-  QuillIcon,
   SpeechBubbleIcon,
   type IconProps,
 } from '../components/Icons';
@@ -38,11 +36,10 @@ const icon =
     <Glyph color={focused ? activeColor : color} size={22} />
   );
 
-// Feed, Flip, Flop and Fly are the four stops in a note's life — capture,
-// review, organize, and write the day down — so they're what the swipe bar
-// steps between. Agenda and View All are lookups, not part of that flow, so
-// the bar hides on them.
-const SWIPE_ORDER: Array<keyof RootTabParamList> = ['Feed', 'Flip', 'Flop', 'Fly'];
+// Feed, Flip and Flop are the three stops in a note's life — capture,
+// review, and organize — so they're what the swipe bar steps between. Agenda
+// and View All are lookups, not part of that flow, so the bar hides on them.
+const SWIPE_ORDER: Array<keyof RootTabParamList> = ['Feed', 'Flip', 'Flop'];
 
 // Wraps the default tab bar with a swipe strip sitting just above it.
 function TabBarWithSwipe(props: BottomTabBarProps) {
@@ -113,14 +110,6 @@ export default function RootTabs() {
         }}
       />
       <Tab.Screen
-        name="Fly"
-        component={FlyScreen}
-        options={{
-          tabBarIcon: icon(QuillIcon, colors.tabFly),
-          tabBarLabel: 'Fly',
-        }}
-      />
-      <Tab.Screen
         name="Agenda"
         component={AgendaScreen}
         options={{
@@ -131,8 +120,6 @@ export default function RootTabs() {
       <Tab.Screen
         name="All"
         component={AllNotesScreen}
-        // 'All', not 'View All': the Fly tab makes seven, and at that width
-        // Android truncated the longer label to "View ...".
         options={{
           tabBarIcon: icon(CardStackIcon, colors.tabAll),
           tabBarLabel: 'All',

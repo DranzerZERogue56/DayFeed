@@ -21,10 +21,7 @@ interface Props {
   onSendText: (text: string) => void;
   onRecorded: (result: RecorderResult) => void;
   onPermissionDenied: () => void;
-  /**
-   * Omit to hide the camera button. Fly is text and voice only — a photo has
-   * nothing to contribute to a day that gets read back as prose.
-   */
+  /** Omit to hide the camera button. */
   onOpenCamera?: () => void;
   placeholder?: string;
   /**

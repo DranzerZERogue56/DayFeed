@@ -12,14 +12,15 @@ import { contrastRatio, hsl, hsla } from './lib/color';
 // the ink itself all shift to the theme's hue, so Ocean reads as a cool blue
 // notebook rather than the same cream one with blue buttons.
 //
-// Each theme is also a small scheme rather than a single color: seven, one for
-// each tab. A tab's color goes on its icon in the tab bar while that tab is
-// selected, and nowhere else; everything inside a screen uses the primary.
+// Each theme is also a small scheme rather than a single color: one per tab,
+// plus a spare. A tab's color goes on its icon in the tab bar while that tab
+// is selected, and nowhere else; everything inside a screen uses the primary.
 //
 //   primary    the spine — Feed, and buttons, pins, selected dates, the voice ring
 //   secondary  a green-leaning partner — Flip, and "Support" relations
 //   tertiary   a red-leaning partner — Flop, and "Oppose" relations
-//   quaternary Fly
+//   quaternary unused since Fly was removed — kept seeded so existing
+//              installs' other tab colors don't shift
 //   quinary    Agenda
 //   senary     All
 //   septenary  Vault
@@ -291,16 +292,15 @@ export interface AccentTokens {
 }
 
 /**
- * The four stops in a note's life get a color each, so the tab you're on is
+ * The three stops in a note's life get a color each, so the tab you're on is
  * recognizable at a glance and the app shows off its whole scheme rather than
- * one accent repeated seven times. Agenda, All and Vault are lookups rather
+ * one accent repeated six times. Agenda, All and Vault are lookups rather
  * than part of that flow, and stay on the primary.
  */
 export interface TabTokens {
   tabFeed: string;
   tabFlip: string;
   tabFlop: string;
-  tabFly: string;
   tabAgenda: string;
   tabAll: string;
   tabVault: string;
@@ -309,7 +309,7 @@ export interface TabTokens {
 export type ColorPalette = BaseTokens & AccentTokens & TabTokens;
 
 function makeThemePalette(seeds: ThemeSeeds, ladder: Ladder): ColorPalette {
-  const { primary, secondary, tertiary, quaternary, quinary, senary, septenary } = seeds;
+  const { primary, secondary, tertiary, quinary, senary, septenary } = seeds;
   const mode = ladder.mode;
 
   const bg = step(primary, ladder.bg);
@@ -386,7 +386,6 @@ function makeThemePalette(seeds: ThemeSeeds, ladder: Ladder): ColorPalette {
     tabFeed: accent,
     tabFlip: tone(secondary, ladder.accentL, surface, MIN_ACCENT, mode),
     tabFlop: tone(tertiary, ladder.accentL, surface, MIN_ACCENT, mode),
-    tabFly: tone(quaternary, ladder.accentL, surface, MIN_ACCENT, mode),
     tabAgenda: tone(quinary, ladder.accentL, surface, MIN_ACCENT, mode),
     tabAll: tone(senary, ladder.accentL, surface, MIN_ACCENT, mode),
     tabVault: tone(septenary, ladder.accentL, surface, MIN_ACCENT, mode),
@@ -428,7 +427,6 @@ const bronzeLight: ColorPalette = {
   tabFeed: '#A67C52',
   tabFlip: '#5A7052',
   tabFlop: '#94524A',
-  tabFly: '#4E7382',
   tabAgenda: '#7A6494',
   tabAll: '#9A7B2E',
   tabVault: '#8A5A6E',
@@ -466,7 +464,6 @@ const bronzeDark: ColorPalette = {
   tabFeed: '#C89B66',
   tabFlip: '#8FA986',
   tabFlop: '#D0877D',
-  tabFly: '#8FB2C2',
   tabAgenda: '#A78BC4',
   tabAll: '#C9A54A',
   tabVault: '#C48AA0',
@@ -498,10 +495,10 @@ export function makePalette(mode: 'light' | 'dark', accentId: AccentId): ColorPa
   return accentThemes[accentId][mode];
 }
 
-/** The scheme's seven tab colors, for the Settings picker swatches. */
+/** The scheme's six tab colors, for the Settings picker swatches. */
 export function themeSwatch(accentId: AccentId, mode: 'light' | 'dark'): string[] {
   const p = makePalette(mode, accentId);
-  return [p.tabFeed, p.tabFlip, p.tabFlop, p.tabFly, p.tabAgenda, p.tabAll, p.tabVault];
+  return [p.tabFeed, p.tabFlip, p.tabFlop, p.tabAgenda, p.tabAll, p.tabVault];
 }
 
 // Kept for any code that still wants the plain bronze palette directly.

@@ -46,9 +46,9 @@ const MONTHS = [
  * Absolute day label, e.g. "Mon, Jul 14 2026" — never relative.
  *
  * Split out from formatDayHeader for text that outlives the moment it was
- * written: a Fly clipboard payload saying "Today" means something different
- * every day it is read, and the weekday is often the whole reason a day went
- * the way it did.
+ * written: a note referencing "Today" means something different every day
+ * it is read, and the weekday is often the whole reason a day went the way
+ * it did.
  */
 export function formatDayLong(key: string): string {
   const d = dateFromDayKey(key);

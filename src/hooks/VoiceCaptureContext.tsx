@@ -15,7 +15,6 @@ import { enqueueTranscription } from '../lib/transcribeQueue';
 import { transcribeAudio } from '../lib/transcription';
 import { deleteWav, writeWavToCache } from '../lib/wavFile';
 import { parseDestination, type VoiceDestination } from '../lib/voiceRouting';
-import { createFlyNote, deleteFlyNote } from '../db/flyNotes';
 import { useNotes } from './NotesContext';
 import { useFlop } from './FlopContext';
 
@@ -156,21 +155,15 @@ export function VoiceCaptureProvider({ children }: { children: React.ReactNode }
         const note = await addNote({ type: 'text', content });
         return () => removeNote(note.id);
       }
-      if (destination === 'Flop') {
-        // parent_id null forces relation 'root' inside createFlopNote; a
-        // dictated thought has no parent to attach to.
-        const note = await addFlopNote({
-          parent_id: null,
-          relation: 'root',
-          type: 'text',
-          content,
-        });
-        return () => removeFlopNote(note.id);
-      }
-      // Fly has no provider — FlyScreen owns its version counter and re-reads
-      // on focus, so writing straight to the db is correct here.
-      const note = await createFlyNote({ type: 'text', content });
-      return () => deleteFlyNote(note.id);
+      // parent_id null forces relation 'root' inside createFlopNote; a
+      // dictated thought has no parent to attach to.
+      const note = await addFlopNote({
+        parent_id: null,
+        relation: 'root',
+        type: 'text',
+        content,
+      });
+      return () => removeFlopNote(note.id);
     },
     [addNote, removeNote, addFlopNote, removeFlopNote],
   );
