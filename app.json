@@ -2,7 +2,7 @@
   "expo": {
     "name": "DayFeed",
     "slug": "DayFeed",
-    "version": "1.15.0",
+    "version": "1.15.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.dayfeed.app",
-      "versionCode": 44,
+      "versionCode": 45,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA"
